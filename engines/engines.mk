@@ -135,6 +135,11 @@ DEFINES += -DENABLE_QUEEN=$(ENABLE_QUEEN)
 MODULES += engines/queen
 endif
 
+ifdef ENABLE_ROBIN
+DEFINES += -DENABLE_ROBIN=$(ENABLE_ROBIN)
+MODULES += engines/robin
+endif
+
 ifdef ENABLE_SAGA
 DEFINES += -DENABLE_SAGA=$(ENABLE_SAGA)
 MODULES += engines/saga
