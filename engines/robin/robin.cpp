@@ -27,10 +27,11 @@
 #include "common/debug-channels.h"
 #include "common/config-manager.h"
 #include "common/textconsole.h"
+#include "common/memstream.h"
 
 #include "robin/robin.h"
-
 #include "engines/util.h"
+#include "robin/script.h"
 
 namespace Robin {
 
@@ -52,6 +53,9 @@ RobinEngine::RobinEngine(OSystem *syst, const RobinGameDescription *gd) : Engine
 
 	_console = new RobinConsole(this);
 	_rnd = 0;
+	_scriptHandler = new RobinScript(this);
+
+	_vm_byte1714E = 0;
 }
 
 RobinEngine::~RobinEngine() {
@@ -70,7 +74,7 @@ bool RobinEngine::hasFeature(EngineFeature f) const {
 }
 
 const char *RobinEngine::getCopyrightString() const {
-	return "Copyright 1989-1997 David P Gray, All Rights Reserved.";
+	return "copyright S.L.Grand, Brainware, 1991";
 }
 
 GameType RobinEngine::getGameType() const {
@@ -216,10 +220,12 @@ void RobinEngine::loadRules() {
 
 	// Chunk 5: Scripts
 	warning("Chunk 5 Pos: %d", f.pos());
-	_rulesScript_size = f.readUint16LE();
-	_rulesScript = (int *)malloc(sizeof(int) * _rulesScript_size);
+	// Use byte instead of int, therefore multiply by two the size.
+	// This is for changing that into a memory read stream
+	_rulesScript_size = f.readUint16LE() * 2;
+	_rulesScript = (byte *)malloc(sizeof(byte) * _rulesScript_size);
 	for (int i = 0; i < _rulesScript_size; ++i)
-		_rulesScript[i] = f.readUint16LE();
+		_rulesScript[i] = f.readByte();
 
 	// Chunk 6
 	_rulesChunk6_size = f.readUint16LE();
@@ -326,7 +332,7 @@ Common::Error RobinEngine::run() {
 	loadRules();
 
 	//TODO: Init sound/music player
-	//TODO: loop in script handler using _rulesScript
+	_scriptHandler->runScript(Common::MemoryReadStream(_rulesScript, _rulesScript_size));
 
 	//TODO: Main loop
 	return Common::kNoError;
