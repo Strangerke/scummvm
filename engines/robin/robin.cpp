@@ -55,7 +55,8 @@ RobinEngine::RobinEngine(OSystem *syst, const RobinGameDescription *gd) : Engine
 	_rnd = 0;
 	_scriptHandler = new RobinScript(this);
 
-	_vm_byte1714E = 0;
+	_byte1714E = 0;
+	_rulesBuffer2PrevIndx = 0;
 }
 
 RobinEngine::~RobinEngine() {
