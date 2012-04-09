@@ -111,6 +111,9 @@ RobinEngine::RobinEngine(OSystem *syst, const RobinGameDescription *gd) : Engine
 
 	_console = new RobinConsole(this);
 	_rnd = 0;
+	_mouseX = 0;
+	_mouseY = 0;
+	_mouseButton = 0;
 	_scriptHandler = new RobinScript(this);
 
 	_byte1714E = 0;
@@ -151,6 +154,18 @@ GameType RobinEngine::getGameType() const {
 
 Common::Platform RobinEngine::getPlatform() const {
 	return _platform;
+}
+
+void RobinEngine::getMouseEvent() {
+	Common::EventManager *_event = _system->getEventManager();
+
+	Common::Event event;
+	while (_event->pollEvent(event) && !_shouldQuit)
+		;
+
+	_mouseX = _event->getMousePos().x;
+	_mouseY = _event->getMousePos().y;
+	_mouseButton = _event->getButtonState();
 }
 
 byte *RobinEngine::loadVGA(Common::String filename, bool loadPal) {
@@ -445,6 +460,7 @@ void RobinEngine::initialize() {
 
 	_rnd = new Common::RandomSource("robin");
 	_rnd->setSeed(42);                              // Kick random number generator
+	_shouldQuit = false;
 
 	for (int i = 0; i < 4; i++) {
 		_arr18560[i]._field0 = 0;
