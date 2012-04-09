@@ -164,9 +164,10 @@ byte *RobinEngine::loadVGA(Common::String filename, bool loadPal) {
 		for (int i = 0; i < 768; ++i)
 			_curPalette[i] = f.readByte();
 		remainingSize -= 768;
+
+		fixPaletteEntries(_curPalette, 256);
+		_system->getPaletteManager()->setPalette(_curPalette, 0, 256);
 	}
-	fixPaletteEntries(_curPalette, 768);
-	_system->getPaletteManager()->setPalette(_curPalette, 0, 256);
 
 	uint8 curByte;
 	byte decodeBuffer[100000];
@@ -377,6 +378,17 @@ void RobinEngine::loadRules() {
 	// Skipped: Load Savegame
 }
 
+void RobinEngine::displayVGAFile(Common::String fileName) {
+	warning("TODO: display function #4");
+
+	byte *buffer = loadVGA(fileName, true);
+	memcpy(_mainSurface->pixels, buffer, 320*200);
+	_system->copyRectToScreen((byte *)_mainSurface->pixels, 320, 0, 0, 320, 200);
+	_system->updateScreen();
+
+	warning("TODO: display function #5");
+}
+
 void RobinEngine::fixPaletteEntries(uint8 *palette, int num) {
 	// Color values are coded on 6bits ( for old 6bits DAC )
 	for (int32 i = 0; i < num * 3; i++) {
@@ -394,7 +406,7 @@ void RobinEngine::initPalette() {
 	for (int i = 0; i < 768; i++)
 		_curPalette[i] = _basisPalette[i];
 
-	fixPaletteEntries(_curPalette, 768);
+	fixPaletteEntries(_curPalette, 256);
 	_system->getPaletteManager()->setPalette(_curPalette, 0, 256);
 }
 
