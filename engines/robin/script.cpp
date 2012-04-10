@@ -476,7 +476,7 @@ void RobinScript::handleOpcodeType2(int curWord) {
 		OC_sub184D7();
 		break;
 	case 0x55:
-		OC_sub184F5();
+		OC_displayTitleScreen();
 		break;
 	case 0x56:
 		OC_sub1853B();
@@ -1298,21 +1298,22 @@ void RobinScript::OC_displayVGAFile() {
 void RobinScript::OC_sub184D7() {
 	warning("OC_sub184D7");
 }
-void RobinScript::OC_sub184F5() {
-	debugC(1, kDebugScript, "OC_sub184F5()");
+void RobinScript::OC_displayTitleScreen() {
+	debugC(1, kDebugScript, "OC_displayTitleScreen()");
 
 	_vm->_byte184F4 = (_currScript->readUint16LE() & 0xFF);
 	_vm->_sound_byte16F06 = _vm->_byte184F4;
-	// TODO: use a separated function when properly identified
-	_vm->_word12D3D = 0;
-	_vm->_word12D3F = 0;
+
+	// TODO: Rewrite keyboard handling (this code was in a separated function)
+	_vm->_keyboard_nextIndex = 0;
+	_vm->_keyboard_oldIndex = 0;
 	//
 	_vm->_mouseButton = 0;
 	_vm->_byte16F09 = 0;
 
 	for (;;) {
 		sub185B4_display();
-		_vm->getMouseEvent();
+		_vm->pollEvent();
 		if (_vm->_keyboard_nextIndex != _vm->_keyboard_oldIndex) {
 			_vm->_byte16F09 = _vm->_keyboard_getch();
 			_vm->_keyboard_getch();
