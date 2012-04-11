@@ -139,6 +139,7 @@ RobinEngine::RobinEngine(OSystem *syst, const RobinGameDescription *gd) : Engine
 		_array11D49[i] = 0xFFFF;
 	}
 
+	_ptr_rulesBuffer2_15 = NULL;
 }
 
 RobinEngine::~RobinEngine() {
@@ -501,8 +502,9 @@ void RobinEngine::handleMenu() {
 	_byte16F07_menuId = 0;
 }
 
-void RobinEngine::sub17083() {
-	warning("sub17083");
+void RobinEngine::handleGameScripts() {
+	debugC(1, kDebugEngine, "handleGameScripts()");
+
 	int index = _word17081_nextIndex;
 	int i;
 	for (i = 0; (_scriptHandler->_array10B29[index] == 0) && (i < _word10807_ERULES); i++) {
@@ -531,6 +533,8 @@ void RobinEngine::sub17083() {
 		return;
 
 	assert(tmpVal < _gameScriptIndexSize);
+	warning("========================== Game Script %d ==============================", tmpVal);
+
 	_scriptHandler->runScript(Common::MemoryReadStream(&_arrayGameScripts[_arrayGameScriptIndex[tmpVal]], _arrayGameScriptIndex[tmpVal + 1] - _arrayGameScriptIndex[tmpVal]));
 }
 
@@ -562,7 +566,7 @@ Common::Error RobinEngine::run() {
 
 	while(!_shouldQuit) {
 		handleMenu();
-		sub17083();
+		handleGameScripts();
 		// To be removed when handled in the previous fonctions
 		pollEvent();
 	}
