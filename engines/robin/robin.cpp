@@ -137,6 +137,7 @@ RobinEngine::RobinEngine(OSystem *syst, const RobinGameDescription *gd) : Engine
 	_word1817B = 0;
 	_word15BC8 = 0;
 	_word15BCA = 0;
+	_word15AC2 = 0;
 
 	_saveFlag = false;
 	_byte16F07_menuId = 0;
@@ -181,7 +182,7 @@ Common::Platform RobinEngine::getPlatform() const {
 }
 
 void RobinEngine::displayFunction1(byte *buf, int var1, int var2, int var4) {
-	debugC(2, kDebugEngine, "displayFunction1a(buf, %d, %d, %d)", var1, var2, var4);
+	debugC(2, kDebugEngine, "displayFunction1(buf, %d, %d, %d)", var1, var2, var4);
 
 	int index1 = ((var1 & 0xFF) << 8) + (var1 >> 8);
 	byte *newBuf = &buf[index1];
@@ -223,7 +224,7 @@ void RobinEngine::displayFunction1(byte *buf, int var1, int var2, int var4) {
 		if (newBuf[15] != 0)
 			((byte *)_mainSurface->pixels)[index2 + 15] = newBuf[15];
 
-		index2 += 304;
+		index2 += 320;
 		newBuf = &newBuf[16];
 	}
 	_system->copyRectToScreen((byte *)_mainSurface->pixels, 320, 0, 0, 320, 200);
@@ -234,6 +235,24 @@ void RobinEngine::displayFunction1a(byte *buf, int var2, int var4) {
 	debugC(2, kDebugEngine, "displayFunction1a(buf, %d, %d)", var2, var4);
 
 	displayFunction1(buf, 0, var2, var4);
+}
+
+void RobinEngine::displayFunction4() {
+	debugC(2, kDebugEngine, "displayFunction4()");
+
+	if ((_skipDisplayFlag1 != 1) && (_skipDisplayFlag2 != 1)) {
+		_skipDisplayFlag2 = 1;
+
+		_word15BC8 = _mouseDisplayX;
+		_word15BCA = _mouseDisplayY;
+
+		warning("Display function 2");
+
+		displayFunction1(_bufferIdeogram, _word15AC2 + 80, _mouseDisplayX, _mouseDisplayY);
+
+		_skipDisplayFlag1 = 1;
+		_skipDisplayFlag2 = 0;
+	}
 }
 
 void RobinEngine::displayFunction5() {
@@ -276,10 +295,10 @@ void RobinEngine::pollEvent() {
 		_oldMouseX = _mouseX;
 		_oldMouseY = _mouseY;
 		if (_skipDisplayFlag1 != 0) {
-			warning("Display function 5");
+			displayFunction5();
 			_mouseDisplayX = _mouseX;
 			_mouseDisplayY = _mouseY;
-			warning("Display function 4");
+			displayFunction4();
 		} else {
 			_mouseDisplayX = _mouseX;
 			_mouseDisplayY = _mouseY;
@@ -523,14 +542,15 @@ void RobinEngine::loadRules() {
 
 void RobinEngine::displayVGAFile(Common::String fileName) {
 	debugC(1, kDebugEngine, "displayVGAFile(%s)", fileName.c_str());
-	warning("TODO: display function #4");
+
+	displayFunction4();
 
 	byte *buffer = loadVGA(fileName, true);
 	memcpy(_mainSurface->pixels, buffer, 320*200);
 	_system->copyRectToScreen((byte *)_mainSurface->pixels, 320, 0, 0, 320, 200);
 	_system->updateScreen();
 
-	warning("TODO: display function #5");
+	displayFunction5();
 }
 
 void RobinEngine::fixPaletteEntries(uint8 *palette, int num) {
