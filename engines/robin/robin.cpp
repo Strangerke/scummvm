@@ -152,6 +152,12 @@ RobinEngine::RobinEngine(OSystem *syst, const RobinGameDescription *gd) : Engine
 		_array15AC8[i] = 0;
 
 	_ptr_rulesBuffer2_15 = NULL;
+	_bufferIdeogram = NULL;
+	_bufferMen = NULL;
+	_bufferMen2 = NULL;
+	_bufferIsoChars = NULL;
+	_bufferIsoMap = NULL;
+	_bufferCubegfx = NULL;
 }
 
 RobinEngine::~RobinEngine() {
@@ -279,6 +285,42 @@ void RobinEngine::displayFunction5() {
 		_skipDisplayFlag1 = 0;
 		_skipDisplayFlag2 = 0;
 	}
+}
+
+void RobinEngine::displayFunction6() {
+	debugC(2, kDebugEngine, "displayFunction6()");
+
+	displayFunction5();
+
+	int index = (16 * 320) + 64;
+	for (int i = 0; i < 176; i++) {
+		for (int j = 0; j < 256; j++)
+			_buffer3_45k[(i * 256) + j] = ((byte *)_mainSurface->pixels)[index + j];
+		index += 320;
+	}
+
+	displayFunction4();
+}
+
+void RobinEngine::displayFunction12() {
+	debugC(1, kDebugEngine, "displayFunction12()");
+
+	displayFunction5();
+
+	byte *tmpBuf = loadVGA("SCREEN.GFX", true);
+	memcpy(_mainSurface->pixels, tmpBuf, 320*200);
+	_system->copyRectToScreen((byte *)_mainSurface->pixels, 320, 0, 0, 320, 200);
+	_system->updateScreen();
+
+	displayFunction6();
+	warning("Display function 7");
+	warning("Display function 8");
+	warning("Display function 9");
+	warning("sub_1649F()");
+	warning("sub_154C5()");
+
+	displayFunction4();
+	free(tmpBuf);
 }
 
 void RobinEngine::pollEvent() {
