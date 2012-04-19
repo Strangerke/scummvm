@@ -597,12 +597,21 @@ void RobinScript::runMenuScript(Common::MemoryReadStream script) {
 		_vm->update();
 }
 
+void RobinScript::sub1863B() {
+	_vm->_arr18560[0]._field0 = 0;
+	_vm->_arr18560[1]._field0 = 0;
+	_vm->_arr18560[2]._field0 = 0;
+	_vm->_arr18560[3]._field0 = 0;
+	_word1855E = 0;
+}
+
+
 void RobinScript::sub185ED(byte index, byte subIndex) {
 	debugC(2, kDebugScript, "sub185ED");
 	if (_vm->_arr18560[index]._field0 != 1)
 		return;
 
-	_vm->displayFunction1(_vm->_bufferIdeogram, _vm->_arr18560[index]._field5[0], _vm->_arr18560[index]._field1, _vm->_arr18560[index]._field3);
+	_vm->displayFunction1(_vm->_bufferIdeogram, _vm->_arr18560[index]._field5[subIndex], _vm->_arr18560[index]._field1, _vm->_arr18560[index]._field3);
 }
 
 byte RobinScript::compareValues(byte var1, int oper, int var2) {
@@ -665,11 +674,13 @@ void RobinScript::computeOperation(byte *bufPtr, int oper, int var2) {
 	}
 }
 
+
+
 void RobinScript::sub185B4_display() {
-	if (_byte12A04 == _byte1855D)
+	if (_vm->_byte12A04 == _byte1855D)
 		return;
 
-	_byte1855D = _byte12A04;
+	_byte1855D = _vm->_byte12A04;
 	
 	assert(_word1855E < 8);
 	int subIndex = _word1855E;
@@ -873,6 +884,7 @@ int RobinScript::getValue2() {
 		return curWord;
 	}
 }
+
 
 void RobinScript::sub130B6() {
 	debugC(1, kDebugScript, "sub130B6()");
@@ -1651,7 +1663,7 @@ void RobinScript::OC_sub182EC() {
 	warning("OC_sub182EC");
 }
 void RobinScript::OC_unkPaletteFunction_1() {
-
+	sub1863B();
 	byte palette[768];
 	for (int fade = 256; fade >= 0;	fade -= 8) {
 		for (int i = 0; i < 768; i++) {
