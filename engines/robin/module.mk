@@ -4,7 +4,8 @@ MODULE_OBJS = \
   console.o \
   detection.o \
   robin.o \
-  script.o
+  script.o \
+  sound.o
 
 # This module can be built as a plugin
 ifdef BUILD_PLUGINS

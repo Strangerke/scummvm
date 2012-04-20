@@ -33,6 +33,7 @@
 #include "robin/robin.h"
 #include "engines/util.h"
 #include "robin/script.h"
+#include "robin/sound.h"
 
 namespace Robin {
 
@@ -109,6 +110,7 @@ RobinEngine::RobinEngine(OSystem *syst, const RobinGameDescription *gd) : Engine
 	_system = syst;
 	DebugMan.addDebugChannel(kDebugEngine, "Engine", "Engine debug level");
 	DebugMan.addDebugChannel(kDebugScript, "Script", "Script debug level");
+	DebugMan.addDebugChannel(kDebugSound, "Sound", "Sound debug level");
 
 	_console = new RobinConsole(this);
 	_rnd = 0;
@@ -125,6 +127,7 @@ RobinEngine::RobinEngine(OSystem *syst, const RobinGameDescription *gd) : Engine
 	_skipDisplayFlag2 = 0;
 
 	_scriptHandler = new RobinScript(this);
+	_soundHandler = new RobinSound(this);
 
 	_byte1714E = 0;
 	_byte12FCE = 0;
@@ -231,7 +234,7 @@ void RobinEngine::newInt8() {
 	//	return;
 
 	// if (_soundEnabled)
-	warning("TODO: call sound function #1");
+	_soundHandler->contentFct1();
 
 	if (_byte12A08 != 1) {
 		_byte12A08 = 1;
@@ -766,7 +769,7 @@ void RobinEngine::sub163F0(int var1, int var3) {
 			var4 = 0;
 	} while ((var2 != 0) && (var4 !=0));
 
-	warning("Sound function #5");
+	_soundHandler->contentFct5();
 }
 
 void RobinEngine::sub16553(byte *buf) {

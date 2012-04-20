@@ -25,6 +25,7 @@
 
 #include "robin/console.h"
 #include "robin/script.h"
+#include "robin/sound.h"
 
 #include "common/file.h"
 #include "engines/engine.h"
@@ -55,8 +56,9 @@ enum GameType {
 };
 
 enum RobinDebugChannels {
-	kDebugEngine    = 1 <<  0,
-	kDebugScript    = 1 <<  1
+	kDebugEngine    = 1 << 0,
+	kDebugScript    = 1 << 1,
+	kDebugSound     = 1 << 2
 };
 
 struct RobinGameDescription;
@@ -79,6 +81,7 @@ public:
 
 	Common::RandomSource *_rnd;
 	RobinScript *_scriptHandler;
+	RobinSound *_soundHandler;
 	Graphics::Surface *_mainSurface;
 
 	struct18560 _arr18560[4];
