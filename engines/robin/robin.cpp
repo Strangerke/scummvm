@@ -143,6 +143,7 @@ RobinEngine::RobinEngine(OSystem *syst, const RobinGameDescription *gd) : Engine
 	_byte12A09 = 0;
 	_byte1881D = 0;
 	_byte16552 = 0;
+	_byte18AED = 0;
 
 	_rulesBuffer2PrevIndx = 0;
 	_word16EFA = 0;
@@ -155,6 +156,7 @@ RobinEngine::RobinEngine(OSystem *syst, const RobinGameDescription *gd) : Engine
 	_word15AC2 = 0;
 	_word16213 = 0;
 	_word16215 = 0;
+	_displayStringIndex = 0;
 
 	_saveFlag = false;
 	_byte16F07_menuId = 0;
@@ -190,6 +192,9 @@ RobinEngine::RobinEngine(OSystem *syst, const RobinGameDescription *gd) : Engine
 
 	for (int i = 0; i < 256; i++)
 		_array15AC8[i] = 0;
+
+	for (int i = 0; i < 160; i++)
+		_displayStringBuf[i] = 0;
 
 	_ptr_rulesBuffer2_15 = NULL;
 	_bufferIdeogram = NULL;
@@ -694,6 +699,36 @@ void RobinEngine::displayFunction17() {
 	displayFunction4();
 }
 
+void RobinEngine::displayFunction18(byte *buf, int var2, int var4) {
+	debugC(2, kDebugEngine, "displayFunction18(buf, %d, %d)", var2, var4);
+
+	int index = var2;
+	int tmpVar4 = (var4 >> 8) + ((var4 & 0xFF) << 8);
+	index = index + tmpVar4 + (tmpVar4 >> 2);
+
+	int i = 0;
+	while (buf[i] != 0) {
+		displayChar(index, buf[i]);
+		++i;
+		index += 4;
+	}
+}
+
+void RobinEngine::displayChar(int index, int var1) {
+	debugC(2, kDebugEngine, "displayChar(%d, %d)", index, var1);
+
+	int indexVga = index;
+	int indexChar = var1 << 5;
+
+	for (int i = 0; i < 8; i++) {
+		for (int j = 0; j < 4; j++)
+			((byte *)_mainSurface->pixels)[indexVga + j] = _bufferIsoChars[indexChar + j];
+		indexVga += 320;
+		indexChar += 4;
+	}
+
+}
+
 void RobinEngine::sub16323() {
 	debugC(2, kDebugEngine, "sub16323()");
 
@@ -930,6 +965,40 @@ int RobinEngine::sub16799(int param1, int index) {
 	return 3;
 
 }
+
+void RobinEngine::sub18A3E(byte param1) {
+	debugC(2, kDebugEngine, "sub18A3E(%d)", param1);
+
+	_displayStringBuf[_displayStringIndex] = param1;
+	if (_displayStringIndex < 158)
+		++_displayStringIndex;
+}
+
+void RobinEngine::sub18AEE(int param1) {
+	debugC(2, kDebugEngine, "sub18AEE(%d)", param1);
+	
+	static const int _array18AE3[6] = {10000, 1000, 100, 10, 1};
+
+	int count;
+	int var1 = param1;
+	for (int i = 0; i < 5; i++) {
+		count = 0;
+		while (var1 >= 0) {
+			++count;
+			var1 -= _array18AE3[i];
+		}
+		var1 += _array18AE3[i];
+		byte tmpVal = var1 + 0x30;
+		
+		if (i == 4)
+			sub18A3E(tmpVal);
+		else if ((var1 != 0) || (_byte18AED != 1)) {
+			_byte18AED = 0;
+			sub18A3E(tmpVal);
+		}
+	}
+}
+
 
 void RobinEngine::sub16626() {
 	debugC(2, kDebugEngine, "sub16626()");
