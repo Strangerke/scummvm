@@ -143,7 +143,6 @@ RobinEngine::RobinEngine(OSystem *syst, const RobinGameDescription *gd) : Engine
 	_byte12A09 = 0;
 	_byte1881D = 0;
 	_byte16552 = 0;
-	_byte18AED = 0;
 
 	_rulesBuffer2PrevIndx = 0;
 	_word16EFA = 0;
@@ -699,8 +698,8 @@ void RobinEngine::displayFunction17() {
 	displayFunction4();
 }
 
-void RobinEngine::displayFunction18(byte *buf, int var2, int var4) {
-	debugC(2, kDebugEngine, "displayFunction18(buf, %d, %d)", var2, var4);
+void RobinEngine::displayString(byte *buf, int var2, int var4) {
+	debugC(2, kDebugEngine, "displayString(buf, %d, %d)", var2, var4);
 
 	int index = var2;
 	int tmpVar4 = (var4 >> 8) + ((var4 & 0xFF) << 8);
@@ -974,13 +973,14 @@ void RobinEngine::sub18A3E(byte param1) {
 		++_displayStringIndex;
 }
 
-void RobinEngine::sub18AEE(int param1) {
-	debugC(2, kDebugEngine, "sub18AEE(%d)", param1);
+void RobinEngine::prepareGoldAmount(int param1) {
+	debugC(2, kDebugEngine, "prepareGoldAmount(%d)", param1);
 	
 	static const int _array18AE3[6] = {10000, 1000, 100, 10, 1};
 
 	int count;
 	int var1 = param1;
+	bool hideZeros = true;
 	for (int i = 0; i < 5; i++) {
 		count = 0;
 		while (var1 >= 0) {
@@ -988,12 +988,14 @@ void RobinEngine::sub18AEE(int param1) {
 			var1 -= _array18AE3[i];
 		}
 		var1 += _array18AE3[i];
-		byte tmpVal = var1 + 0x30;
+		--count;
+
+		byte tmpVal = count + 0x30;
 		
 		if (i == 4)
 			sub18A3E(tmpVal);
-		else if ((var1 != 0) || (_byte18AED != 1)) {
-			_byte18AED = 0;
+		else if ((count != 0) || (!hideZeros)) {
+			hideZeros = false;
 			sub18A3E(tmpVal);
 		}
 	}
