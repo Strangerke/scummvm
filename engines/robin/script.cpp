@@ -437,10 +437,10 @@ void RobinScript::handleOpcodeType2(int curWord) {
 		OC_sub182EC();
 		break;
 	case 0x43:
-		OC_unkPaletteFunction_1();
+		OC_PaletteFadeOut();
 		break;
 	case 0x44:
-		OC_unkPaletteFunction_2();
+		OC_PaletteFadeIn();
 		break;
 	case 0x45:
 		OC_loadAndDisplayCUBESx_GFX();
@@ -1664,7 +1664,8 @@ void RobinScript::OC_sub18260() {
 void RobinScript::OC_sub182EC() {
 	warning("OC_sub182EC");
 }
-void RobinScript::OC_unkPaletteFunction_1() {
+
+void RobinScript::OC_PaletteFadeOut() {
 	sub1863B();
 	byte palette[768];
 	for (int fade = 256; fade >= 0;	fade -= 8) {
@@ -1676,7 +1677,8 @@ void RobinScript::OC_unkPaletteFunction_1() {
 		_vm->_system->delayMillis(20);
 	}
 }
-void RobinScript::OC_unkPaletteFunction_2() {
+
+void RobinScript::OC_PaletteFadeIn() {
 
 	byte palette[768];
 	for (int fade = 8; fade <= 256;	fade += 8) {
@@ -1788,13 +1790,13 @@ void RobinScript::OC_displayVGAFile() {
 	debugC(1, kDebugScript, "OC_displayVGAFile()");
 
 	_byte12A09 = 1;
-	OC_unkPaletteFunction_1();
+	OC_PaletteFadeOut();
 	int curWord = _currScript->readUint16LE();
 	int index = _vm->_rulesChunk3[curWord];
 	Common::String fileName = Common::String((const char *)&_vm->_rulesChunk4[index]);
 	_word1881B = -1;
 	_vm->displayVGAFile(fileName);
-	OC_unkPaletteFunction_2();
+	OC_PaletteFadeOut();
 }
 
 void RobinScript::OC_sub184D7() {
@@ -1836,14 +1838,14 @@ void RobinScript::OC_displayTitleScreen() {
 void RobinScript::OC_sub1853B() {
 	debugC(1, kDebugScript, "OC_sub1853B()");
 
-	OC_unkPaletteFunction_1();
+	OC_PaletteFadeOut();
 	_byte16F08 = 0;
 	_byte15FFA = 0;
 	sub130B6();
 
 	_vm->displayFunction12();
 
-	OC_unkPaletteFunction_2();
+	OC_PaletteFadeIn();
 	_byte12A09 = 0;
 	
 	_vm->_soundHandler->contentFct5();
