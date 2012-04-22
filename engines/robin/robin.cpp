@@ -156,6 +156,7 @@ RobinEngine::RobinEngine(OSystem *syst, const RobinGameDescription *gd) : Engine
 	_word16213 = 0;
 	_word16215 = 0;
 	_displayStringIndex = 0;
+	_word1289D = 0;
 
 	_saveFlag = false;
 	_byte16F07_menuId = 0;
@@ -171,6 +172,7 @@ RobinEngine::RobinEngine(OSystem *syst, const RobinGameDescription *gd) : Engine
 		_array12299[i] = 0xFF;
 		_array109E9[i] = 0xFF;
 		_array10A11[i] = 0xFF;
+		_array16E94[i] = 0;
 
 		_array11D49[i] = 0xFFFF;
 		_rulesBuffer2_1[i] = 0xFFFF;
@@ -187,7 +189,11 @@ RobinEngine::RobinEngine(OSystem *syst, const RobinGameDescription *gd) : Engine
 		_rulesBuffer2_12[i] = 0;
 		_rulesBuffer2_13[i] = 0;
 		_rulesBuffer2_14[i] = 0;
+		_array1289F[i] = 0xFFFF;
 	}
+
+	for (int i = 0; i < 30; i++)
+		_array12861[i] = 0xFFFF;
 
 	for (int i = 0; i < 256; i++)
 		_array15AC8[i] = 0;
@@ -667,8 +673,8 @@ void RobinEngine::displayFunction16() {
 		sub16626();
 		sub12F37();
 		warning("sub_16CA0");
-		warning("sub_16EBC");
-		warning("sub_171CF");
+		sub16EBC();
+		sub171CF();
 		warning("sub_15EAE");
 	} else {
 		sub1638C();
@@ -678,11 +684,11 @@ void RobinEngine::displayFunction16() {
 		sub16626();
 		sub12F37();
 		warning("sub_16CA0");
-		warning("sub_16EBC");
-		warning("sub_171CF");
+		sub16EBC();
+		sub171CF();
 		warning("sub_130EE");
-		warning("sub_12FE5");
-		warning("sub_15FFF");
+		sub12FE5();
+		displayHeroismIndicator();
 	}
 }
 
@@ -1001,7 +1007,6 @@ void RobinEngine::prepareGoldAmount(int param1) {
 	}
 }
 
-
 void RobinEngine::sub16626() {
 	debugC(2, kDebugEngine, "sub16626()");
 
@@ -1070,6 +1075,24 @@ void RobinEngine::sub16626() {
 			}
 		}
 		--index;
+	}
+}
+
+void RobinEngine::sub16EBC() {
+	debugC(2, kDebugEngine, "sub16EBC()");
+
+	int index2 = 3;
+
+	for (int index1 = _word10807_ERULES - 1; index1 >= 0; index1--) {
+		int var2 = (_scriptHandler->_array1614B[index1] << 8) + (_scriptHandler->_array16123[index1] << 2); 
+		int var1 = (_bufferIsoMap[index2 + var2] & 0x40);
+
+		if (var1 == _array16E94[index1])
+			continue;
+
+		_array16E94[index1] = var1;
+		if (var1 != 0)
+			_scriptHandler->_array10B29[index1] = 1;
 	}
 }
 
@@ -1145,6 +1168,99 @@ int RobinEngine::sub16675(int idx, int var1) {
 	}
 
 	return 0;
+}
+
+void RobinEngine::sub171CF() {
+	debugC(2, kDebugEngine, "sub171CF()");
+
+	for (int i = 0; i < _word10807_ERULES; i++) {
+		if (_array1289F[i] != 0xFFFF) {
+			_array11D49[i] = _array1289F[i];
+			_array1289F[i] = 0xFFFF;
+			_scriptHandler->_array10B29[i] = 1;
+		}
+	}
+
+	++_word1289D;
+
+	for (int i = 0; i < 10; i++) {
+		if ((_array12861[(3 * i) + 1] != 0xFFFF) && (_array12861[3 * i] = _word1289D)) {
+			int var1 = _array12861[(3 * i) + 1];
+			int var4 = _array12861[(3 * i) + 2];
+			_array12861[(3 * i) + 1] = 0xFFFF;
+
+			warning("sub_17224");
+		}
+	}
+}
+
+void RobinEngine::sub12FE5() {
+	debugC(2, kDebugEngine, "sub12FE5()");
+
+	if (_byte12A04 != 1)
+		return;
+
+	int index = 0;
+	int count = 0;
+	for (int i = 0; i < _word12F68_ERULES; i++) {
+		if (_scriptHandler->_array122FD[index] != 0) {
+			--_scriptHandler->_array122FD[index];
+			if (_scriptHandler->_array122FD[index] == 0) {
+				_scriptHandler->_array122E9[index] = 2;
+				++count;
+			}
+		}
+	}
+
+	if (count !=0)
+		displayFunction8();
+}
+
+void RobinEngine::displayHeroismIndicator() {
+	debugC(2, kDebugEngine, "displayHeroismIndicator()");
+
+	if (_scriptHandler->_savedBuffer215Ptr == NULL)
+		return;
+
+	int var1 = (_scriptHandler->_savedBuffer215Ptr[0] * 25) >> 8;
+
+	if (var1 == _scriptHandler->_byte15FFA)
+		return;
+
+	displayFunction5();
+	int var2 = 1;
+	if (var1 > _scriptHandler->_byte15FFA)
+		var1 = 150;
+	else {
+		var2 = -1;
+		var1 = 40;
+	}
+
+	_scriptHandler->_byte15FFA += var2;
+	
+	int var4 = (_scriptHandler->_word15FFD >> 8) + ((_scriptHandler->_word15FFD & 0xFF) << 8);
+	int index = _scriptHandler->_word15FFB + var4 + (var4 >> 2);
+
+	if ((_scriptHandler->_byte15FFA & 0xFF) == 0) {
+//		sub16064(var1, _scriptHandler->_byte15FFA);
+		for (int i = 0; i < (_scriptHandler->_byte15FFA << 2); i++) {
+			((byte *)_mainSurface->pixels)[index - (i * 320)] = var1; 
+			((byte *)_mainSurface->pixels)[index - (i * 320) + 1] = var1; 
+			((byte *)_mainSurface->pixels)[index - (i * 320) + 2] = var1; 
+		}
+	}
+
+	if (25 - _scriptHandler->_byte15FFA != 0) {
+//		sub16064(23, 25 - _scriptHandler->_byte15FFA);
+		var2 = (25 - _scriptHandler->_byte15FFA) << 2;
+		for (int i = 0; i < var2; i++) {
+			((byte *)_mainSurface->pixels)[index - (i * 320)] = 23; 
+			((byte *)_mainSurface->pixels)[index - (i * 320) + 1] = 23; 
+			((byte *)_mainSurface->pixels)[index - (i * 320) + 2] = 23; 
+		}
+	}
+
+	displayFunction4();
 }
 
 void RobinEngine::pollEvent() {
