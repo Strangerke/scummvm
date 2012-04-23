@@ -436,7 +436,7 @@ void RobinEngine::displayFunction7() {
 void RobinEngine::displayFunction8() {
 	debugC(2, kDebugEngine, "displayFunction8()");
 
-	if (_scriptHandler->_byte16F08 == 1)
+	if (_scriptHandler->displayMap == 1)
 		return;
 
 	displayFunction5();
@@ -538,7 +538,7 @@ void RobinEngine::displayFunction13(byte *buf, int var1, int var2, int var3) {
 void RobinEngine::displayFunction14() {
 	debugC(2, kDebugEngine, "displayFunction14()");
 
-	if (_scriptHandler->_byte16F08 == 1)
+	if (_scriptHandler->displayMap == 1)
 		return;
 
 	if (_mouseDisplayX > 48)
@@ -556,6 +556,37 @@ void RobinEngine::displayFunction14() {
 
 	displayFunction4();
 };
+
+void RobinEngine::restoreMapPoints() {
+	displayFunction5();
+	
+	byte* buf = (byte*)_mainSurface->pixels;
+	for (int index = 0; index < _word10807_ERULES; index++) {
+		buf[_word15E5D[index]] = _byte15E35[index];
+	}
+
+	displayFunction4();
+}
+
+void RobinEngine::displayCharactersOnMap() {
+	sub16217();
+	displayFunction5();
+
+	byte* buf = (byte*)_mainSurface->pixels;
+	for( int index = _word10807_ERULES - 1; index >=0; index--) {
+		if(_rulesBuffer2_11[index] & 2 == 0 &&
+		   _scriptHandler->_array1614B[index] != -1) {
+			 int y = 3 * _scriptHandler->_array1614B[index] + 1;
+			 int x = _scriptHandler->_array16123[index] * 4 + 1;
+
+			 _word15E5D[index] = y * 320 + x; 
+			 _byte15E35[index] = buf[y * 320 + x];
+			 buf[y * 320 + x] = _scriptHandler->_array128EF[index];
+
+		}
+	}
+	displayFunction4();
+}
 
 void RobinEngine::sub16217() {
 	debugC(2, kDebugEngine, "sub16217()");
@@ -669,15 +700,15 @@ void RobinEngine::displayFunction15() {
 void RobinEngine::displayFunction16() {
 	debugC(2, kDebugEngine, "displayFunction16()");
 
-	if (_scriptHandler->_byte16F08 == 1) {
+	if (_scriptHandler->displayMap == 1) {
 		warning("sub_15F31");
-		warning("sub_15F0C");
+		restoreMapPoints();
 		sub16626();
 		sub12F37();
 		sub16CA0();
 		sub16EBC();
 		sub171CF();
-		warning("sub_15EAE");
+		displayCharactersOnMap();
 	} else {
 		sub1638C();
 		sub189DE();
