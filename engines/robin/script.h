@@ -60,6 +60,7 @@ public:
 	short _array1813B[40];
 	byte _array128EF[40];
 	byte _array12839[40];
+	int _array1813B[32];
 
 	void sub130B6();
 
