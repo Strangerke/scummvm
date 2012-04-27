@@ -26,6 +26,7 @@
 #include "robin/console.h"
 #include "robin/script.h"
 #include "robin/sound.h"
+#include "robin/stream.h"
 
 #include "common/file.h"
 #include "engines/engine.h"
