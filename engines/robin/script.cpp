@@ -952,6 +952,7 @@ byte RobinScript::OC_sub1748C() {
 	warning("OC_sub1748C");
 	return 0;
 }
+
 byte RobinScript::OC_compWord18776() {
 	warning("OC_compWord18776");
 	return 0;
