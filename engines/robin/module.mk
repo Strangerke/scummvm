@@ -5,7 +5,8 @@ MODULE_OBJS = \
   detection.o \
   robin.o \
   script.o \
-  sound.o
+  sound.o \
+  stream.o
 
 # This module can be built as a plugin
 ifdef BUILD_PLUGINS
