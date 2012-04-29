@@ -126,6 +126,8 @@ RobinEngine::RobinEngine(OSystem *syst, const RobinGameDescription *gd) : Engine
 	_skipDisplayFlag1 = 1;
 	_skipDisplayFlag2 = 0;
 	_displayMap = 0;
+	_debugFlag = 0;
+	_byte14837 = 0;
 
 	_scriptHandler = new RobinScript(this);
 	_soundHandler = new RobinSound(this);
