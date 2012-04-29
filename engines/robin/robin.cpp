@@ -638,6 +638,8 @@ void RobinEngine::displayFunction14() {
 }
 
 void RobinEngine::restoreMapPoints() {
+	debugC(2, kDebugEngine, "restoreMapPoints()");
+
 	displayFunction5();
 	
 	byte *buf = (byte *)_mainSurface->pixels;
@@ -649,6 +651,8 @@ void RobinEngine::restoreMapPoints() {
 }
 
 void RobinEngine::displayCharactersOnMap() {
+	debugC(2, kDebugEngine, "displayCharactersOnMap()");
+
 	sub16217();
 	displayFunction5();
 
