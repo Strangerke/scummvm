@@ -1234,7 +1234,7 @@ void RobinEngine::renderCharacters(byte *buf, byte x, byte y) {
 	if ((_nextDisplayCharacterX != x) || (_nextDisplayCharacterY != y))
 		return;
 
-	byte _byte16552 = 0;
+	_byte16552 = 0;
 
 	if (buf[1] != 0xFF) {
 		int tmpIndex = buf[1];
@@ -1463,7 +1463,7 @@ void RobinEngine::sub16626() {
 				warning("result = sub_16722");
 				break;
 			case 14:
-				warning("result = sub_166F7");
+				result = sub166F7(index, var1, tmpVal);
 				break;
 			case 15:
 				_scriptHandler->_array12811[index] = 0x10;
@@ -1485,7 +1485,28 @@ void RobinEngine::sub16626() {
 	}
 }
 
+byte RobinEngine::sub166F7(int index, int var1, int tmpVal) {
+	debugC(2, kDebugEngine, "sub166F7(%d, %d, %d)", index, var1, tmpVal);
+
+	byte a1 = (var1 >> 8);
+	byte a2 = (var1 & 0xFF);
+	if (a2 != 0) {
+		if ((a2 & 0xF0) == 0)
+			a2 |= (a2 << 4);
+
+		a2 -= 16;
+		_scriptHandler->_array12311[tmpVal] = (a1 << 8) + a2;
+
+		if ((a2 & 0xF0) == 0)
+			return 2;
+	}
+
+	_scriptHandler->_array12811[index] -= ((var1 >> 8) & 0x0F);
+	return 3;
+}
+
 int RobinEngine::sub166DD(int index, int var1) {
+	debugC(2, kDebugEngine, "sub166DD(%d, %d)", index, var1);
 	
 	_characterDirectionArray[index] = (var1 >> 8) & 3;
 	sub16685(index, var1 & 0xFF);
@@ -2391,7 +2412,7 @@ while(1);*/
 
 	//warning("dump char stat");
 	i = index;
-	warning("char %d, pos %d %d, state %d, script enabled %d", i, _characterPositionX[i], _characterPositionY[i], _characterVariables[i*32+0], _scriptHandler->_characterScriptEnabled[i]);
+	debugC(3, kDebugEngine, "char %d, pos %d %d, state %d, script enabled %d", i, _characterPositionX[i], _characterPositionY[i], _characterVariables[i*32+0], _scriptHandler->_characterScriptEnabled[i]);
 }
 
 Common::Error RobinEngine::run() {
