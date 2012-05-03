@@ -1354,25 +1354,6 @@ int RobinEngine::sub16B0C(int param1, int param2) {
 	return _array16B04[var2l];
 }
 
-int RobinEngine::sub168DA(int x, int y) {
-
-	int* buffer1 = _rulesBuffer12_1;
-	int* buffer2 = _rulesBuffer12_2;
-
-	for (int i = 0; i < _rulesChunk12_size; i++) {
-		if(x >= (*buffer1 >> 8) && x <= (*buffer1 & 0xff)
-			&& y >= (*buffer2 >> 8) && y <= (*buffer2 & 0xff))
-		{
-			return buffer1 - _rulesBuffer12_1;
-		}
-
-		buffer2++;
-		buffer1++;
-	}
-
-	return -1;
-}
-
 int RobinEngine::sub16799(int param1, int index) {
 	debugC(2, kDebugEngine, "sub16799(%d, %d)", param1, index);
 
@@ -1492,8 +1473,8 @@ uint16 RobinEngine::sub168DA(byte var1h, byte var1l) {
 	return 0xFFFF;
 }
 
-uint16 RobinEngine::sub_16901(byte var1h, byte var1l) {
-	debugC(2, kDebugEngine, "sub_16901(%d, %d)", var1h, var1l);
+uint16 RobinEngine::sub16901(byte var1h, byte var1l) {
+	debugC(2, kDebugEngine, "sub16901(%d, %d)", var1h, var1l);
 
 	for (int i = _rulesChunk12_size-1; i >= 0 ; i--) {
 		if ((var1h >= (_rulesBuffer12_1[i] >> 8)) && (var1h <= (_rulesBuffer12_1[i] & 0xFF)) && (var1h >= (_rulesBuffer12_2[i] >> 8)) && (var1h <= (_rulesBuffer12_2[i] & 0xFF)))
