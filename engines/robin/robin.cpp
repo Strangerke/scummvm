@@ -1080,6 +1080,38 @@ void RobinEngine::displayFunction17() {
 	displayFunction4();
 }
 
+void RobinEngine::displayFunction18(int var1, int var2, int var3, int var4) {
+	debugC(2, kDebugEngine, "displayFunction18(%d, %d, %d, %d)", var1, var2, var3, var4);
+	
+	displayFunction5();
+	
+	if ((var1 & 0xFF) == 0x2D) {
+		var2 += 35;
+		var3 -= 35;
+		
+		if (var3 < 0) {
+			var2 += var3;
+			var3 = -var3;
+		}
+	}
+	
+	byte *vgaBuf = (byte *)_mainSurface->pixels;
+	int tmpVal = (var3 >> 8) + ((var3 & 0xFF) << 8);
+	int vgaIndex = var2 + tmpVal + (tmpVal >> 2);
+	
+	if (var3 == 0)
+		++var3;
+	
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < var3; j++) {
+			vgaBuf[vgaIndex + j] = 2;
+		}
+		vgaIndex += 320;
+	}
+	
+	displayFunction4();
+}
+
 void RobinEngine::displayString(byte *buf, int var2, int var4) {
 	debugC(2, kDebugEngine, "displayString(buf, %d, %d)", var2, var4);
 
@@ -1371,7 +1403,8 @@ byte RobinEngine::sub16799(int index, int param1) {
 			return 2;
 	}
 
-	warning("sub_167EF");
+	sub167EF(index);
+
 	int var1 = (_scriptHandler->_array16123[index] << 8) + _scriptHandler->_array1614B[index];
 	int var2 = (_array109E9[index] << 8) + _array10A11[index];
 
@@ -1381,6 +1414,78 @@ byte RobinEngine::sub16799(int index, int param1) {
 	_scriptHandler->_array12811[index] -= (param1 >> 8) & 0x0F;
 	return 3;
 
+}
+
+void RobinEngine::sub167EF(int index) {
+	debugC(2, kDebugEngine, "sub167EF(%d)", index);
+	
+	int word167EB = sub168DA(_scriptHandler->_array16123[index], _scriptHandler->_array1614B[index]);
+	int word167ED = sub168DA(_array10999[index], _array109C1[index]);
+	
+	if (word167EB == word167ED) {
+		_array109E9[index] = _array10999[index];
+		_array10A11[index] = _array109C1[index];
+		return;
+	}
+	
+	if (word167EB = 0xFFFF) {
+		int tmpVal = sub16901(_array10999[index], _array109C1[index]);
+		_array109E9[index] = (_rulesBuffer12_4[tmpVal] >> 8);
+		_array10A11[index] = (_rulesBuffer12_4[tmpVal] & 0xFF);
+		return;
+	}
+	
+	if ((word167ED != 0xFFFF) && 
+		  (_array10999[index] >= (_rulesBuffer12_1[word167EB] >> 8)) &&
+		  (_array10999[index] <= (_rulesBuffer12_1[word167EB] & 0xFF)) &&
+		  (_array109C1[index] >= (_rulesBuffer12_2[word167EB] >> 8)) &&
+		  (_array109C1[index] <= (_rulesBuffer12_2[word167EB] & 0xFF)) ) {
+		_array109E9[index] = (_rulesBuffer12_4[word167ED] >> 8);
+		_array10A11[index] = (_rulesBuffer12_4[word167ED] & 0xFF);
+		return;
+	}
+	
+	_array109E9[index] = (_rulesBuffer12_4[word167EB] >> 8);
+	_array10A11[index] = (_rulesBuffer12_4[word167EB] & 0xFF);
+	int var4h = (_rulesBuffer12_1[index] >> 8);
+	int var4l = (_rulesBuffer12_1[index] & 0xFF);
+	
+	if (var4h != var4l) {
+		if (_array109E9[index] == var4h) {
+			--_array109E9[index];
+			return;
+		}
+		
+		if (_array109E9[index] == var4l) {
+			++_array109E9[index];
+			return;
+		}
+
+		int var4h = (_rulesBuffer12_2[index] >> 8);
+		int var4l = (_rulesBuffer12_2[index] & 0xFF);
+
+		if (var4h != var4l) {
+			if (_array10A11[index] == var4h)
+				--_array10A11[index];
+			else
+				++_array10A11[index];
+			return;
+		}
+	}
+	
+	// var4h == var4l
+	int mapIndex = (((_array10A11[index] >> 2) + _array109E9[index]) << 2);
+	int tmpVal = _bufferIsoMap[mapIndex + 3];
+	if ((tmpVal & 8) != 0)
+		++_array109E9[index];
+	else if ((tmpVal & 4) != 0)
+		--_array10A11[index];
+	else if ((tmpVal & 2) != 0)
+		++_array10A11[index];
+	else 
+		--_array109E9[index];
+	
+	return;
 }
 
 void RobinEngine::sub1693A(int index) {
