@@ -1409,12 +1409,11 @@ byte RobinEngine::sub16799(int index, int param1) {
 
 }
 
-//TODO rename arrays
 void RobinEngine::sub167EF(int index) {
 	debugC(2, kDebugEngine, "sub167EF(%d)", index);
 	
-	int word167EB = sub168DA(Common::Point(_scriptHandler->_array16123PosX[index], _scriptHandler->_array1614BPosY[index]));
-	int word167ED = sub168DA(Common::Point(_array10999PosX[index], _array109C1PosY[index]));
+	int word167EB = findHotspot(Common::Point(_scriptHandler->_array16123PosX[index], _scriptHandler->_array1614BPosY[index]));
+	int word167ED = findHotspot(Common::Point(_array10999PosX[index], _array109C1PosY[index]));
 	
 	if (word167EB == word167ED) {
 		_array109E9PosX[index] = _array10999PosX[index];
@@ -1422,14 +1421,14 @@ void RobinEngine::sub167EF(int index) {
 		return;
 	}
 	
-	if (word167EB = 0xFFFF) {
-		int tmpVal = sub16901(_array10999PosX[index], _array109C1PosY[index]);
+	if (word167EB == -1) {
+		int tmpVal = reverseFindHotspot(Common::Point(_array10999PosX[index], _array109C1PosY[index]));
 		_array109E9PosX[index] = _rulesBuffer12Pos4[tmpVal].x;
 		_array10A11PosY[index] = _rulesBuffer12Pos4[tmpVal].y;
 		return;
 	}
 	
-	if ((word167ED != 0xFFFF) && 
+	if ((word167ED != -1) && 
 		  (_array10999PosX[index] >= (_rectXMinMax[word167EB] >> 8)) &&
 		  (_array10999PosX[index] <= (_rectXMinMax[word167EB] & 0xFF)) &&
 		  (_array109C1PosY[index] >= (_rectYMinMax[word167EB] >> 8)) &&
@@ -1487,9 +1486,7 @@ void RobinEngine::sub1693A(int index) {
 	
 	static const uint16 _array1692F[4] = {4, 0xFF00, 0x100, 0xFFFC};
 
-	int var1h = _scriptHandler->_array16123PosX[index];
-	int var1l = _scriptHandler->_array1614BPosY[index];
-	_word16937Pos = Common::Point(var1h, var1l);
+	_word16937Pos = Common::Point(_scriptHandler->_array16123PosX[index], _scriptHandler->_array1614BPosY[index]);
 
 	sub16A08(index);
 	
@@ -1497,7 +1494,7 @@ void RobinEngine::sub1693A(int index) {
 	_array1692B[var2] += 0xF8;
 	_byte16939 = 0;
 	
-	int mapIndex = ((((var1l << 8) >> 2) + var1h) << 2);
+	int mapIndex = ((((_word16937Pos.y << 8) >> 2) + _word16937Pos.x) << 2);
 	int subMapIndex = 0;
 	int retVal = 0;
 	for (int i = 3; i >= 0; i--) {
@@ -1541,8 +1538,8 @@ byte RobinEngine::sub16A76(int indexb, int indexs) {
 	char var1h = _word16937Pos.x + _array16A6C[indexb];
 	char var1l = _word16937Pos.y + _array16A70[indexs];
 
-	int var2 = sub168DA(Common::Point(var1h, var1l));
-	if (var2 == 0xFFFF)
+	int var2 = findHotspot(Common::Point(var1h, var1l));
+	if (var2 == -1)
 		return 1;
 
 	int _word16A74 = var2; // useless?
@@ -1562,24 +1559,24 @@ byte RobinEngine::sub16A76(int indexb, int indexs) {
 	return 1;
 }
 
-uint16 RobinEngine::sub168DA(Common::Point pos) {
-	debugC(2, kDebugEngine, "sub168DA(%d, %d)", pos.x, pos.y);
+int RobinEngine::findHotspot(Common::Point pos) {
+	debugC(2, kDebugEngine, "findHotspot(%d, %d)", pos.x, pos.y);
 
 	for (int i = 0; i < _rulesChunk12_size; i++) {
 		if ((pos.x >= (_rectXMinMax[i] >> 8)) && (pos.x <= (_rectXMinMax[i] & 0xFF)) && (pos.y >= (_rectYMinMax[i] >> 8)) && (pos.y <= (_rectYMinMax[i] & 0xFF)))
 			return i;
 	}
-	return 0xFFFF;
+	return -1;
 }
 
-uint16 RobinEngine::sub16901(byte var1h, byte var1l) {
-	debugC(2, kDebugEngine, "sub16901(%d, %d)", var1h, var1l);
+int RobinEngine::reverseFindHotspot(Common::Point pos) {
+	debugC(2, kDebugEngine, "reverseFindHotspot(%d, %d)", pos.x, pos.y);
 
-	for (int i = _rulesChunk12_size-1; i >= 0 ; i--) {
-		if ((var1h >= (_rectXMinMax[i] >> 8)) && (var1h <= (_rectXMinMax[i] & 0xFF)) && (var1h >= (_rectYMinMax[i] >> 8)) && (var1h <= (_rectYMinMax[i] & 0xFF)))
+	for (int i = _rulesChunk12_size - 1; i >= 0 ; i--) {
+		if ((pos.x >= (_rectXMinMax[i] >> 8)) && (pos.x <= (_rectXMinMax[i] & 0xFF)) && (pos.y >= (_rectYMinMax[i] >> 8)) && (pos.y<= (_rectYMinMax[i] & 0xFF)))
 			return i;
 	}
-	return 0xFFFF;
+	return -1;
 }
 
 
