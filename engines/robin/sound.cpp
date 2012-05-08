@@ -33,6 +33,11 @@ RobinSound::RobinSound(RobinEngine *vm) : _vm(vm) {
 RobinSound::~RobinSound() {
 }
 
+// Used during initialisation
+void RobinSound::contentFct0() {
+	debugC(1, kDebugSound, "contentFct0()");
+}
+
 void RobinSound::contentFct1() {
 	debugC(1, kDebugSound, "contentFct1()");
 }

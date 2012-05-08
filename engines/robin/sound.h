@@ -32,6 +32,7 @@ public:
 	RobinSound(RobinEngine *vm);
 	~RobinSound();
 
+	void contentFct0();
 	void contentFct1();
 	void contentFct2();
 	void contentFct3();
