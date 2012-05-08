@@ -588,7 +588,7 @@ void RobinEngine::displayFunction12() {
 
 	displayFunction5();
 
-	byte *tmpBuf = loadVGA("SCREEN.GFX", true);
+	byte *tmpBuf = loadVGA("SCREEN.GFX", 64000, true);
 	memcpy(_mainSurface->pixels, tmpBuf, 320*200);
 	_system->copyRectToScreen((byte *)_mainSurface->pixels, 320, 0, 0, 320, 200);
 	_system->updateScreen();
@@ -2304,8 +2304,8 @@ void RobinEngine::pollEvent() {
 	}
 }
 
-byte *RobinEngine::loadVGA(Common::String filename, bool loadPal) {
-	debugC(1, kDebugEngine, "loadVGA(%s, %d)", filename.c_str(), (loadPal) ? 1 : 0);
+byte *RobinEngine::loadVGA(Common::String filename, int expectedSize, bool loadPal) {
+	debugC(1, kDebugEngine, "loadVGA(%s, %d, %d)", filename.c_str(), expectedSize, (loadPal) ? 1 : 0);
 
 	Common::File f;
 
@@ -2322,10 +2322,10 @@ byte *RobinEngine::loadVGA(Common::String filename, bool loadPal) {
 	}
 
 	uint8 curByte;
-	byte decodeBuffer[100000];
+	byte *decodeBuffer = (byte *)malloc(expectedSize);
 	int size = 0;
 
-	for (;remainingSize > 0;) {
+	for (;(remainingSize > 0) && (size < expectedSize);) {
 		curByte = f.readByte();
 		--remainingSize;
 
@@ -2341,6 +2341,8 @@ byte *RobinEngine::loadVGA(Common::String filename, bool loadPal) {
 			for (int i = 0; i < compSize; ++i) {
 				decodeBuffer[size] = curByte;
 				++size;
+				if (size == expectedSize)
+					break;
 			}
 		} else {
 			// Not compressed
@@ -2349,15 +2351,17 @@ byte *RobinEngine::loadVGA(Common::String filename, bool loadPal) {
 				decodeBuffer[size] = f.readByte();
 				--remainingSize;
 				++size;
+				if (size == expectedSize)
+					break;
 			}
 		}
 	}
-
 	f.close();
 
-	byte *res = (byte *)malloc(sizeof(byte) * size);
-	memcpy(res, decodeBuffer, size);
-	return res;
+	for (int i = size; i < expectedSize; i++)
+		decodeBuffer[i] = 0;
+
+	return decodeBuffer;
 }
 
 byte *RobinEngine::loadRaw(Common::String filename) {
@@ -2545,7 +2549,7 @@ void RobinEngine::displayVGAFile(Common::String fileName) {
 
 	displayFunction4();
 
-	byte *buffer = loadVGA(fileName, true);
+	byte *buffer = loadVGA(fileName, 64000, true);
 	memcpy(_mainSurface->pixels, buffer, 320*200);
 	_system->copyRectToScreen((byte *)_mainSurface->pixels, 320, 0, 0, 320, 200);
 	_system->updateScreen();
@@ -2682,10 +2686,10 @@ Common::Error RobinEngine::run() {
 	initPalette();
 
 	// Load files. In the original, the size was hardcoded
-	_bufferIdeogram = loadVGA("IDEOGRAM.VGA", false);
-	_bufferMen = loadVGA("MEN.VGA", false);
-	_bufferMen2 = loadVGA("MEN2.VGA", false);
-	_bufferIsoChars = loadVGA("ISOCHARS.VGA", false);
+	_bufferIdeogram = loadVGA("IDEOGRAM.VGA", 25600, false);
+	_bufferMen = loadVGA("MEN.VGA", 61440, false);
+	_bufferMen2 = loadVGA("MEN2.VGA", 61440, false);
+	_bufferIsoChars = loadVGA("ISOCHARS.VGA", 4096, false);
 	_bufferIsoMap = loadRaw("ISOMAP.DTA");
 
 	loadRules();
