@@ -42,8 +42,8 @@ void RobinSound::contentFct1() {
 	debugC(1, kDebugSound, "contentFct1()");
 }
 
-void RobinSound::contentFct2() {
-	debugC(1, kDebugSound, "contentFct2()");
+void RobinSound::contentFct2(int var1, Common::Point var2, Common::Point var3, Common::Point var4) {
+	debugC(1, kDebugSound, "contentFct2(%d, %d - %d, %d - %d, %d - %d)", var1, var2.x, var2.y, var3.x, var3.y, var4.x, var4.y);
 }
 
 void RobinSound::contentFct3() {
