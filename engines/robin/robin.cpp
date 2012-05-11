@@ -304,7 +304,7 @@ Common::Platform RobinEngine::getPlatform() const {
 void RobinEngine::displayCharacter(int index, Common::Point pos, int flags) {
 	debugC(2, kDebugEngineTBC, "displayCharacter(%d, %d - %d, %d)", index, pos.x, pos.y, flags);
 
-	byte *buf = _buffer1_45k + (pos.y << 8) + pos.x;
+	byte *buf = _savedSurfaceGameArea1 + (pos.y << 8) + pos.x;
 
 	byte *src = _bufferMen;
 	if (index < 0) {
@@ -422,37 +422,51 @@ void RobinEngine::restoreSurfaceUnderMousePointer() {
 	}
 }
 
-// save game area
-void RobinEngine::displayFunction6() {
-	debugC(2, kDebugEngineTBC, "displayFunction6()");
+void RobinEngine::saveSurfaceGameArea() {
+	debugC(2, kDebugEngineTBC, "saveSurfaceGameArea()");
 
 	restoreSurfaceUnderMousePointer();
 
-	int index = (16 * 320) + 64;
+	int index = (16 * 320) + 64; // 5184
 	for (int i = 0; i < 176; i++) {
 		for (int j = 0; j < 256; j++)
-			_buffer3_45k[(i * 256) + j] = ((byte *)_mainSurface->pixels)[index + j];
+			_savedSurfaceGameArea3[(i * 256) + j] = ((byte *)_mainSurface->pixels)[index + j];
 		index += 320;
 	}
 
 	displayMousePointer();
 }
 
-// save speech zone
-void RobinEngine::displayFunction7() {
-	debugC(2, kDebugEngineTBC, "displayFunction7()");
+void RobinEngine::saveSurfaceSpeech() {
+	debugC(2, kDebugEngine, "saveSurfaceSpeech()");
 
 	restoreSurfaceUnderMousePointer();
 
 	int index = 66;
 	for (int i = 0; i < 16; i++) {
 		for (int j = 0; j < 252; j++)
-			_buffer10_4032[(i * 252) + j] = ((byte *)_mainSurface->pixels)[index + j];
+			_savedSurfaceSpeech[(i * 252) + j] = ((byte *)_mainSurface->pixels)[index + j];
 		index += 320;
 	}
 
 	displayMousePointer();
 }
+
+void RobinEngine::restoreSurfaceSpeech() {
+	debugC(2, kDebugEngine, "restoreSurfaceSpeech()");
+
+	restoreSurfaceUnderMousePointer();
+
+	int index = 66;
+	for (int i = 0; i < 16; i++) {
+		for (int j = 0; j < 252; j++)
+			((byte *)_mainSurface->pixels)[index + j] = _savedSurfaceSpeech[(i * 252) + j];
+		index += 320;
+	}
+
+	displayMousePointer();
+}
+
 
 void RobinEngine::displayInterfaceHotspots() {
 	debugC(2, kDebugEngineTBC, "displayInterfaceHotspots()");
@@ -475,7 +489,7 @@ void RobinEngine::displayInterfaceHotspots() {
 void RobinEngine::displayLandscape() {
 	debugC(2, kDebugEngine, "displayLandscape()");
 
-	memcpy(_buffer2_45k, _buffer3_45k, 45056);
+	memcpy(_savedSurfaceGameArea2, _savedSurfaceGameArea3, 176 * 256); // 45056
 
 	int var1 = (_scriptHandler->_viewportPos.y >> 8) + ((_scriptHandler->_viewportPos.y & 0xFF) << 8) + (_scriptHandler->_viewportPos.x << 2);
 	int var2;
@@ -484,7 +498,7 @@ void RobinEngine::displayLandscape() {
 	for (int i = 0; i < 8; i++) {
 		for (int j = 0; j < 8 ; j++) {
 			var2 = (j << 8) + i;
-			displayIsometricBlock(_buffer2_45k, _bufferIsoMap[var1 + index], var2, 0);
+			displayIsometricBlock(_savedSurfaceGameArea2, _bufferIsoMap[var1 + index], var2, 0);
 			index += 4;
 		}
 		index += 224;
@@ -585,17 +599,17 @@ void RobinEngine::displayFunction12() {
 
 	restoreSurfaceUnderMousePointer();
 
-	byte *tmpBuf = loadVGA("SCREEN.GFX", 64000, true);
-	memcpy(_mainSurface->pixels, tmpBuf, 320*200);
+	byte *tmpBuf = loadVGA("SCREEN.GFX", 320 * 200, true);
+	memcpy(_mainSurface->pixels, tmpBuf, 320 * 200);
 	_system->copyRectToScreen((byte *)_mainSurface->pixels, 320, 0, 0, 320, 200);
 	_system->updateScreen();
 
-	displayFunction6();
-	displayFunction7();
+	saveSurfaceGameArea();
+	saveSurfaceSpeech();
 	displayInterfaceHotspots();
 	displayLandscape();
 	displayFunction15();
-	displayFunction14();
+	displayGameArea();
 
 	displayMousePointer();
 	free(tmpBuf);
@@ -620,8 +634,8 @@ void RobinEngine::displayIsometricBlock(byte *buf, int var1, int var2, int var3)
 	}
 }
 
-void RobinEngine::displayFunction14() {
-	debugC(2, kDebugEngineTBC, "displayFunction14()");
+void RobinEngine::displayGameArea() {
+	debugC(2, kDebugEngine, "displayGameArea()");
 
 	if (_displayMap == 1)
 		return;
@@ -629,10 +643,10 @@ void RobinEngine::displayFunction14() {
 	if (_mouseDisplayPos.x > 48)
 		restoreSurfaceUnderMousePointer();
 
-	int index = (16 * 320) + 64;
+	int index = (16 * 320) + 64; // 5184
 	for (int i = 0; i < 176; i++) {
 		for (int j = 0; j < 256; j++)
-			((byte *)_mainSurface->pixels)[index + j] = _buffer1_45k[(i * 256) + j];
+			((byte *)_mainSurface->pixels)[index + j] = _savedSurfaceGameArea1[(i * 256) + j];
 		index += 320;
 	}
 
@@ -754,7 +768,7 @@ void RobinEngine::displayFunction15() {
 	_currentDisplayCharacter = 0;
 	setNextDisplayCharacter(0);
 
-	memcpy(_buffer1_45k, _buffer2_45k, 45056);
+	memcpy(_savedSurfaceGameArea1, _savedSurfaceGameArea2, 176 * 256); // 45056;
 
 	int index1 = (_scriptHandler->_viewportPos.y >> 8) + ((_scriptHandler->_viewportPos.y & 0xFF) << 8) + (_scriptHandler->_viewportPos.x << 2);
 	byte *map = &_bufferIsoMap[index1];
@@ -766,7 +780,7 @@ void RobinEngine::displayFunction15() {
 				int var1 = map[1];
 				if (_rulesChunk9[var1] != 128)
 					var1 += _scriptHandler->_byte12A04;
-				displayIsometricBlock(_buffer1_45k, var1, tmpVal, 1 << 8);
+				displayIsometricBlock(_savedSurfaceGameArea1, var1, tmpVal, 1 << 8);
 			}
 			renderCharacters(map, Common::Point(j, i));
 
@@ -774,7 +788,7 @@ void RobinEngine::displayFunction15() {
 				int var1 = map[2];
 				if (_rulesChunk9[var1] != 128)
 					var1 += _scriptHandler->_byte12A04;
-				displayIsometricBlock(_buffer1_45k, var1, tmpVal, 2 << 8);
+				displayIsometricBlock(_savedSurfaceGameArea1, var1, tmpVal, 2 << 8);
 			}
 			map += 4;
 		}
@@ -802,7 +816,7 @@ void RobinEngine::displayFunction16() {
 		scrollToViewportCharacterTarget();
 		sub189DE();
 		displayFunction15();
-		displayFunction14();
+		displayGameArea();
 		sub16626();
 		sub12F37();
 		sub16CA0();
@@ -815,6 +829,8 @@ void RobinEngine::displayFunction16() {
 }
 
 void RobinEngine::sub1863B() {
+	debugC(2, kDebugEngineTBC, "sub1863B()");
+
 	_arr18560[0]._field0 = 0;
 	_arr18560[1]._field0 = 0;
 	_arr18560[2]._field0 = 0;
@@ -1059,18 +1075,6 @@ void RobinEngine::sub16CA0() {
 	}
 }
 
-void RobinEngine::displayFunction17() {
-	debugC(2, kDebugEngineTBC, "displayFunction17()");
-
-	restoreSurfaceUnderMousePointer();
-
-	for (int i = 0; i < 16; i++)
-		for (int j = 0; j < 252; j++)
-			((byte *)_mainSurface->pixels)[66 + (i * 320) + j] = _buffer10_4032[(252 * i) + j];
-
-	displayMousePointer();
-}
-
 void RobinEngine::displayFunction18(int var1, int var2, int var3, int var4) {
 	debugC(2, kDebugEngineTBC, "displayFunction18(%d, %d, %d, %d)", var1, var2, var3, var4);
 	
@@ -1241,7 +1245,7 @@ void RobinEngine::viewportScrollTo(Common::Point goalPos) {
 		
 		displayLandscape();
 		displayFunction15();
-		displayFunction14();
+		displayGameArea();
 
 		if (goalPos.x == _scriptHandler->_viewportPos.x)
 			dx = 0;
@@ -1328,7 +1332,7 @@ void RobinEngine::sub15498(byte x, byte y, int var2) {
 	
 	int index = x + ((var2 & 0xFF) << 8) + (var2 >> 8);
 	for (int i = 1 + y - var2; i > 0; i--) {
-		_buffer1_45k[index] = 17;
+		_savedSurfaceGameArea1[index] = 17;
 		index += 256;
 	}
 }
@@ -1339,7 +1343,7 @@ void RobinEngine::sub189DE() {
 	if (_byte1881D != 0) {
 		--_byte1881D;
 		if (_byte1881D == 0) {
-			displayFunction17();
+			restoreSurfaceSpeech();
 			_scriptHandler->_word1881B = -1;
 		}
 	}
