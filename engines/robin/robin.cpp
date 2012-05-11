@@ -144,7 +144,6 @@ RobinEngine::RobinEngine(OSystem *syst, const RobinGameDescription *gd) : Engine
 	_byte12A07 = 0;
 	_byte12A08 = 0;
 	_byte12A09 = 0;
-	_byte1881D = 0;
 	_byte16552 = 0;
 	_byte12FE4 = 0xFF;
 	_byte12FE3 = 0;
@@ -382,9 +381,8 @@ void RobinEngine::SaveSurfaceUnderMouseCursor(byte *buf, Common::Point pos) {
 	}
 }
 
-// Fill 16x16 rect
-void RobinEngine::displayFunction3(int var1, int var2, int var4) {
-	debugC(2, kDebugEngineTBC, "displayFunction3(%d, %d, %d)", var1, var2, var4);
+void RobinEngine::fill16x16Rect(int var1, int var2, int var4) {
+	debugC(2, kDebugEngineTBC, "fill16x16Rect(%d, %d, %d)", var1, var2, var4);
 
 	int tmpVal = ((var4 >> 8) + (var4 & 0xFF));
 	int index = var2 + tmpVal + (tmpVal >> 2);
@@ -802,7 +800,7 @@ void RobinEngine::displayFunction16() {
 
 	if (_displayMap == 1) {
 		bool forceReturnFl = false;
-		sub15F31(forceReturnFl);
+		checkMapClosing(forceReturnFl);
 		if (forceReturnFl)
 			return;
 
@@ -815,7 +813,7 @@ void RobinEngine::displayFunction16() {
 		displayCharactersOnMap();
 	} else {
 		scrollToViewportCharacterTarget();
-		sub189DE();
+		checkSpeechClosing();
 		prepareGameArea();
 		displayGameArea();
 		sub16626();
@@ -989,15 +987,15 @@ void RobinEngine::sub130B6() {
 	}
 }
 
-void RobinEngine::sub15F31(bool &forceReturnFl) {
-	debugC(2, kDebugEngineTBC, "sub15F31()");
+void RobinEngine::checkMapClosing(bool &forceReturnFl) {
+	debugC(2, kDebugEngineTBC, "checkMapClosing()");
 
 	forceReturnFl = false;
 	if (_displayMap != 1)
 		return;
 
 	pollEvent();
-	warning("sub15F31- TODO: Check keyboard");
+	warning("checkMapClosing- TODO: Check keyboard");
 
 	if ((_mouseButton & 1) == 0)
 		return;
@@ -1305,7 +1303,7 @@ void RobinEngine::renderCharacters(byte *buf, Common::Point pos) {
 	int index = _charactersToDisplay[_currentDisplayCharacter];
 	Common::Point characterPos = Common::Point(_characterDisplayX[index], _characterDisplayY[index]);
 
-	if (index == _scriptHandler->_word1881B)
+	if (index == _scriptHandler->_talkingCharacter)
 		sub1546F(characterPos);
 
 	if (_byte16552 != 1) {
@@ -1343,7 +1341,7 @@ void RobinEngine::sub1546F(Common::Point displayPos) {
 	int x = orgX;
 	int y = orgY;
 	do {
-		sub15498(x, y, var2);
+		sub15498(Common::Point(x, y), var2);
 		--x;
 		y >>= 1;
 	} while (y != 0);
@@ -1352,30 +1350,30 @@ void RobinEngine::sub1546F(Common::Point displayPos) {
 	y = orgY >> 1;
 	
 	while (y != 0) {
-		sub15498(x, y, var2);
+		sub15498(Common::Point(x, y), var2);
 		++x;
 		y >>= 1;
 	}
 }
 
-void RobinEngine::sub15498(byte x, byte y, int var2) {
-	debugC(2, kDebugEngineTBC, "sub15498(%d, %d, %d)", x, y, var2);
+void RobinEngine::sub15498(Common::Point pos, int var2) {
+	debugC(2, kDebugEngineTBC, "sub15498(%d - %d, %d)", pos.x, pos.y, var2);
 	
-	int index = x + ((var2 & 0xFF) << 8) + (var2 >> 8);
-	for (int i = 1 + y - var2; i > 0; i--) {
+	int index = pos.x + ((var2 & 0xFF) << 8) + (var2 >> 8);
+	for (int i = 1 + pos.y - var2; i > 0; i--) {
 		_savedSurfaceGameArea1[index] = 17;
 		index += 256;
 	}
 }
 
-void RobinEngine::sub189DE() {
-	debugC(2, kDebugEngineTBC, "sub189DE()");
+void RobinEngine::checkSpeechClosing() {
+	debugC(2, kDebugEngineTBC, "checkSpeechClosing()");
 
-	if (_byte1881D != 0) {
-		--_byte1881D;
-		if (_byte1881D == 0) {
+	if (_scriptHandler->_speechTimer != 0) {
+		--_scriptHandler->_speechTimer;
+		if (_scriptHandler->_speechTimer == 0) {
 			restoreSurfaceSpeech();
-			_scriptHandler->_word1881B = -1;
+			_scriptHandler->_talkingCharacter = -1;
 		}
 	}
 }
