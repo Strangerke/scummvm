@@ -164,7 +164,7 @@ RobinEngine::RobinEngine(OSystem *syst, const RobinGameDescription *gd) : Engine
 	_word1289D = 0;
 	_numCharacters = 0;
 
-	_saveFlag = false;
+	_saveFlag = true;
 	_byte16F07_menuId = 0;
 
 	_array16C54[0] = _array16C58[3] = 1;
@@ -528,7 +528,7 @@ void RobinEngine::displayFunction10() {
 	displayMousePointer();
 }
 
-void RobinEngine::sub15A4C(int &vgaIndex, byte *srcBuf, int &bufIndex) {
+void RobinEngine::sub15A4C(int vgaIndex, byte *srcBuf, int &bufIndex) {
 	debugC(2, kDebugEngineTBC, "sub15A4C()");
 
 	int var3 = 0;
@@ -544,7 +544,7 @@ void RobinEngine::sub15A4C(int &vgaIndex, byte *srcBuf, int &bufIndex) {
 		++var3;
 	}
 
-	var1 = (0x3D - var3) < 1;
+	var1 = (0x3D - var3) << 1;
 	vgaIndex += var1;
 
 	bufIndex = bckIndex;
@@ -554,7 +554,7 @@ void RobinEngine::sub15A4C(int &vgaIndex, byte *srcBuf, int &bufIndex) {
 		if ((var1 == 0) || (var1 == '|'))
 			break;
 
-		displayChar(vgaIndex, srcBuf[bufIndex]);
+		displayChar(vgaIndex, var1);
 		vgaIndex += 4;
 	}
 
@@ -2004,7 +2004,7 @@ byte RobinEngine::sub16675(int idx, Common::Point var1) {
 	debugC(2, kDebugEngineTBC, "sub16675(%d, %d - %d)", idx, var1.x, var1.y);
 
 	sub16685(idx, var1);
-	int index = var1.y;	
+	int index = idx;	
 	switch (var1.x) {
 	case 0:
 		break;
@@ -2674,15 +2674,17 @@ void RobinEngine::handleGameScripts() {
 	int tmpVal = _rulesBuffer2_12[index];
 	if (tmpVal == 0xFF)
 		return;
-
 /*
 	_scriptHandler->listAllTexts();
+
+
 
 	debugC(1, kDebugEngineTBC, "================= Menu Script ==================");
 	ScriptStream script = ScriptStream(_menuScript, _menuScriptSize);
 	_scriptHandler->disasmScript(script);
 	debugC(1, kDebugEngineTBC, "============= End Menu Script ==================");
-*/	
+
+
 	for (int i = 0; i < _gameScriptIndexSize; i++) {
 		assert(tmpVal < _gameScriptIndexSize);
 		debugC(1, kDebugEngineTBC, "================= Game Script %d ==================", i);
@@ -2692,11 +2694,8 @@ void RobinEngine::handleGameScripts() {
 	}
 	
 	while(1);
-
-	if(tmpVal == 6) {
-		warning("e");
-	}
-	*/
+*/
+	
 	i = index;
 	//debugC(1, kDebugEngineTBC, "before char %d, pos %d %d, var0 %d, var1 %d, var2 %d var16 %d, script enabled %d", i, _characterPositionX[i], _characterPositionY[i], *getCharacterVariablesPtr(i * 32 + 0), *getCharacterVariablesPtr(i * 32 + 1), *getCharacterVariablesPtr(i * 32 + 2),  *getCharacterVariablesPtr(i * 32 + 22), _scriptHandler->_characterScriptEnabled[i]);
 
@@ -2704,7 +2703,6 @@ void RobinEngine::handleGameScripts() {
 	debugC(1, kDebugEngineTBC, "================= Game Script %d for character %d ==================", tmpVal, index);
 	_scriptHandler->runScript(ScriptStream(&_arrayGameScripts[_arrayGameScriptIndex[tmpVal]], _arrayGameScriptIndex[tmpVal + 1] - _arrayGameScriptIndex[tmpVal]));
 	debugC(1, kDebugEngineTBC, "============= End Game Script %d for character %d ==================", tmpVal, index);
-
 
 	//warning("dump char stat");
 	//debugC(1, kDebugEngineTBC, "after char %d, pos %d %d, var0 %d, var1 %d, var2 %d var16 %d, script enabled %d", i, _characterPositionX[i], _characterPositionY[i], *getCharacterVariablesPtr(i * 32 + 0), *getCharacterVariablesPtr(i * 32 + 1), *getCharacterVariablesPtr(i * 32 + 2),  *getCharacterVariablesPtr(i * 32 + 22), _scriptHandler->_characterScriptEnabled[i]);
@@ -2771,6 +2769,11 @@ void RobinEngine::initialize() {
 
 byte *RobinEngine::getCharacterVariablesPtr(int16 index) {
 	debugC(1, kDebugEngineTBC, "getCharacterVariablesPtr(%d)", index);
+
+	if(index == 96 + 22) {	
+		int a = 0;
+	}
+
 
 	assert((index > -3120) && (index < 1400));
 	if (index >= 0)
