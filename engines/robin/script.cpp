@@ -1303,7 +1303,7 @@ int16 RobinScript::getValue1() {
 }
 
 Common::Point RobinScript::getPosFromScript() {
-	debugC(2, kDebugScriptTBC, "getPosFromScript()");
+	debugC(2, kDebugScript, "getPosFromScript()");
 
 	int curWord = _currScript->readUint16LE();
 	int tmpVal = curWord >> 8;
@@ -1355,7 +1355,7 @@ Common::Point RobinScript::getPosFromScript() {
 		return _vm->_savedMousePosDivided;
 	default:
 		Common::Point pos = Common::Point(curWord >> 8, curWord & 0xFF);
-		//warning("getPosFromScript - High value %d -> %d %d", curWord, pos.x, pos.y);
+		// warning("getPosFromScript - High value %d -> %d %d", curWord, pos.x, pos.y);
 		return pos;
 	}
 }
@@ -3059,7 +3059,7 @@ void RobinScript::OC_sub17E22_speech1IfSoundOff() {
 }
 
 void RobinScript::OC_sub1844A() {
-	debugC(1, kDebugScriptTBC, "OC_sub1847F()");
+	debugC(1, kDebugScriptTBC, "OC_sub1844A()");
 	
 	int var1 = getValue1();
 	int var2 = _currScript->readUint16LE();
