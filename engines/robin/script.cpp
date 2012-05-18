@@ -1743,9 +1743,9 @@ byte RobinScript::OC_sub176C4() {
 }
 
 byte RobinScript::OC_compWord10804() {
-	debugC(1, kDebugScriptTBC, "OC_compWord10804()");
+	debugC(1, kDebugScript, "OC_compWord10804()");
 	
-	byte tmpVal = getValue1();
+	int tmpVal = getValue1();
 	if (tmpVal == _vm->_word10804)
 		return 1;
 
@@ -2284,7 +2284,7 @@ void RobinScript::OC_setCharacterPosition() {
 }
 
 void RobinScript::OC_DisableCharacter() {
-	debugC(1, kDebugScriptTBC, "OC_DisableCharacter()");
+	debugC(1, kDebugScript, "OC_DisableCharacter()");
 
 	int characterIndex = getValue1();
 	assert(characterIndex < 40);
@@ -2352,7 +2352,7 @@ void RobinScript::OC_setByte18823() {
 }
 
 void RobinScript::OC_callScript() {
-	debugC(1, kDebugScriptTBC, "OC_callScript()");
+	debugC(1, kDebugScript, "OC_callScript()");
 
 	int index = _currScript->readUint16LE();
 	int var1 = getValue1();
@@ -2416,7 +2416,7 @@ void RobinScript::OC_sub17AEE() {
 }
 
 void RobinScript::OC_setWord10804() {
-	debugC(1, kDebugScriptTBC, "OC_setWord10804()");
+	debugC(1, kDebugScript, "OC_setWord10804()");
 
 	_vm->_word10804 = getValue1();
 }

@@ -338,7 +338,7 @@ public:
 	byte _byte129A0;
 	byte _numCharactersToDisplay;
 	byte _byte16C9F; 
-	int _word10804;
+	int16 _word10804;
 	bool _shouldQuit;
 
 
