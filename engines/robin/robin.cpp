@@ -153,7 +153,7 @@ RobinEngine::RobinEngine(OSystem *syst, const RobinGameDescription *gd) : Engine
 	_currentScriptCharacter = 0;
 	_currentScriptCharacterPos = Common::Point(0, 0);
 	_word10804 = 0;
-	_word17081_nextIndex = 0;
+	_nextCharacterIndex = 0;
 	_word16EFE = 0xFFFF;
 	_word1817B = 0;
 	_savedSurfaceUnderMousePos = Common::Point(0, 0);
@@ -2629,7 +2629,7 @@ void RobinEngine::sub130DD() {
 }
 
 void RobinEngine::handleMenu() {
-	debugC(1, kDebugEngineTBC, "handleMenu()");
+	debugC(1, kDebugEngine, "handleMenu()");
 
 	if (_byte16F07_menuId == 0)
 		return;
@@ -2651,9 +2651,9 @@ void RobinEngine::handleMenu() {
 }
 
 void RobinEngine::handleGameScripts() {
-	debugC(1, kDebugEngineTBC, "handleGameScripts()");
+	debugC(1, kDebugEngine, "handleGameScripts()");
 
-	int index = _word17081_nextIndex;
+	int index = _nextCharacterIndex;
 	int i;
 	for (i = 0; (_scriptHandler->_characterScriptEnabled[index] == 0) && (i < _numCharacters); i++) {
 		++index;
@@ -2664,7 +2664,7 @@ void RobinEngine::handleGameScripts() {
 	if (i > _numCharacters)
 		return;
 
-	_word17081_nextIndex = (index + 1) % _numCharacters;
+	_nextCharacterIndex = (index + 1) % _numCharacters;
 
 
 	_scriptHandler->_characterScriptEnabled[index] = 0;
