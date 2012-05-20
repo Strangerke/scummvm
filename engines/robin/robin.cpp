@@ -209,7 +209,7 @@ RobinEngine::RobinEngine(OSystem *syst, const RobinGameDescription *gd) : Engine
 	}
 
 	for (int i = 0; i < 30; i++)
-		_array12861[i] = 0xFFFF;
+		_array12861[i] = -1;
 
 	for (int i = 0; i < 256; i++)
 		_savedSurfaceUnderMouse[i] = 0;
@@ -1374,10 +1374,10 @@ void RobinEngine::checkSpeechClosing() {
 	}
 }
 
-int RobinEngine::getDirection(Common::Point param1, Common::Point param2) {
-	debugC(2, kDebugEngineTBC, "getDirection(%d - %d, %d - %d)", param1.x, param1.y, param2.x, param2.y);
+byte RobinEngine::getDirection(Common::Point param1, Common::Point param2) {
+	debugC(2, kDebugEngine, "getDirection(%d - %d, %d - %d)", param1.x, param1.y, param2.x, param2.y);
 
-	static const char _directionsArray[8] = {0, 2, 0, 1, 3, 2, 3, 1};
+	static const byte _directionsArray[8] = {0, 2, 0, 1, 3, 2, 3, 1};
 
 	Common::Point var1 = param2;
 	Common::Point var2 = param1;
@@ -1581,21 +1581,21 @@ byte RobinEngine::sub16A76(int indexb, int indexs) {
 	return 1;
 }
 
-int RobinEngine::findHotspot(Common::Point pos) {
-	debugC(2, kDebugEngineTBC, "findHotspot(%d, %d)", pos.x, pos.y);
+int16 RobinEngine::findHotspot(Common::Point pos) {
+	debugC(2, kDebugEngine, "findHotspot(%d, %d)", pos.x, pos.y);
 
-	for (int i = 0; i < _rulesChunk12_size; i++) {
+	for (int i = 0; i < _rectNumb; i++) {
 		if ((pos.x >= (_rectXMinMax[i] >> 8)) && (pos.x <= (_rectXMinMax[i] & 0xFF)) && (pos.y >= (_rectYMinMax[i] >> 8)) && (pos.y <= (_rectYMinMax[i] & 0xFF)))
 			return i;
 	}
 	return -1;
 }
 
-int RobinEngine::reverseFindHotspot(Common::Point pos) {
-	debugC(2, kDebugEngineTBC, "reverseFindHotspot(%d, %d)", pos.x, pos.y);
+int16 RobinEngine::reverseFindHotspot(Common::Point pos) {
+	debugC(2, kDebugEngine, "reverseFindHotspot(%d, %d)", pos.x, pos.y);
 
-	for (int i = _rulesChunk12_size - 1; i >= 0 ; i--) {
-		if ((pos.x >= (_rectXMinMax[i] >> 8)) && (pos.x <= (_rectXMinMax[i] & 0xFF)) && (pos.y >= (_rectYMinMax[i] >> 8)) && (pos.y<= (_rectYMinMax[i] & 0xFF)))
+	for (int i = _rectNumb - 1; i >= 0 ; i--) {
+		if ((pos.x >= (_rectXMinMax[i] >> 8)) && (pos.x <= (_rectXMinMax[i] & 0xFF)) && (pos.y >= (_rectYMinMax[i] >> 8)) && (pos.y <= (_rectYMinMax[i] & 0xFF)))
 			return i;
 	}
 	return -1;
@@ -2014,13 +2014,13 @@ byte RobinEngine::sub16675(int idx, Common::Point var1) {
 	case 0:
 		break;
 	case 1:
-		sub166B1(index);
+		moveCharacterSpeed2(index);
 		break;
 	case 2:
-		sub166B6(index);
+		moveCharacterSpeed4(index);
 		break;
 	case 3:
-		sub166BB(index);
+		moveCharacterBack2(index);
 		break;
 	case 4:
 		sub16B63(index);
@@ -2029,19 +2029,19 @@ byte RobinEngine::sub16675(int idx, Common::Point var1) {
 		sub16B76(index);
 		break;
 	case 6:
-		sub166C0(index);
+		moveCharacterUp1(index);
 		break;
 	case 7:
-		sub166C6(index);
+		moveCharacterUp2(index);
 		break;
 	case 8:
-		sub166CC(index);
+		moveCharacterDown1(index);
 		break;
 	case 9:
-		sub166D2(index);
+		moveCharacterDown2(index);
 		break;
 	case 10:
-		sub166D8(index);
+		moveCharacterSpeed3(index);
 		break;
 	default:
 		warning("sub16675 - Unexpected value %d", var1.x);
@@ -2064,109 +2064,110 @@ void RobinEngine::sub16B76(int index) {
 	_characterDirectionArray[index] = nextDirection[_characterDirectionArray[index]];
 }
 
-void RobinEngine::sub166C0(int index) {
-	debugC(2, kDebugEngineTBC, "sub166C0(%d)", index);
+void RobinEngine::moveCharacterUp1(int index) {
+	debugC(2, kDebugEngine, "moveCharacterUp1(%d)", index);
 
 	_characterPositionAltitude[index] += 1;
 }
 
-void RobinEngine::sub166C6(int index) {
-	debugC(2, kDebugEngineTBC, "sub166C6(%d)", index);
+void RobinEngine::moveCharacterUp2(int index) {
+	debugC(2, kDebugEngine, "moveCharacterUp2(%d)", index);
 
 	_characterPositionAltitude[index] += 2;
 }
 
-void RobinEngine::sub166CC(int index) {
-	debugC(2, kDebugEngineTBC, "sub166CC(%d)", index);
+void RobinEngine::moveCharacterDown1(int index) {
+	debugC(2, kDebugEngine, "moveCharacterDown1(%d)", index);
 
 	_characterPositionAltitude[index] -= 1;
 }
 
-void RobinEngine::sub166D2(int index) {
-	debugC(2, kDebugEngineTBC, "sub166D2(%d)", index);
+void RobinEngine::moveCharacterDown2(int index) {
+	debugC(2, kDebugEngine, "moveCharacterDown2(%d)", index);
 
 	_characterPositionAltitude[index] -= 2;
 }
 
-void RobinEngine::sub166B1(int index) {
-	debugC(2, kDebugEngineTBC, "sub166B1(%d)", index);
+void RobinEngine::moveCharacterSpeed2(int index) {
+	debugC(2, kDebugEngine, "moveCharacterSpeed2(%d)", index);
 
-	sub16B31(index, 2);
+	sub16B31_moveCharacter(index, 2);
 }
 
-void RobinEngine::sub166B6(int index) {
-	debugC(2, kDebugEngineTBC, "sub166B6(%d)", index);
+void RobinEngine::moveCharacterSpeed4(int index) {
+	debugC(2, kDebugEngine, "moveCharacterSpeed4(%d)", index);
 
-	sub16B31(index, 4);
+	sub16B31_moveCharacter(index, 4);
 }
 
-void RobinEngine::sub166BB(int index) {
-	debugC(2, kDebugEngineTBC, "sub166BB(%d)", index);
+void RobinEngine::moveCharacterBack2(int index) {
+	debugC(2, kDebugEngine, "moveCharacterBack2(%d)", index);
 
-	sub16B31(index, -2);
+	sub16B31_moveCharacter(index, -2);
 }
 
-void RobinEngine::sub166D8(int index) {
-	debugC(2, kDebugEngineTBC, "sub166D8(%d)", index);
+void RobinEngine::moveCharacterSpeed3(int index) {
+	debugC(2, kDebugEngine, "moveCharacterSpeed3(%d)", index);
 
-	sub16B31(index, 3);
+	sub16B31_moveCharacter(index, 3);
 }
 
-void RobinEngine::sub16B31(int index, int val) {
-	debugC(2, kDebugEngineTBC, "sub16B31(%d, %d)", index, val);
+void RobinEngine::sub16B31_moveCharacter(int index, int16 speed) {
+	debugC(2, kDebugEngine, "sub16B31_moveCharacter(%d, %d)", index, speed);
 
-	int newX = _characterPositionX[index];
-	int newY = _characterPositionY[index];
+	int16 newX = _characterPositionX[index];
+	int16 newY = _characterPositionY[index];
 	switch (_characterDirectionArray[index]) {
 	case 0:
-		newX += val;
+		newX += speed;
 		break;
 	case 1:
-		newY -= val;
+		newY -= speed;
 		break;
 	case 2:
-		newY += val;
+		newY += speed;
 		break;
 	default:
-		newX -= val;
+		newX -= speed;
 		break;
 	}
-	sub16B8F(index, newX, newY, _characterDirectionArray[index]);
+	sub16B8F_moveCharacter(index, Common::Point(newX, newY), _characterDirectionArray[index]);
 }
 
-void RobinEngine::sub16B8F(int index, int x, int y, int flag) {
-	debugC(2, kDebugEngineTBC, "sub16B8F(%d, %d, %d)", index, x, y);
+void RobinEngine::sub16B8F_moveCharacter(int index, Common::Point pos, int direction) {
+	debugC(2, kDebugEngine, "sub16B8F_moveCharacter(%d, %d - %d, %d)", index, pos.x, pos.y, direction);
 
-	int diffX = x >> 3;
-	if (((diffX & 0xFF) == _scriptHandler->_array16123PosX[index]) && ((y >> 3) == _scriptHandler->_array1614BPosY[index])) {
-		_characterPositionX[index] = x;
-		_characterPositionY[index] = y;
+	int16 diffX = pos.x >> 3;
+	if (((diffX & 0xFF) == _scriptHandler->_array16123PosX[index]) && ((pos.y >> 3) == _scriptHandler->_array1614BPosY[index])) {
+		_characterPositionX[index] = pos.x;
+		_characterPositionY[index] = pos.y;
+		return;
 	}
 
-	if ((x < 0) || (x >= 512) || (y < 0) || (y >= 512))
+	if ((pos.x < 0) || (pos.x >= 512) || (pos.y < 0) || (pos.y >= 512))
 		return;
 
 	int mapIndex = (_scriptHandler->_array1614BPosY[index] << 6) + _scriptHandler->_array16123PosX[index];
 	mapIndex <<= 2;
 
-	if ((_bufferIsoMap[mapIndex + 3] & _array16C58[flag]) == 0)
+	if ((_bufferIsoMap[mapIndex + 3] & _array16C58[direction]) == 0)
 		return;
 
-	mapIndex = ((y & 0xFFF8) << 3) + diffX;
+	mapIndex = ((pos.y & 0xFFF8) << 3) + diffX;
 	mapIndex <<= 2;
 
-	if ((_bufferIsoMap[mapIndex + 3] & _array16C54[flag]) == 0)
+	if ((_bufferIsoMap[mapIndex + 3] & _array16C54[direction]) == 0)
 		return;
 
-	int var1 = _rulesBuffer2_10[index];
+	byte var1 = _rulesBuffer2_10[index];
 	var1 &= 7;
 	var1 ^= 7;
 
 	if ((var1 & _rulesChunk9[_bufferIsoMap[mapIndex]]) != 0)
 		return;
 
-	_characterPositionX[index] = x;
-	_characterPositionY[index] = y;
+	_characterPositionX[index] = pos.x;
+	_characterPositionY[index] = pos.y;
 }
 
 void RobinEngine::sub17224(int var1, int var4) {
@@ -2217,10 +2218,10 @@ void RobinEngine::sub171CF() {
 	++_word1289D;
 
 	for (int i = 0; i < 10; i++) {
-		if ((_array12861[(3 * i) + 1] != 0xFFFF) && (_array12861[3 * i] == _word1289D)) {
+		if ((_array12861[(3 * i) + 1] != -1) && (_array12861[3 * i] == _word1289D)) {
 			int var1 = _array12861[(3 * i) + 1];
 			int var4 = _array12861[(3 * i) + 2];
-			_array12861[(3 * i) + 1] = 0xFFFF;
+			_array12861[(3 * i) + 1] = -1;
 
 			sub17224(var1, var4);
 		}
@@ -2528,11 +2529,11 @@ void RobinEngine::loadRules() {
 	}
 
 	// Chunk 12
-	_rulesChunk12_size = f.readUint16LE();
-	assert(_rulesChunk12_size <= 40);
+	_rectNumb = f.readUint16LE();
+	assert(_rectNumb <= 40);
 	uint16 tmpVal;
 
-	for (int i = 0; i < _rulesChunk12_size; i++) {
+	for (int i = 0; i < _rectNumb; i++) {
 		_rectXMinMax[i] = f.readUint16LE();
 		_rectYMinMax[i] = f.readUint16LE();
 		tmpVal = f.readUint16LE();
