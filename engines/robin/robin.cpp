@@ -106,8 +106,7 @@ static const byte _basisPalette[768] = {
 	63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63
 };
 
-RobinEngine::RobinEngine(OSystem *syst, const RobinGameDescription *gd) : Engine(syst), _gameDescription(gd)
-{
+RobinEngine::RobinEngine(OSystem *syst, const RobinGameDescription *gd) : Engine(syst), _gameDescription(gd) {
 	_system = syst;
 	DebugMan.addDebugChannel(kDebugEngine, "Engine", "Engine debug level");
 	DebugMan.addDebugChannel(kDebugScript, "Script", "Script debug level");
@@ -146,7 +145,7 @@ RobinEngine::RobinEngine(OSystem *syst, const RobinGameDescription *gd) : Engine
 	_byte16552 = 0;
 	_lastInterfaceHotspotIndex = -1;
 	_lastInterfaceHotspotButton = 0;
-	_byte16F08 = 0;	
+	_byte16F08 = 0;
 	_byte16C9F = 0;
 	_lastAnimationTick = 0;
 
@@ -259,10 +258,10 @@ void RobinEngine::newInt8() {
 	}
 	--_byte12A06;
 	// TODO: check 'out 20h, 20h'
-	
+
 	// hack for the title stars because _int8installed is not set at the good place for the moment
 	//if (!_int8installed)
-	//	return;
+	//  return;
 
 	// if (_soundEnabled)
 	_soundHandler->contentFct1();
@@ -329,7 +328,7 @@ void RobinEngine::displayCharacter(int index, Common::Point pos, int flags) {
 		// Sprite mirror
 		for (int y = 0; y < 16; y++) {
 			for (int x = 0; x < 16; x++) {
-				// May need a hack of 1 pixel 
+				// May need a hack of 1 pixel
 				if (src[15 - x] != 0)
 					buf[x] = src[15 - x];
 			}
@@ -655,7 +654,7 @@ void RobinEngine::restoreMapPoints() {
 	debugC(2, kDebugEngineTBC, "restoreMapPoints()");
 
 	restoreSurfaceUnderMousePointer();
-	
+
 	byte *buf = (byte *)_mainSurface->pixels;
 	for (int index = 0; index < _numCharacters; index++) {
 		buf[_word15E5D[index]] = _byte15E35[index];
@@ -671,14 +670,14 @@ void RobinEngine::displayCharactersOnMap() {
 	restoreSurfaceUnderMousePointer();
 
 	byte *buf = (byte *)_mainSurface->pixels;
-	for (int index = _numCharacters - 1; index >=0; index--) {
+	for (int index = _numCharacters - 1; index >= 0; index--) {
 		if (((_rulesBuffer2_11[index] & 2) == 0) && (_scriptHandler->_array1614BPosY[index] != -1)) {
-			 int y = (3 * _scriptHandler->_array1614BPosY[index]) + 1;
-			 int x = (_scriptHandler->_array16123PosX[index] * 4) + 1;
+			int y = (3 * _scriptHandler->_array1614BPosY[index]) + 1;
+			int x = (_scriptHandler->_array16123PosX[index] * 4) + 1;
 
-			 _word15E5D[index] = y * 320 + x; 
-			 _byte15E35[index] = buf[y * 320 + x];
-			 buf[y * 320 + x] = _scriptHandler->_array128EF[index];
+			_word15E5D[index] = y * 320 + x;
+			_byte15E35[index] = buf[y * 320 + x];
+			buf[y * 320 + x] = _scriptHandler->_array128EF[index];
 		}
 	}
 	displayMousePointer();
@@ -738,7 +737,7 @@ void RobinEngine::moveCharacters() {
 			_characterDisplayY[i] = (20 + tmpVal2 + tmpVal3 - tmpVal4) & 0xFF;
 			_charactersToDisplay[_numCharactersToDisplay] = i;
 			++_numCharactersToDisplay;
- 		}
+		}
 	}
 
 	sortCharacters();
@@ -849,7 +848,7 @@ void RobinEngine::displaySmallAnims() {
 		return;
 
 	_lastAnimationTick = _animationTick;
-	
+
 	assert(_smallAnimsFrameIndex < 8);
 	int subIndex = _smallAnimsFrameIndex;
 	displaySmallIndexedAnim(0, subIndex);
@@ -869,7 +868,7 @@ void RobinEngine::paletteFadeOut() {
 
 	resetSmallAnims();
 	byte palette[768];
-	for (int fade = 256; fade >= 0;	fade -= 8) {
+	for (int fade = 256; fade >= 0; fade -= 8) {
 		for (int i = 0; i < 768; i++) {
 			palette[i] = (_curPalette[i] * fade) >> 8;
 		}
@@ -883,7 +882,7 @@ void RobinEngine::paletteFadeIn() {
 	debugC(2, kDebugEngine, "paletteFadeIn()");
 
 	byte palette[768];
-	for (int fade = 8; fade <= 256;	fade += 8) {
+	for (int fade = 8; fade <= 256; fade += 8) {
 		for (int i = 0; i < 768; i++) {
 			palette[i] = (_curPalette[i] * fade) >> 8;
 		}
@@ -901,7 +900,7 @@ int RobinEngine::sub16DD5(int x1, int y1, int x2, int y2) {
 	int dx = x2 - x1;
 	int dy = y2 - y1;
 
-	int16 tmpMapMoveX = 0; 
+	int16 tmpMapMoveX = 0;
 	int16 tmpMapMoveY = 0;
 	int16 mapMoveY = 0;
 	int16 mapMoveX = 0;
@@ -941,7 +940,7 @@ int RobinEngine::sub16DD5(int x1, int y1, int x2, int y2) {
 	mapMoveX += mapMoveY;
 	tmpMapMoveX += tmpMapMoveY;
 
-	int count = 0; 
+	int count = 0;
 
 	while (*isoMap == 0xFF) {
 		if (var1 >= 0) {
@@ -951,7 +950,7 @@ int RobinEngine::sub16DD5(int x1, int y1, int x2, int y2) {
 			isoMap += mapMoveX;
 			var1 += byte16DD4;
 		}
-		
+
 		count++;
 		if (count > dx) {
 			return 0;
@@ -965,12 +964,12 @@ void RobinEngine::sub15F75() {
 
 	_byte129A0 = 0xFF;
 	_savedMousePosDivided = Common::Point(-1, -1);
-	byte newX = _mousePos.x >> 2; 
+	byte newX = _mousePos.x >> 2;
 	byte newY = _mousePos.y / 3;
 
 	if ((newX >= 64) || (newY >= 64))
 		return;
-	
+
 	_savedMousePosDivided = Common::Point(newX, newY);
 	_byte16F07_menuId = 5;
 }
@@ -999,7 +998,7 @@ void RobinEngine::checkMapClosing(bool &forceReturnFl) {
 
 	_mouseButton = 0;
 	sub15F75();
-	
+
 	_displayMap = 0;
 	paletteFadeOut();
 	_word15AC2 = 0;
@@ -1023,20 +1022,20 @@ void RobinEngine::sub16CA0() {
 
 		for (int index2 = _numCharacters - 1; index2 >= 0; index2--) {
 			_byte16C9F = 0;
-			if ((index != index2) && 
-				(_rulesBuffer2_5[index] != index2) &&
-				(_rulesBuffer2_5[index2] != index) &&
-				(_rulesBuffer2_11[index2] & 2) == 0) {
+			if ((index != index2) &&
+			        (_rulesBuffer2_5[index] != index2) &&
+			        (_rulesBuffer2_5[index2] != index) &&
+			        (_rulesBuffer2_11[index2] & 2) == 0) {
 				int d1 = _scriptHandler->_array16123PosX[index2];
 				int d2 = _scriptHandler->_array1614BPosY[index2];
-	
+
 				if (d1 != -1) {
 					int x = c1 - d1;
 					if ((x > -6) && (x < 6)) {
 						int y = c2 - d2;
 						if ((y > -6) && (y < 6)) {
 							_byte16C9F = 1;
-	
+
 							if ((c1 == d1) && (c2 == d2)) {
 								_byte16C9F = 4;
 							} else if ((_rulesBuffer2_11[index] & 4) != 0) {
@@ -1050,7 +1049,7 @@ void RobinEngine::sub16CA0() {
 											_byte16C9F = 3;
 
 										if (sub16DD5(c1, d1, c2, d2) != 0)
-											_byte16C9F = 1;	
+											_byte16C9F = 1;
 									}
 								} else if (_characterDirectionArray[index] == 1) {
 									if (d2 < c2) {
@@ -1060,7 +1059,7 @@ void RobinEngine::sub16CA0() {
 											_byte16C9F = 3;
 
 										if (sub16DD5(c1, d1, c2, d2) != 0)
-											_byte16C9F = 1;	
+											_byte16C9F = 1;
 									}
 								} else if (_characterDirectionArray[index] == 2) {
 									if (d2 > c2) {
@@ -1070,7 +1069,7 @@ void RobinEngine::sub16CA0() {
 											_byte16C9F = 3;
 
 										if (sub16DD5(c1, d1, c2, d2) != 0)
-											_byte16C9F = 1;	
+											_byte16C9F = 1;
 									}
 								} else {
 									if (d1 < c1) {
@@ -1080,7 +1079,7 @@ void RobinEngine::sub16CA0() {
 											_byte16C9F = 3;
 
 										if (sub16DD5(c1, d1, c2, d2) != 0)
-											_byte16C9F = 1;	
+											_byte16C9F = 1;
 									}
 								}
 							}
@@ -1095,40 +1094,40 @@ void RobinEngine::sub16CA0() {
 				_scriptHandler->_characterScriptEnabled[index] = 1;
 				val = (val & 0xFF00) | _byte16C9F;
 			}
-			_scriptHandler->_array10B51[index2 + index * 40] = val;	
+			_scriptHandler->_array10B51[index2 + index * 40] = val;
 		}
 	}
 }
 
 void RobinEngine::displayFunction18(int var1, int var2, int var3, int var4) {
 	debugC(2, kDebugEngineTBC, "displayFunction18(%d, %d, %d, %d)", var1, var2, var3, var4);
-	
+
 	restoreSurfaceUnderMousePointer();
-	
+
 	if ((var1 & 0xFF) == 0x2D) {
 		var2 += 35;
 		var3 -= 35;
-		
+
 		if (var3 < 0) {
 			var2 += var3;
 			var3 = -var3;
 		}
 	}
-	
+
 	byte *vgaBuf = (byte *)_mainSurface->pixels;
 	int tmpVal = (var3 >> 8) + ((var3 & 0xFF) << 8);
 	int vgaIndex = var2 + tmpVal + (tmpVal >> 2);
-	
+
 	if (var3 == 0)
 		++var3;
-	
+
 	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < var3; j++) {
 			vgaBuf[vgaIndex + j] = 2;
 		}
 		vgaIndex += 320;
 	}
-	
+
 	displayMousePointer();
 }
 
@@ -1172,8 +1171,8 @@ void RobinEngine::sortCharacters() {
 		for (int var2 = 0; var2 < var4; var2++) {
 			int index1 = _charactersToDisplay[var2];
 			int index2 = _charactersToDisplay[var2 + 1];
-		
-			if (_characterRelativePositionY[index1] < _characterRelativePositionY[index2]) 
+
+			if (_characterRelativePositionY[index1] < _characterRelativePositionY[index2])
 				continue;
 
 			if (_characterRelativePositionY[index1] == _characterRelativePositionY[index2]) {
@@ -1255,7 +1254,7 @@ void RobinEngine::viewportScrollTo(Common::Point goalPos) {
 	}
 
 	int dy = 0;
-	if (goalPos.y!= _scriptHandler->_viewportPos.y) {
+	if (goalPos.y != _scriptHandler->_viewportPos.y) {
 		if (goalPos.y < _scriptHandler->_viewportPos.y)
 			--dy;
 		else
@@ -1265,7 +1264,7 @@ void RobinEngine::viewportScrollTo(Common::Point goalPos) {
 	do {
 		_scriptHandler->_viewportPos.x += dx;
 		_scriptHandler->_viewportPos.y += dy;
-		
+
 		displayLandscape();
 		prepareGameArea();
 		displayGameArea();
@@ -1308,7 +1307,7 @@ void RobinEngine::renderCharacters(byte *buf, Common::Point pos) {
 			frame += _scriptHandler->_array10AB1[index];
 			if ((flag & 1) == 1)
 				frame += _spriteSizeArray[index];
-			
+
 			if (_array12299[index] != 0xFF) {
 				frame = _array12299[index] + 82;
 				--_array12299[index];
@@ -1327,11 +1326,11 @@ void RobinEngine::renderCharacters(byte *buf, Common::Point pos) {
 
 void RobinEngine::sub1546F(Common::Point displayPos) {
 	debugC(2, kDebugEngineTBC, "sub1546F(%d, %d)", displayPos.x, displayPos.y);
-	
+
 	int orgX = displayPos.x + 8;
 	int orgY = displayPos.y;
 	int var2 = 0;
-	
+
 	int x = orgX;
 	int y = orgY;
 	do {
@@ -1339,10 +1338,10 @@ void RobinEngine::sub1546F(Common::Point displayPos) {
 		--x;
 		y >>= 1;
 	} while (y != 0);
-	
+
 	x = orgX + 1;
 	y = orgY >> 1;
-	
+
 	while (y != 0) {
 		sub15498(Common::Point(x, y), var2);
 		++x;
@@ -1352,7 +1351,7 @@ void RobinEngine::sub1546F(Common::Point displayPos) {
 
 void RobinEngine::sub15498(Common::Point pos, int var2) {
 	debugC(2, kDebugEngineTBC, "sub15498(%d - %d, %d)", pos.x, pos.y, var2);
-	
+
 	int index = pos.x + ((var2 & 0xFF) << 8) + (var2 >> 8);
 	for (int i = 1 + pos.y - var2; i > 0; i--) {
 		_savedSurfaceGameArea1[index] = 17;
@@ -1431,44 +1430,44 @@ byte RobinEngine::sub16799(int index, Common::Point param1) {
 
 void RobinEngine::sub167EF(int index) {
 	debugC(2, kDebugEngineTBC, "sub167EF(%d)", index);
-	
+
 	int word167EB = findHotspot(Common::Point(_scriptHandler->_array16123PosX[index], _scriptHandler->_array1614BPosY[index]));
 	int word167ED = findHotspot(Common::Point(_array10999PosX[index], _array109C1PosY[index]));
-	
+
 	if (word167EB == word167ED) {
 		_array109E9PosX[index] = _array10999PosX[index];
 		_array10A11PosY[index] = _array109C1PosY[index];
 		return;
 	}
-	
+
 	if (word167EB == -1) {
 		int tmpVal = reverseFindHotspot(Common::Point(_array10999PosX[index], _array109C1PosY[index]));
 		_array109E9PosX[index] = _rulesBuffer12Pos4[tmpVal].x;
 		_array10A11PosY[index] = _rulesBuffer12Pos4[tmpVal].y;
 		return;
 	}
-	
-	if ((word167ED != -1) && 
-		  (_array10999PosX[index] >= (_rectXMinMax[word167EB] >> 8)) &&
-		  (_array10999PosX[index] <= (_rectXMinMax[word167EB] & 0xFF)) &&
-		  (_array109C1PosY[index] >= (_rectYMinMax[word167EB] >> 8)) &&
-		  (_array109C1PosY[index] <= (_rectYMinMax[word167EB] & 0xFF))) {
+
+	if ((word167ED != -1) &&
+	        (_array10999PosX[index] >= (_rectXMinMax[word167EB] >> 8)) &&
+	        (_array10999PosX[index] <= (_rectXMinMax[word167EB] & 0xFF)) &&
+	        (_array109C1PosY[index] >= (_rectYMinMax[word167EB] >> 8)) &&
+	        (_array109C1PosY[index] <= (_rectYMinMax[word167EB] & 0xFF))) {
 		_array109E9PosX[index] = _rulesBuffer12Pos4[word167ED].x;
 		_array10A11PosY[index] = _rulesBuffer12Pos4[word167ED].y;
 		return;
 	}
-	
+
 	_array109E9PosX[index] = _rulesBuffer12Pos4[word167EB].x;
 	_array10A11PosY[index] = _rulesBuffer12Pos4[word167EB].y;
 	int var4h = (_rectXMinMax[word167EB] >> 8);
 	int var4l = (_rectXMinMax[word167EB] & 0xFF);
-	
+
 	if (var4h != var4l) {
 		if (_array109E9PosX[index] == var4h) {
 			--_array109E9PosX[index];
 			return;
 		}
-		
+
 		if (_array109E9PosX[index] == var4l) {
 			++_array109E9PosX[index];
 			return;
@@ -1485,7 +1484,7 @@ void RobinEngine::sub167EF(int index) {
 			return;
 		}
 	}
-	
+
 	// var4h == var4l
 	int mapIndex = (((_array10A11PosY[index] << 8) >> 2) + _array109E9PosX[index]) << 2;
 	int tmpVal = _bufferIsoMap[mapIndex + 3];
@@ -1495,9 +1494,9 @@ void RobinEngine::sub167EF(int index) {
 		--_array10A11PosY[index];
 	else if ((tmpVal & 2) != 0)
 		++_array10A11PosY[index];
-	else 
+	else
 		--_array109E9PosX[index];
-	
+
 	return;
 }
 
@@ -1509,12 +1508,12 @@ void RobinEngine::sub1693A(int index) {
 	_word16937Pos = Common::Point(_scriptHandler->_array16123PosX[index], _scriptHandler->_array1614BPosY[index]);
 
 	sub16A08(index);
-	
+
 	int var2 = (_characterDirectionArray[index] ^ 3);
 	// initialized by sub16A08, values: [0, 3[
 	_array1692B[var2] -= 8;
 	byte byte16939 = 0;
-	
+
 	int mapIndex = ((((_word16937Pos.y << 8) >> 2) + _word16937Pos.x) << 2);
 	int mapIndexDiff = 0;
 	int retVal = 0;
@@ -1545,7 +1544,7 @@ void RobinEngine::sub1693A(int index) {
 			tmpVal = _array1692B[i];
 		}
 	}
-	
+
 	_characterDirectionArray[index] = retVal;
 }
 
@@ -1554,7 +1553,7 @@ byte RobinEngine::sub16A76(int indexb, int indexs) {
 
 	static const char _array16A6C[4] = {1, 0, 0, -1};
 	static const char _array16A70[4] = {0, -1, 1, 0};
-	   
+
 	char var1h = _word16937Pos.x + _array16A6C[indexb];
 	char var1l = _word16937Pos.y + _array16A70[indexs];
 
@@ -1613,7 +1612,7 @@ void RobinEngine::sub16A08(int index) {
 		int16 var1l = _word16937Pos.y + arrayMoveY[i] - _array10A11PosY[index];
 		arrayDistance[i] = (var1l * var1l) + (var1h * var1h);
 	}
-	
+
 	for (int i = 0; i < 4; i++)
 		_array1692B[i] = 0;
 
@@ -1641,7 +1640,7 @@ void RobinEngine::addCharToBuf(byte character) {
 
 void RobinEngine::numberToString(int param1) {
 	debugC(2, kDebugEngine, "numberToString(%d)", param1);
-	
+
 	static const int _array18AE3[6] = {10000, 1000, 100, 10, 1};
 
 	int count;
@@ -1657,7 +1656,7 @@ void RobinEngine::numberToString(int param1) {
 		--count;
 
 		byte tmpVal = count + 0x30;
-		
+
 		if (i == 4)
 			addCharToBuf(tmpVal);
 		else if ((count != 0) || (!hideZeros)) {
@@ -1771,7 +1770,7 @@ byte RobinEngine::sub166F7(int index, Common::Point var1, int tmpVal) {
 
 byte RobinEngine::sub166DD(int index, Common::Point var1) {
 	debugC(2, kDebugEngine, "sub166DD(%d, %d - %d)", index, var1.x, var1.y);
-	
+
 	char var1h = var1.x & 3;
 	_characterDirectionArray[index] = var1h;
 	sub16685(index, Common::Point(var1h, var1.y));
@@ -1822,7 +1821,7 @@ void RobinEngine::sub16EBC() {
 	int index2 = 3;
 
 	for (int index1 = _numCharacters - 1; index1 >= 0; index1--) {
-		int var2 = (_scriptHandler->_array1614BPosY[index1] << 8) + (_scriptHandler->_array16123PosX[index1] << 2); 
+		int var2 = (_scriptHandler->_array1614BPosY[index1] << 8) + (_scriptHandler->_array16123PosX[index1] << 2);
 		int var1 = (_bufferIsoMap[index2 + var2] & 0x40);
 
 		if (var1 == _array16E94[index1])
@@ -1849,7 +1848,7 @@ void RobinEngine::sub12F37() {
 				--varPtr[0];
 				if (varPtr[0] == 1)
 					_scriptHandler->_characterScriptEnabled[index2] = 1;
-			}			
+			}
 		}
 
 		index1 += 32;
@@ -2008,7 +2007,7 @@ byte RobinEngine::sub16675_moveCharacter(int idx, Common::Point var1) {
 
 	sub16685(idx, var1);
 
-	int index = idx;	
+	int index = idx;
 	switch (var1.x) {
 	case 0:
 		break;
@@ -2177,7 +2176,7 @@ void RobinEngine::sub17224(int var1, int var4) {
 		sub17264(var1, var4);
 		return;
 	}
-	
+
 	if (type == 3) {
 		for (int i = _numCharacters - 1; i >= 0; i--)
 			sub17264(i, var4);
@@ -2270,16 +2269,16 @@ void RobinEngine::displayHeroismIndicator() {
 	}
 
 	_scriptHandler->_heroismLevel += var2;
-	
+
 	int index = _scriptHandler->_heroismBarX + _scriptHandler->_heroismBarBottomY * 320 ;
 
 	var2 = _scriptHandler->_heroismLevel & 0xFF;
 	if (var2 != 0) {
 //		sub16064(var1, _scriptHandler->_byte15FFA);
 		for (int i = 0; i < (var2 << 2); i++) {
-			((byte *)_mainSurface->pixels)[index] = var1; 
-			((byte *)_mainSurface->pixels)[index + 1] = var1; 
-			((byte *)_mainSurface->pixels)[index + 2] = var1; 
+			((byte *)_mainSurface->pixels)[index] = var1;
+			((byte *)_mainSurface->pixels)[index + 1] = var1;
+			((byte *)_mainSurface->pixels)[index + 2] = var1;
 			index -= 320;
 		}
 	}
@@ -2288,8 +2287,8 @@ void RobinEngine::displayHeroismIndicator() {
 //		sub16064(23, 25 - _scriptHandler->_byte15FFA);
 		var2 = (25 - _scriptHandler->_heroismLevel) << 2;
 		for (int i = 0; i < var2; i++) {
-			((byte *)_mainSurface->pixels)[index] = 23; 
-			((byte *)_mainSurface->pixels)[index + 1] = 23; 
+			((byte *)_mainSurface->pixels)[index] = 23;
+			((byte *)_mainSurface->pixels)[index + 1] = 23;
 			((byte *)_mainSurface->pixels)[index + 2] = 23;
 			index -= 320;
 		}
@@ -2317,12 +2316,12 @@ void RobinEngine::pollEvent() {
 		case Common::EVENT_QUIT:
 			_shouldQuit = true;
 			break;
-		// TODO: handle keyboard
+			// TODO: handle keyboard
 		default:
 			break;
 		}
 	}
-	
+
 	if (_mousePos != _oldMousePos) {
 		_oldMousePos = _mousePos;
 		if (_skipDisplayFlag1 != 0) {
@@ -2356,7 +2355,7 @@ byte *RobinEngine::loadVGA(Common::String filename, int expectedSize, bool loadP
 	byte *decodeBuffer = (byte *)malloc(expectedSize);
 	int size = 0;
 
-	for (;(remainingSize > 0) && (size < expectedSize);) {
+	for (; (remainingSize > 0) && (size < expectedSize);) {
 		curByte = f.readByte();
 		--remainingSize;
 
@@ -2423,7 +2422,7 @@ void RobinEngine::loadRules() {
 		error("Missing game file ERULES.PRG");
 
 	_word10800_ERULES = f.readUint16LE();
-	
+
 	// Chunk 1
 	int size = f.readUint16LE();
 	_rulesChunk1 = (byte *)malloc(sizeof(byte) * size);
@@ -2581,7 +2580,7 @@ void RobinEngine::displayVGAFile(Common::String fileName) {
 	displayMousePointer();
 
 	byte *buffer = loadVGA(fileName, 64000, true);
-	memcpy(_mainSurface->pixels, buffer, 320*200);
+	memcpy(_mainSurface->pixels, buffer, 320 * 200);
 	_system->copyRectToScreen((byte *)_mainSurface->pixels, 320, 0, 0, 320, 200);
 	_system->updateScreen();
 
@@ -2595,7 +2594,7 @@ void RobinEngine::fixPaletteEntries(uint8 *palette, int num) {
 		int32 a = palette[i];
 		assert(a < 64);
 
-		a =  (a << 2) | (a >> 4);
+		a = (a << 2) | (a >> 4);
 		if (a > 255)
 			a = 255;
 		palette[i] = a;
@@ -2617,7 +2616,7 @@ void RobinEngine::setCurrentCharacter(int index) {
 
 	_currentScriptCharacter = index;
 
-	assert (index < 40);
+	assert(index < 40);
 	int posX = _characterPositionX[index];
 	int posY = _characterPositionY[index];
 
@@ -2680,27 +2679,27 @@ void RobinEngine::handleGameScripts() {
 	if (tmpVal == 0xFF)
 		return;
 
-/* Decompiler follows
+	/* Decompiler follows
 
-	//_scriptHandler->listAllTexts();
+	    //_scriptHandler->listAllTexts();
 
-	debugC(1, kDebugEngineTBC, "================= Menu Script ==================");
-	ScriptStream script = ScriptStream(_menuScript, _menuScriptSize);
-	_scriptHandler->disasmScript(script);
-	debugC(1, kDebugEngineTBC, "============= End Menu Script ==================");
-
-
-	for (int i = 0; i < _gameScriptIndexSize; i++) {
-		assert(tmpVal < _gameScriptIndexSize);
-		debugC(1, kDebugEngineTBC, "================= Game Script %d ==================", i);
-		ScriptStream script = ScriptStream(&_arrayGameScripts[_arrayGameScriptIndex[i]], _arrayGameScriptIndex[i + 1] - _arrayGameScriptIndex[i]);
+		debugC(1, kDebugEngineTBC, "================= Menu Script ==================");
+		ScriptStream script = ScriptStream(_menuScript, _menuScriptSize);
 		_scriptHandler->disasmScript(script);
-		debugC(1, kDebugEngineTBC, "============= End Game Script %d ==================", i);
-	}
-	
-	while (1);
-*/
-	
+		debugC(1, kDebugEngineTBC, "============= End Menu Script ==================");
+
+
+		for (int i = 0; i < _gameScriptIndexSize; i++) {
+			assert(tmpVal < _gameScriptIndexSize);
+			debugC(1, kDebugEngineTBC, "================= Game Script %d ==================", i);
+			ScriptStream script = ScriptStream(&_arrayGameScripts[_arrayGameScriptIndex[i]], _arrayGameScriptIndex[i + 1] - _arrayGameScriptIndex[i]);
+			_scriptHandler->disasmScript(script);
+			debugC(1, kDebugEngineTBC, "============= End Game Script %d ==================", i);
+		}
+
+		while (1);
+	*/
+
 	i = index;
 	//debugC(1, kDebugEngineTBC, "before char %d, pos %d %d, var0 %d, var1 %d, var2 %d var16 %d, script enabled %d", i, _characterPositionX[i], _characterPositionY[i], *getCharacterVariablesPtr(i * 32 + 0), *getCharacterVariablesPtr(i * 32 + 1), *getCharacterVariablesPtr(i * 32 + 2),  *getCharacterVariablesPtr(i * 32 + 22), _scriptHandler->_characterScriptEnabled[i]);
 
@@ -2744,7 +2743,7 @@ Common::Error RobinEngine::run() {
 
 	_scriptHandler->runScript(ScriptStream(_initScript, _initScriptSize));
 
-	// Hack, see above 
+	// Hack, see above
 	_int8installed = true;
 
 	while (!_shouldQuit) {

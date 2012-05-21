@@ -161,7 +161,9 @@ bool RobinMetaEngine::hasFeature(MetaEngineFeature f) const {
 	    (f == kSavesSupportCreationDate);
 }
 
-int RobinMetaEngine::getMaximumSaveSlot() const { return 99; }
+int RobinMetaEngine::getMaximumSaveSlot() const {
+	return 99;
+}
 
 SaveStateList RobinMetaEngine::listSaves(const char *target) const {
 	Common::SaveFileManager *saveFileMan = g_system->getSavefileManager();
