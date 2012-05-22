@@ -141,7 +141,7 @@ RobinEngine::RobinEngine(OSystem *syst, const RobinGameDescription *gd) : Engine
 	_byte12A06 = 2;
 	_byte12A07 = 0;
 	_byte12A08 = 0;
-	_byte12A09 = 0;
+	_refreshScreenFlag = false;
 	_byte16552 = 0;
 	_lastInterfaceHotspotIndex = -1;
 	_lastInterfaceHotspotButton = 0;
@@ -259,9 +259,8 @@ void RobinEngine::newInt8() {
 	--_byte12A06;
 	// TODO: check 'out 20h, 20h'
 
-	// hack for the title stars because _int8installed is not set at the good place for the moment
-	//if (!_int8installed)
-	//  return;
+	if (!_int8installed)
+	  return;
 
 	// if (_soundEnabled)
 	_soundHandler->contentFct1();
@@ -276,8 +275,8 @@ void RobinEngine::newInt8() {
 				--_sound_byte16F06;
 
 			_animationTick ^= 1;
-			if (_byte12A09 != 1 && _int8installed) // hack for the title stars because _int8installed is not set at the good place for the moment
-				displayFunction16();
+			if (!_refreshScreenFlag)
+				displayRefreshScreen();
 		}
 		_byte12A08 = 0;
 	}
@@ -790,8 +789,8 @@ void RobinEngine::prepareGameArea() {
 	}
 }
 
-void RobinEngine::displayFunction16() {
-	debugC(2, kDebugEngineTBC, "displayFunction16()");
+void RobinEngine::displayRefreshScreen() {
+	debugC(2, kDebugEngineTBC, "displayRefreshScreen()");
 
 	if (_displayMap == 1) {
 		bool forceReturnFl = false;
@@ -2735,16 +2734,11 @@ Common::Error RobinEngine::run() {
 	_bufferIsoMap = loadRaw("ISOMAP.DTA");
 
 	loadRules();
-	// Hack: int8 should be installed at this point, but it's crashing during the
-	// rendering when the title screens are displayed
-	//_int8installed = true;
+	_int8installed = true;
 
 	_lastTime = _system->getMillis();
 
 	_scriptHandler->runScript(ScriptStream(_initScript, _initScriptSize));
-
-	// Hack, see above
-	_int8installed = true;
 
 	while (!_shouldQuit) {
 		handleMenu();
