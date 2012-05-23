@@ -1098,12 +1098,12 @@ void RobinEngine::sub16CA0() {
 	}
 }
 
-void RobinEngine::displayFunction18(int var1, int var2, int var3, int var4) {
-	debugC(2, kDebugEngineTBC, "displayFunction18(%d, %d, %d, %d)", var1, var2, var3, var4);
+void RobinEngine::displayCharacterStatBar(int8 var1, int16 var2, int8 var3, int16 var4) {
+	debugC(2, kDebugEngineTBC, "displayCharacterStatBar(%d, %d, %d, %d)", var1, var2, var3, var4);
 
 	restoreSurfaceUnderMousePointer();
 
-	if ((var1 & 0xFF) == 0x2D) {
+	if (var1 == 45) {
 		var2 += 35;
 		var3 -= 35;
 
@@ -1114,8 +1114,7 @@ void RobinEngine::displayFunction18(int var1, int var2, int var3, int var4) {
 	}
 
 	byte *vgaBuf = (byte *)_mainSurface->pixels;
-	int tmpVal = (var3 >> 8) + ((var3 & 0xFF) << 8);
-	int vgaIndex = var2 + tmpVal + (tmpVal >> 2);
+	int vgaIndex = var2 + (320 * var4);
 
 	if (var3 == 0)
 		++var3;
@@ -2248,7 +2247,7 @@ void RobinEngine::sub12FE5() {
 }
 
 void RobinEngine::displayHeroismIndicator() {
-	debugC(2, kDebugEngineTBC, "displayHeroismIndicator()");
+	debugC(2, kDebugEngine, "displayHeroismIndicator()");
 
 	if (_scriptHandler->_savedBuffer215Ptr == NULL)
 		return;
@@ -2269,7 +2268,7 @@ void RobinEngine::displayHeroismIndicator() {
 
 	_scriptHandler->_heroismLevel += var2;
 
-	int index = _scriptHandler->_heroismBarX + _scriptHandler->_heroismBarBottomY * 320 ;
+	int index = _scriptHandler->_heroismBarX + (_scriptHandler->_heroismBarBottomY * 320);
 
 	var2 = _scriptHandler->_heroismLevel & 0xFF;
 	if (var2 != 0) {
