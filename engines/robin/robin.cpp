@@ -343,7 +343,7 @@ void RobinEngine::display16x16IndexedBuf(byte *buf, int index, Common::Point pos
 	int index1 = index * 16 * 16;
 	byte *newBuf = &buf[index1];
 
-	int index2 = pos.x + (pos.y * 320);
+	int vgaIndex = pos.x + (pos.y * 320);
 
 	for (int i = 0; i < 16; i++) {
 		// clip on y
@@ -351,10 +351,10 @@ void RobinEngine::display16x16IndexedBuf(byte *buf, int index, Common::Point pos
 			for (int j = 0; j < 16; j++) {
 				// clip on x
 				if ((newBuf[j] != 0) && (pos.x + j < 320))
-					((byte *)_mainSurface->pixels)[index2 + j] = newBuf[j];
+					((byte *)_mainSurface->pixels)[vgaIndex + j] = newBuf[j];
 			}
 		}
-		index2 += 320;
+		vgaIndex += 320;
 		newBuf += 16;
 	}
 	_system->copyRectToScreen((byte *)_mainSurface->pixels, 320, 0, 0, 320, 200);
