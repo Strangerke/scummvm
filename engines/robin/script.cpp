@@ -1954,10 +1954,10 @@ byte RobinScript::OC_IsCurrentCharacterVar0LessEqualThan() {
 }
 
 byte RobinScript::OC_sub1790F() {
-	debugC(1, kDebugScriptTBC, "OC_sub1790F()");
+	debugC(1, kDebugScript, "OC_sub1790F()");
 
-	int index = getValue1();
-	assert(index < 40);
+	int16 index = getValue1();
+	assert((index >= 0) && (index < 40));
 	if (_vm->_rulesBuffer2_5[index] == -1)
 		return 0;
 
