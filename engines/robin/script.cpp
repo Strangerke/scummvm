@@ -2292,6 +2292,7 @@ void RobinScript::OC_DisableCharacter() {
 
 void RobinScript::OC_saveAndQuit() {
 	warning("OC_saveAndQuit");
+	_shouldQuit = true;
 }
 
 void RobinScript::OC_sub17B93() {
@@ -2321,6 +2322,7 @@ void RobinScript::OC_resetByte1714E() {
 
 void RobinScript::OC_deleteSavegameAndQuit() {
 	warning("OC_deleteSavegameAndQuit");
+	_shouldQuit = true;
 }
 
 void RobinScript::OC_incByte16F04() {
