@@ -86,9 +86,6 @@ public:
 
 		// Engine plugins
 		#include "engines/plugins_table.h"
-		#if PLUGIN_ENABLED_STATIC(ROBIN)
-		LINK_PLUGIN(ROBIN)
-		#endif
 
 		// Music plugins
 		// TODO: Use defines to disable or enable each MIDI driver as a

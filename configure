@@ -81,7 +81,6 @@ _srcdir=`dirname $0`
 
 # Read list of engines
 . $_srcdir/engines/configure.engines
-add_engine robin "Robin Hood" no
 
 #
 # Default settings
