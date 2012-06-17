@@ -53,6 +53,7 @@
 #include "video/avi_decoder.h"
 #include "sci/video/seq_decoder.h"
 #ifdef ENABLE_SCI32
+#include "sci/graphics/frameout.h"
 #include "video/coktel_decoder.h"
 #include "sci/video/robot_decoder.h"
 #endif
@@ -131,6 +132,10 @@ Console::Console(SciEngine *engine) : GUI::Debugger(),
 	DCmd_Register("al",                 WRAP_METHOD(Console, cmdAnimateList));	// alias
 	DCmd_Register("window_list",        WRAP_METHOD(Console, cmdWindowList));
 	DCmd_Register("wl",                 WRAP_METHOD(Console, cmdWindowList));	// alias
+	DCmd_Register("plane_list",         WRAP_METHOD(Console, cmdPlaneList));
+	DCmd_Register("pl",                 WRAP_METHOD(Console, cmdPlaneList));	// alias
+	DCmd_Register("plane_items",        WRAP_METHOD(Console, cmdPlaneItemList));
+	DCmd_Register("pi",                 WRAP_METHOD(Console, cmdPlaneItemList));	// alias
 	DCmd_Register("saved_bits",         WRAP_METHOD(Console, cmdSavedBits));
 	DCmd_Register("show_saved_bits",    WRAP_METHOD(Console, cmdShowSavedBits));
 	// Segments
@@ -365,7 +370,10 @@ bool Console::cmdHelp(int argc, const char **argv) {
 	DebugPrintf(" pic_visualize - Enables visualization of the drawing process of EGA pictures\n");
 	DebugPrintf(" undither - Enable/disable undithering\n");
 	DebugPrintf(" play_video - Plays a SEQ, AVI, VMD, RBT or DUK video\n");
-	DebugPrintf(" animate_object_list / al - Shows the current list of objects in kAnimate's draw list\n");
+	DebugPrintf(" animate_list / al - Shows the current list of objects in kAnimate's draw list (SCI0 - SCI1.1)\n");
+	DebugPrintf(" window_list / wl - Shows a list of all the windows (ports) in the draw list (SCI0 - SCI1.1)\n");
+	DebugPrintf(" plane_list / pl - Shows a list of all the planes in the draw list (SCI2+)\n");
+	DebugPrintf(" plane_items / pi - Shows a list of all items for a plane (SCI2+)\n");
 	DebugPrintf(" saved_bits - List saved bits on the hunk\n");
 	DebugPrintf(" show_saved_bits - Display saved bits\n");
 	DebugPrintf("\n");
@@ -1209,6 +1217,27 @@ bool Console::cmdRestartGame(int argc, const char **argv) {
 	return Cmd_Exit(0, 0);
 }
 
+// The scripts get IDs ranging from 100->199, because the scripts require us to assign unique ids THAT EVEN STAY BETWEEN
+//  SAVES and the scripts also use "saves-count + 1" to create a new savedgame slot.
+//  SCI1.1 actually recycles ids, in that case we will currently get "0".
+// This behavior is required especially for LSL6. In this game, it's possible to quick save. The scripts will use
+//  the last-used id for that feature. If we don't assign sticky ids, the feature will overwrite different saves all the
+//  time. And sadly we can't just use the actual filename ids directly, because of the creation method for new slots.
+
+extern void listSavegames(Common::Array<SavegameDesc> &saves);
+
+bool Console::cmdListSaves(int argc, const char **argv) {
+	Common::Array<SavegameDesc> saves;
+	listSavegames(saves);
+
+	for (uint i = 0; i < saves.size(); i++) {
+		Common::String filename = g_sci->getSavegameName(saves[i].id);
+		DebugPrintf("%s: '%s'\n", filename.c_str(), saves[i].name);
+	}
+
+	return true;
+}
+
 bool Console::cmdClassTable(int argc, const char **argv) {
 	DebugPrintf("Available classes (parse a parameter to filter the table by a specific class):\n");
 
@@ -1589,6 +1618,8 @@ bool Console::cmdAnimateList(int argc, const char **argv) {
 	if (_engine->_gfxAnimate) {
 		DebugPrintf("Animate list:\n");
 		_engine->_gfxAnimate->printAnimateList(this);
+	} else {
+		DebugPrintf("This SCI version does not have an animate list\n");
 	}
 	return true;
 }
@@ -1597,9 +1628,52 @@ bool Console::cmdWindowList(int argc, const char **argv) {
 	if (_engine->_gfxPorts) {
 		DebugPrintf("Window list:\n");
 		_engine->_gfxPorts->printWindowList(this);
+	} else {
+		DebugPrintf("This SCI version does not have a list of ports\n");
 	}
 	return true;
+}
 
+bool Console::cmdPlaneList(int argc, const char **argv) {
+#ifdef ENABLE_SCI32
+	if (_engine->_gfxFrameout) {
+		DebugPrintf("Plane list:\n");
+		_engine->_gfxFrameout->printPlaneList(this);
+	} else {
+		DebugPrintf("This SCI version does not have a list of planes\n");
+	}
+#else
+	DebugPrintf("SCI32 isn't included in this compiled executable\n");
+#endif
+	return true;
+}
+
+bool Console::cmdPlaneItemList(int argc, const char **argv) {
+	if (argc != 2) {
+		DebugPrintf("Shows the list of items for a plane\n");
+		DebugPrintf("Usage: %s <plane address>\n", argv[0]);
+		return true;
+	}
+
+	reg_t planeObject = NULL_REG;
+
+	if (parse_reg_t(_engine->_gamestate, argv[1], &planeObject, false)) {
+		DebugPrintf("Invalid address passed.\n");
+		DebugPrintf("Check the \"addresses\" command on how to use addresses\n");
+		return true;
+	}
+
+#ifdef ENABLE_SCI32
+	if (_engine->_gfxFrameout) {
+		DebugPrintf("Plane item list:\n");
+		_engine->_gfxFrameout->printPlaneItemList(this, planeObject);
+	} else {
+		DebugPrintf("This SCI version does not have a list of plane items\n");
+	}
+#else
+	DebugPrintf("SCI32 isn't included in this compiled executable\n");
+#endif
+	return true;
 }
 
 bool Console::cmdSavedBits(int argc, const char **argv) {

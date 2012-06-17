@@ -61,8 +61,6 @@ struct Class {
 	reg_t reg; ///< offset; script-relative offset, segment: 0 if not instantiated
 };
 
-#define RAW_IS_OBJECT(datablock) (READ_SCI11ENDIAN_UINT16(((const byte *) datablock) + SCRIPT_OBJECT_MAGIC_OFFSET) == SCRIPT_OBJECT_MAGIC_NUMBER)
-
 // A reference to an object's variable.
 // The object is stored as a reg_t, the variable as an index into _variables
 struct ObjVarRef {
@@ -139,7 +137,7 @@ enum {
 	GC_INTERVAL = 0x8000
 };
 
-enum sci_opcodes {
+enum SciOpcodes {
 	op_bnot     = 0x00,	// 000
 	op_add      = 0x01,	// 001
 	op_sub      = 0x02,	// 002

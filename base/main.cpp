@@ -55,6 +55,12 @@
 #include "audio/mididrv.h"
 #include "audio/musicplugin.h"  /* for music manager */
 
+#include "graphics/cursorman.h"
+#include "graphics/fontman.h"
+#ifdef USE_FREETYPE2
+#include "graphics/fonts/ttf.h"
+#endif
+
 #include "backends/keymapper/keymapper.h"
 
 #if defined(_WIN32_WCE)
@@ -206,8 +212,8 @@ static Common::Error runGame(const EnginePlugin *plugin, OSystem &system, const 
 	// Initialize any game-specific keymaps
 	engine->initKeymap();
 
-	// Set default values to the custom engine options
-	const ExtraGuiOptions engineOptions = (*plugin)->getExtraGuiOptions(ConfMan.getActiveDomainName());
+	// Set default values for all of the custom engine options
+	const ExtraGuiOptions engineOptions = (*plugin)->getExtraGuiOptions(Common::String());
 	for (uint i = 0; i < engineOptions.size(); i++) {
 		ConfMan.registerDefault(engineOptions[i].configOption, engineOptions[i].defaultState);
 	}
@@ -493,9 +499,17 @@ extern "C" int scummvm_main(int argc, const char * const argv[]) {
 	PluginManager::destroy();
 	GUI::GuiManager::destroy();
 	Common::ConfigManager::destroy();
+	Common::DebugManager::destroy();
+	Common::EventRecorder::destroy();
 	Common::SearchManager::destroy();
 #ifdef USE_TRANSLATION
 	Common::TranslationManager::destroy();
+#endif
+	MusicManager::destroy();
+	Graphics::CursorManager::destroy();
+	Graphics::FontManager::destroy();
+#ifdef USE_FREETYPE2
+	Graphics::shutdownTTF();
 #endif
 
 	return 0;

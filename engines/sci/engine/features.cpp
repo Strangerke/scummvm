@@ -43,8 +43,9 @@ GameFeatures::GameFeatures(SegManager *segMan, Kernel *kernel) : _segMan(segMan)
 	_sci2StringFunctionType = kSci2StringFunctionUninitialized;
 #endif
 	_usesCdTrack = Common::File::exists("cdaudio.map");
-	if (ConfMan.hasKey("use_cdaudio") && !ConfMan.getBool("use_cdaudio"))
+	if (!ConfMan.getBool("use_cdaudio"))
 		_usesCdTrack = false;
+	_forceDOSTracks = false;
 }
 
 reg_t GameFeatures::getDetectionAddr(const Common::String &objName, Selector slc, int methodNum) {
@@ -642,7 +643,7 @@ MoveCountType GameFeatures::detectMoveCountType() {
 }
 
 bool GameFeatures::useAltWinGMSound() {
-	if (g_sci && g_sci->getPlatform() == Common::kPlatformWindows && g_sci->isCD()) {
+	if (g_sci && g_sci->getPlatform() == Common::kPlatformWindows && g_sci->isCD() && !_forceDOSTracks) {
 		SciGameId id = g_sci->getGameId();
 		return (id == GID_ECOQUEST ||
 				id == GID_JONES ||

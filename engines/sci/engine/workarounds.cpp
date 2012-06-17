@@ -167,6 +167,7 @@ const SciWorkaroundEntry uninitializedReadWorkarounds[] = {
 	{ GID_SQ6,            -1,     0,  0,                "SQ6", "init",           -1,    2, { WORKAROUND_FAKE,   0 } }, // Demo and full version: called when the game starts (demo: room 0, full: room 100)
 	{ GID_SQ6,           100, 64950,  0,               "View", "handleEvent",    -1,    0, { WORKAROUND_FAKE,   0 } }, // called when pressing "Start game" in the main menu
 	{ GID_SQ6,            -1, 64964,  0,              "DPath", "init",           -1,    1, { WORKAROUND_FAKE,   0 } }, // during the game
+	{ GID_TORIN,          -1, 64017,  0,             "oFlags", "clear",          -1,    0, { WORKAROUND_FAKE,   0 } }, // entering Torin's home in the French version
 	SCI_WORKAROUNDENTRY_TERMINATOR
 };
 
@@ -176,6 +177,7 @@ const SciWorkaroundEntry kAbs_workarounds[] = {
 	{ GID_HOYLE1,          2,     2,  0,              "room2", "doit",           -1,    0, { WORKAROUND_FAKE,  0x3e9 } }, // old maid - called with objects instead of integers
 	{ GID_HOYLE1,          3,     3,  0,              "room3", "doit",           -1,    0, { WORKAROUND_FAKE,  0x3e9 } }, // hearts - called with objects instead of integers
 	{ GID_QFG1VGA,        -1,    -1,  0,                 NULL, "doit",           -1,    0, { WORKAROUND_FAKE,  0x3e9 } }, // when the game is patched with the NRS patch
+	{ GID_QFG3   ,        -1,    -1,  0,                 NULL, "doit",           -1,    0, { WORKAROUND_FAKE,  0x3e9 } }, // when the game is patched with the NRS patch (bugs #3528416, #3528542)
 	SCI_WORKAROUNDENTRY_TERMINATOR
 };
 
@@ -250,8 +252,9 @@ const SciWorkaroundEntry kDoSoundFade_workarounds[] = {
 
 //    gameID,           room,script,lvl,          object-name, method-name,    call,index,                workaround
 const SciWorkaroundEntry kGetAngle_workarounds[] = {
-	{ GID_FANMADE,       516,   992,  0,             "Motion", "init",           -1,    0, { WORKAROUND_IGNORE,    0 } }, // The Legend of the Lost Jewel Demo (fan made): called with third/fourth parameters as objects
+	{ GID_FANMADE,       516,   992,  0,             "Motion", "init",           -1,    0, { WORKAROUND_FAKE,      0 } }, // The Legend of the Lost Jewel Demo (fan made): called with third/fourth parameters as objects
 	{ GID_KQ6,            -1,   752,  0,        "throwDazzle", "changeState",    -1,    0, { WORKAROUND_STILLCALL, 0 } }, // room 740/790 after the Genie is exposed in the Palace (short and long ending), it starts shooting lightning bolts around. An extra 5th parameter is passed - bug #3034610 & #3041734
+	{ GID_SQ1,            -1,   927,  0,           "PAvoider", "doit",           -1,    0, { WORKAROUND_FAKE,      0 } }, // all rooms in Ulence Flats after getting the Pilot Droid: called with a single parameter when the droid is in Roger's path - bug #3513207
 	SCI_WORKAROUNDENTRY_TERMINATOR
 };
 
@@ -320,8 +323,9 @@ const SciWorkaroundEntry kGraphRedrawBox_workarounds[] = {
 //    gameID,           room,script,lvl,          object-name, method-name,    call,index,                workaround
 const SciWorkaroundEntry kGraphUpdateBox_workarounds[] = {
 	{ GID_ECOQUEST2,     100,   333,  0,        "showEcorder", "changeState",    -1,    0, { WORKAROUND_STILLCALL, 0 } }, // necessary workaround for our ecorder script patch, because there isn't enough space to patch the function
-	{ GID_PQ3,           202,   202,  0,            "MapEdit", "movePt",         -1,    0, { WORKAROUND_STILLCALL, 0 } }, // when plotting crimes, gets called with 2 extra parameters - bug #3038077
 	{ GID_PQ3,           202,   202,  0,            "MapEdit", "addPt",          -1,    0, { WORKAROUND_STILLCALL, 0 } }, // when plotting crimes, gets called with 2 extra parameters - bug #3038077
+	{ GID_PQ3,           202,   202,  0,            "MapEdit", "movePt",         -1,    0, { WORKAROUND_STILLCALL, 0 } }, // when plotting crimes, gets called with 2 extra parameters - bug #3038077
+	{ GID_PQ3,           202,   202,  0,            "MapEdit", "dispose",        -1,    0, { WORKAROUND_STILLCALL, 0 } }, // when plotting crimes, gets called with 2 extra parameters
 	SCI_WORKAROUNDENTRY_TERMINATOR
 };
 
@@ -336,6 +340,7 @@ const SciWorkaroundEntry kIsObject_workarounds[] = {
 //    gameID,           room,script,lvl,          object-name, method-name,    call,index,                workaround
 const SciWorkaroundEntry kMemory_workarounds[] = {
 	{ GID_LAURABOW2,      -1,   999,  0,                   "", "export 6",       -1,    0, { WORKAROUND_FAKE,    0 } }, // during the intro, when exiting the train (room 160), talking to Mr. Augustini, etc. - bug #3034490
+	{ GID_SQ1,            -1,   999,  0,                   "", "export 6",       -1,    0, { WORKAROUND_FAKE,    0 } }, // during walking Roger around Ulence Flats - bug #3513765
 	SCI_WORKAROUNDENTRY_TERMINATOR
 };
 
