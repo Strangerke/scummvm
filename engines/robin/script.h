@@ -36,7 +36,8 @@ class RobinEngine;
 
 enum kActionType {
 	kActionNone = 0,
-	kActionGoto = 5,
+	kActionTalk = 3,
+	kActionGoto = 4,
 	kCodeEntered = 6
 };
 
