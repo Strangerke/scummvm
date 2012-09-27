@@ -81,8 +81,8 @@ int main(int argc, char *argv[]) {
 		DE_DEU = 1 << 5
 	};
 
-	int _lang = DE_DEU;
-	printf("DE_DEU\n");
+	int _lang = FR_FRA;
+	printf("FR_FRA\n");
 
 	_lDefault = 26;
 	_hDefault = 30;
@@ -194,7 +194,7 @@ int main(int argc, char *argv[]) {
 	_lTable['z'] = _lTable['Z'] = 20;
 	_lTable[(byte)'Ñ'] = 17;
 
-	if (_lang == PL_POL) {
+	if ((_lang == PL_POL) || (_lang == FR_FRA)) {
 		// Polish characters
 		//¥¹ÆæÊê£³ÑñÓóŒœ¯¿Ÿ
 		//AaCcEeLlNnOoSsZzZz
@@ -225,7 +225,9 @@ int main(int argc, char *argv[]) {
 		_cTable[(byte)''] = _cTable[(byte)'Ÿ'] = 93;
 		_lTable[(byte)''] = _lTable[(byte)'Ÿ'] = 21;
 
-	} else if (_lang == RU_RUS) {
+	} 
+	
+	if (_lang == RU_RUS) {
 		// Russian Characters
 		// WARNING: The Russian font uses many of the ISO-Latin-1 font,
 		// allowing for further translations. To support Tonyin other langauges,
@@ -303,7 +305,9 @@ int main(int argc, char *argv[]) {
 		_lTable[(byte)'Þ'] = _lTable[(byte)'þ'] = 18;
 		_lTable[(byte)'ß'] = _lTable[(byte)'ÿ'] = 18;
 
-	} else if (_lang == CZ_CZE) {
+	} 
+	
+	if (_lang == CZ_CZE) {
 		// Czech
 
 		_cTable[(byte)'Ì'] = _cTable[(byte)'ì'] = 127;
@@ -338,7 +342,9 @@ int main(int argc, char *argv[]) {
 		_lTable[(byte)'Ù'] = _lTable[(byte)'ù'] = 16;
 		_lTable[(byte)'Ú'] = _lTable[(byte)'ú'] = 16;
 
-	} else if (_lang == FR_FRA) {
+	} 
+	
+	if (_lang == FR_FRA) {
 		// French
 
 		// Translate accented characters as normal letters
