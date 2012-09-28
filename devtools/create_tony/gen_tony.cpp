@@ -167,7 +167,7 @@ int main(int argc, char *argv[]) {
 	_lTable['9'] = 20;
 
 
-	_lTable['a'] = _lTable['A'] = _lTable['‰'] = _lTable['ƒ'] = 17;
+	_lTable['a'] = _lTable['A'] = _lTable[(byte)'‰'] = _lTable[(byte)'ƒ'] = 17;
 	_lTable['b'] = _lTable['B'] = 17;
 	_lTable['c'] = _lTable['C'] = 19;
 	_lTable['d'] = _lTable['D'] = 17;
@@ -180,13 +180,13 @@ int main(int argc, char *argv[]) {
 	_lTable['l'] = _lTable['L'] = 14;
 	_lTable['m'] = _lTable['M'] = 19;
 	_lTable['n'] = _lTable['N'] = 17;
-	_lTable['o'] = _lTable['O'] = _lTable['ˆ'] = _lTable['÷'] = 19;
+	_lTable['o'] = _lTable['O'] = _lTable[(byte)'ˆ'] = _lTable[(byte)'÷'] = 19;
 	_lTable['p'] = _lTable['P'] = 17;
 	_lTable['q'] = _lTable['Q'] = 19;
 	_lTable['r'] = _lTable['R'] = 14;
 	_lTable['s'] = _lTable['S'] = 13;
 	_lTable['t'] = _lTable['T'] = 15;
-	_lTable['u'] = _lTable['U'] = _lTable['¸'] = _lTable['‹'] = 15;
+	_lTable['u'] = _lTable['U'] = _lTable[(byte)'¸'] = _lTable[(byte)'‹'] = 15;
 	_lTable['v'] = _lTable['V'] = 13;
 	_lTable['x'] = _lTable['X'] = 15;
 	_lTable['y'] = _lTable['Y'] = 13;
@@ -194,38 +194,35 @@ int main(int argc, char *argv[]) {
 	_lTable['z'] = _lTable['Z'] = 20;
 	_lTable[(byte)'—'] = 17;
 
-	if ((_lang == PL_POL) || (_lang == FR_FRA)) {
-		// Polish characters
-		//•π∆Ê Í£≥—Ò”ÛåúØøèü
-		//AaCcEeLlNnOoSsZzZz
-		_cTable[(byte)'•'] = _cTable[(byte)'π'] = 85;
-		_lTable[(byte)'•'] = _lTable[(byte)'π'] = 20;
+	// Polish characters
+	//•π∆Ê Í£≥—Ò”ÛåúØøèü
+	//AaCcEeLlNnOoSsZzZz
+	_cTable[(byte)'•'] = _cTable[(byte)'π'] = 85;
+	_lTable[(byte)'•'] = _lTable[(byte)'π'] = 20;
 
-		_cTable[(byte)'∆'] = _cTable[(byte)'Ê'] = 86;
-		_lTable[(byte)'∆'] = _lTable[(byte)'Ê'] = 22;
+	_cTable[(byte)'∆'] = _cTable[(byte)'Ê'] = 86;
+	_lTable[(byte)'∆'] = _lTable[(byte)'Ê'] = 22;
 
-		_cTable[(byte)' '] = _cTable[(byte)'Í'] = 87;
-		_lTable[(byte)' '] = _lTable[(byte)'Í'] = 17;
+	_cTable[(byte)' '] = _cTable[(byte)'Í'] = 87;
+	_lTable[(byte)' '] = _lTable[(byte)'Í'] = 17;
 
-		_cTable[(byte)'£'] = _cTable[(byte)'≥'] = 88;
-		_lTable[(byte)'£'] = _lTable[(byte)'≥'] = 19;
+	_cTable[(byte)'£'] = _cTable[(byte)'≥'] = 88;
+	_lTable[(byte)'£'] = _lTable[(byte)'≥'] = 19;
 
-		_cTable[(byte)'—'] = _cTable[(byte)'Ò'] = 89;
-		_lTable[(byte)'—'] = _lTable[(byte)'Ò'] = 17;
+	_cTable[(byte)'—'] = _cTable[(byte)'Ò'] = 89;
+	_lTable[(byte)'—'] = _lTable[(byte)'Ò'] = 17;
 
-		_cTable[(byte)'”'] = _cTable[(byte)'Û'] = 90;
-		_lTable[(byte)'”'] = _lTable[(byte)'Û'] = 22;
+	_cTable[(byte)'”'] = _cTable[(byte)'Û'] = 90;
+	_lTable[(byte)'”'] = _lTable[(byte)'Û'] = 22;
 
-		_cTable[(byte)'å'] = _cTable[(byte)'ú'] = 91;
-		_lTable[(byte)'å'] = _lTable[(byte)'ú'] = 15;
+	_cTable[(byte)'å'] = _cTable[(byte)'ú'] = 91;
+	_lTable[(byte)'å'] = _lTable[(byte)'ú'] = 15;
 
-		_cTable[(byte)'Ø'] = _cTable[(byte)'ø'] = 92;
-		_lTable[(byte)'Ø'] = _lTable[(byte)'ø'] = 21;
+	_cTable[(byte)'Ø'] = _cTable[(byte)'ø'] = 92;
+	_lTable[(byte)'Ø'] = _lTable[(byte)'ø'] = 21;
 
-		_cTable[(byte)'è'] = _cTable[(byte)'ü'] = 93;
-		_lTable[(byte)'è'] = _lTable[(byte)'ü'] = 21;
-
-	} 
+	_cTable[(byte)'è'] = _cTable[(byte)'ü'] = 93;
+	_lTable[(byte)'è'] = _lTable[(byte)'ü'] = 21;
 	
 	if (_lang == RU_RUS) {
 		// Russian Characters
@@ -367,116 +364,26 @@ int main(int argc, char *argv[]) {
 	} else if (_lang == DE_DEU) {
 		// German
 
-		_cTable['ﬂ'] = 142;
+		_cTable[(byte)'ﬂ'] = 142;
 		// SS = 143
 
-		_lTable['ﬂ'] = 24;
+		_lTable[(byte)'ﬂ'] = 24;
+		
 	}
 
 	printf("_cTableObj = {");
-	for (int i = 0; i < 256; i++)
+	for (int i = 0; i < 256; i++) {
 		printf("%d, ", _cTable[i]);
+		if ((i + 1) % 10 == 0)
+			printf("\n\t");
+	}
+
 	printf("};\n_lTableObj = {");
-	for (int i = 0; i < 256; i++)
+	for (int i = 0; i < 256; i++) {
 		printf("%d, ", _lTable[i]);
+		if ((i + 1) % 10 == 0)
+			printf("\n\t");
+	}
 	printf("};");
 
-
-
-
-/*
-	FILE *outFile;
-	int nbrElem;
-
-	outFile = fopen("tony.dat", "wb");
-
-	// Write header
-	fwrite("TONY", 4, 1, outFile);
-
-	writeByte(outFile, TONY_DAT_VER_MAJ);
-	writeByte(outFile, TONY_DAT_VER_MIN);
-
-	// game versions/variants
-	writeUint16BE(outFile, NUM_VARIANTS);
-
-	// Write locationDirNotVisited
-	nbrElem = sizeof(locationDirNotVisited_EN) / sizeof(char *);
-	writeTextArray(outFile, locationDirNotVisited_EN, nbrElem);
-
-	nbrElem = sizeof(locationDirNotVisited_FR) / sizeof(char *);
-	writeTextArray(outFile, locationDirNotVisited_FR, nbrElem);
-
-	nbrElem = sizeof(locationDirNotVisited_DE) / sizeof(char *);
-	writeTextArray(outFile, locationDirNotVisited_DE, nbrElem);
-
-	nbrElem = sizeof(locationDirNotVisited_RU) / sizeof(char *);
-	writeTextArray(outFile, locationDirNotVisited_RU, nbrElem);
-
-	nbrElem = sizeof(locationDirNotVisited_SP) / sizeof(char *);
-	writeTextArray(outFile, locationDirNotVisited_SP, nbrElem);
-
-	// Write locationDirVisited
-	nbrElem = sizeof(locationDirVisited_EN) / sizeof(char *);
-	writeTextArray(outFile, locationDirVisited_EN, nbrElem);
-
-	nbrElem = sizeof(locationDirVisited_FR) / sizeof(char *);
-	writeTextArray(outFile, locationDirVisited_FR, nbrElem);
-
-	nbrElem = sizeof(locationDirVisited_DE) / sizeof(char *);
-	writeTextArray(outFile, locationDirVisited_DE, nbrElem);
-
-	nbrElem = sizeof(locationDirVisited_RU) / sizeof(char *);
-	writeTextArray(outFile, locationDirVisited_RU, nbrElem);
-
-	nbrElem = sizeof(locationDirVisited_SP) / sizeof(char *);
-	writeTextArray(outFile, locationDirVisited_SP, nbrElem);
-
-	// Write specialInfoLine
-	nbrElem = sizeof(specialInfoLine_EN) / sizeof(char *);
-	writeTextArray(outFile, specialInfoLine_EN, nbrElem);
-
-	nbrElem = sizeof(specialInfoLine_FR) / sizeof(char *);
-	writeTextArray(outFile, specialInfoLine_FR, nbrElem);
-
-	nbrElem = sizeof(specialInfoLine_DE) / sizeof(char *);
-	writeTextArray(outFile, specialInfoLine_DE, nbrElem);
-
-	nbrElem = sizeof(specialInfoLine_RU) / sizeof(char *);
-	writeTextArray(outFile, specialInfoLine_RU, nbrElem);
-
-	nbrElem = sizeof(specialInfoLine_SP) / sizeof(char *);
-	writeTextArray(outFile, specialInfoLine_SP, nbrElem);
-
-	// Not yet handled: miscTexts, endingLine and exitLine. Are they useful?
-
-	fclose(outFile);
-	return 0;
-}
-
-void writeTextArray(FILE *outFile, const char *textArray[], int nbrText) {
-	int len, len1, pad;
-	uint8 padBuf[DATAALIGNMENT];
-
-	for (int i = 0; i < DATAALIGNMENT; i++)
-		padBuf[i] = 0;
-
-	writeUint16BE(outFile, nbrText);
-	len = DATAALIGNMENT - 2;
-	for (int i = 0; i < nbrText; i++) {
-		len1 = strlen(textArray[i]) + 1;
-		pad = DATAALIGNMENT - (len1 + 2) % DATAALIGNMENT;
-		len += 2 + len1 + pad;
-	}
-	writeUint16BE(outFile, len);
-
-	fwrite(padBuf, DATAALIGNMENT - 2, 1, outFile); // padding
-	for (int i = 0; i < nbrText; i++) {
-		len = strlen(textArray[i]) + 1;
-		pad = DATAALIGNMENT - (len + 2) % DATAALIGNMENT;
-
-		writeUint16BE(outFile, len + pad + 2);
-		fwrite(textArray[i], len, 1, outFile);
-		fwrite(padBuf, pad, 1, outFile);
-	}
-*/
 }
