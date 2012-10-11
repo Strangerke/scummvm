@@ -25,6 +25,7 @@
 #include "nancy/console.h"
 #include "nancy/nancy.h"
 #include "nancy/resource.h"
+#include "nancy/video.h"
 
 namespace Nancy {
 
@@ -35,9 +36,30 @@ NancyConsole::NancyConsole(NancyEngine *vm) : GUI::Debugger(), _vm(vm) {
 	DCmd_Register("res_list", WRAP_METHOD(NancyConsole, Cmd_resList));
 	DCmd_Register("res_info", WRAP_METHOD(NancyConsole, Cmd_resInfo));
 	DCmd_Register("res_show_image", WRAP_METHOD(NancyConsole, Cmd_resShowImage));
+	DCmd_Register("play_video", WRAP_METHOD(NancyConsole, Cmd_playVideo));
 }
 
 NancyConsole::~NancyConsole() {
+}
+
+void NancyConsole::postEnter() {
+	if (!_videoFile.empty()) {
+		Video::VideoDecoder *dec = new AVFDecoder;
+	
+		if (dec->loadFile(_videoFile)) {
+			dec->start();
+			while (!dec->endOfVideo()) {
+				const Graphics::Surface *frame = dec->decodeNextFrame();
+				_vm->_system->fillScreen(0);
+				_vm->_system->copyRectToScreen(frame->pixels, frame->pitch, 0, 0, frame->w, frame->h);
+				_vm->_system->updateScreen();
+				_vm->_system->delayMillis(60);
+			}
+		} else {
+			DebugPrintf("Failed to load '%s'\n", _videoFile.c_str());
+		}
+		_videoFile.clear();
+	}
 }
 
 bool NancyConsole::Cmd_resHexDump(int argc, const char **argv) {
@@ -134,9 +156,11 @@ bool NancyConsole::Cmd_resShowImage(int argc, const char **argv) {
 		_vm->_system->fillScreen(0);
 		_vm->_system->copyRectToScreen(surf.pixels, surf.pitch, 0, 0, surf.w > 640 ? 640 : surf.w, surf.h > 480 ? 480 : surf.h);
 		surf.free();
-	} else
+		return Cmd_Exit(0, 0);
+	} else {
 		DebugPrintf("Failed to load image\n");
-	return true;
+		return true;
+	}
 }
 
 bool NancyConsole::Cmd_resLoadCal(int argc, const char **argv) {
@@ -149,6 +173,18 @@ bool NancyConsole::Cmd_resLoadCal(int argc, const char **argv) {
 	if (!_vm->_res->loadCifTree(argv[1], "cal"))
 		DebugPrintf("Failed to load '%s.cal'\n", argv[1]);
 	return true;
+}
+
+bool NancyConsole::Cmd_playVideo(int argc, const char **argv) {
+	if (argc != 2) {
+		DebugPrintf("Plays a video\n");
+		DebugPrintf("Usage: %s <name>\n", argv[0]);
+		return true;
+	}
+
+	_videoFile = argv[1];
+	_videoFile += ".avf";
+	return Cmd_Exit(0, 0);
 }
 
 } // End of namespace Nancy
