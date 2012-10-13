@@ -34,7 +34,7 @@ namespace Nancy {
 NancyConsole::NancyConsole(NancyEngine *vm) : GUI::Debugger(), _vm(vm) {
 	DCmd_Register("res_load_cal", WRAP_METHOD(NancyConsole, Cmd_resLoadCal));
 	DCmd_Register("res_hexdump", WRAP_METHOD(NancyConsole, Cmd_resHexDump));
-	DCmd_Register("res_diskdump", WRAP_METHOD(NancyConsole, Cmd_resDiskDump));
+	DCmd_Register("export_cif", WRAP_METHOD(NancyConsole, Cmd_exportCif));
 	DCmd_Register("res_list", WRAP_METHOD(NancyConsole, Cmd_resList));
 	DCmd_Register("res_info", WRAP_METHOD(NancyConsole, Cmd_resInfo));
 	DCmd_Register("res_show_image", WRAP_METHOD(NancyConsole, Cmd_resShowImage));
@@ -84,34 +84,16 @@ bool NancyConsole::Cmd_resHexDump(int argc, const char **argv) {
 	return true;
 }
 
-bool NancyConsole::Cmd_resDiskDump(int argc, const char **argv) {
+bool NancyConsole::Cmd_exportCif(int argc, const char **argv) {
 	if (argc < 2 || argc > 3) {
-		DebugPrintf("Dumps the specified resource to disk\n");
+		DebugPrintf("Exports the specified resource to .cif file\n");
 		DebugPrintf("Usage: %s name [cal]\n", argv[0]);
 		return true;
 	}
 
-	uint size;
-	byte *buf = _vm->_res->loadCif((argc == 2 ? "ciftree" : argv[2]), argv[1], size);
-	if (!buf) {
-		DebugPrintf("Failed to load resource '%s'\n", argv[1]);
-		return true;
-	}
+	if (!_vm->_res->exportCif((argc == 2 ? "ciftree" : argv[2]), argv[1]))
+		DebugPrintf("Failed to export '%s'\n", argv[1]);
 
-	Common::String filename = argv[1];
-	filename += ".raw";
-	Common::DumpFile dump;
-	if (!dump.open(filename)) {
-		DebugPrintf("Failed to open dump file '%s'\n", filename.c_str());
-		delete[] buf;
-		return true;
-	}
-
-	if (dump.write(buf, size) < size)
-		DebugPrintf("Failed to write dump file '%s'\n", filename.c_str());
-
-	dump.close();
-	delete[] buf;
 	return true;
 }
 
