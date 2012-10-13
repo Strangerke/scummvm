@@ -32,12 +32,12 @@
 namespace Nancy {
 
 NancyConsole::NancyConsole(NancyEngine *vm) : GUI::Debugger(), _vm(vm) {
-	DCmd_Register("res_load_cal", WRAP_METHOD(NancyConsole, Cmd_resLoadCal));
-	DCmd_Register("res_hexdump", WRAP_METHOD(NancyConsole, Cmd_resHexDump));
-	DCmd_Register("export_cif", WRAP_METHOD(NancyConsole, Cmd_exportCif));
-	DCmd_Register("res_list", WRAP_METHOD(NancyConsole, Cmd_resList));
-	DCmd_Register("res_info", WRAP_METHOD(NancyConsole, Cmd_resInfo));
-	DCmd_Register("res_show_image", WRAP_METHOD(NancyConsole, Cmd_resShowImage));
+	DCmd_Register("load_cal", WRAP_METHOD(NancyConsole, Cmd_loadCal));
+	DCmd_Register("cif_hexdump", WRAP_METHOD(NancyConsole, Cmd_cifHexDump));
+	DCmd_Register("cif_export", WRAP_METHOD(NancyConsole, Cmd_cifExport));
+	DCmd_Register("cif_list", WRAP_METHOD(NancyConsole, Cmd_cifList));
+	DCmd_Register("cif_info", WRAP_METHOD(NancyConsole, Cmd_cifInfo));
+	DCmd_Register("show_image", WRAP_METHOD(NancyConsole, Cmd_showImage));
 	DCmd_Register("play_video", WRAP_METHOD(NancyConsole, Cmd_playVideo));
 	DCmd_Register("play_audio", WRAP_METHOD(NancyConsole, Cmd_playAudio));
 }
@@ -65,7 +65,7 @@ void NancyConsole::postEnter() {
 	}
 }
 
-bool NancyConsole::Cmd_resHexDump(int argc, const char **argv) {
+bool NancyConsole::Cmd_cifHexDump(int argc, const char **argv) {
 	if (argc < 2 || argc > 3) {
 		DebugPrintf("Dumps the specified resource to standard output\n");
 		DebugPrintf("Usage: %s name [cal]\n", argv[0]);
@@ -84,7 +84,7 @@ bool NancyConsole::Cmd_resHexDump(int argc, const char **argv) {
 	return true;
 }
 
-bool NancyConsole::Cmd_exportCif(int argc, const char **argv) {
+bool NancyConsole::Cmd_cifExport(int argc, const char **argv) {
 	if (argc < 2 || argc > 3) {
 		DebugPrintf("Exports the specified resource to .cif file\n");
 		DebugPrintf("Usage: %s name [cal]\n", argv[0]);
@@ -97,7 +97,7 @@ bool NancyConsole::Cmd_exportCif(int argc, const char **argv) {
 	return true;
 }
 
-bool NancyConsole::Cmd_resList(int argc, const char **argv) {
+bool NancyConsole::Cmd_cifList(int argc, const char **argv) {
 	if (argc < 2 || argc > 3) {
 		DebugPrintf("List resources of a certain type\n");
 		DebugPrintf("Types - 0: all, 2: image, 3: script\n");
@@ -118,7 +118,7 @@ bool NancyConsole::Cmd_resList(int argc, const char **argv) {
 	return true;
 }
 
-bool NancyConsole::Cmd_resInfo(int argc, const char **argv) {
+bool NancyConsole::Cmd_cifInfo(int argc, const char **argv) {
 	if (argc < 2 || argc > 3) {
 		DebugPrintf("Prints information about a resource\n");
 		DebugPrintf("Usage: %s name [cal]\n", argv[0]);
@@ -129,7 +129,7 @@ bool NancyConsole::Cmd_resInfo(int argc, const char **argv) {
 	return true;
 }
 
-bool NancyConsole::Cmd_resShowImage(int argc, const char **argv) {
+bool NancyConsole::Cmd_showImage(int argc, const char **argv) {
 	if (argc < 2 || argc > 3) {
 		DebugPrintf("Draws an image on the screen\n");
 		DebugPrintf("Usage: %s name [cal]\n", argv[0]);
@@ -148,7 +148,7 @@ bool NancyConsole::Cmd_resShowImage(int argc, const char **argv) {
 	}
 }
 
-bool NancyConsole::Cmd_resLoadCal(int argc, const char **argv) {
+bool NancyConsole::Cmd_loadCal(int argc, const char **argv) {
 	if (argc != 2) {
 		DebugPrintf("Loads a .cal file\n");
 		DebugPrintf("Usage: %s <name>\n", argv[0]);
