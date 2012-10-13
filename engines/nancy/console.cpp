@@ -22,10 +22,12 @@
 
 #include "common/system.h"
 #include "graphics/surface.h"
+#include "audio/audiostream.h"
 #include "nancy/console.h"
 #include "nancy/nancy.h"
 #include "nancy/resource.h"
 #include "nancy/video.h"
+#include "nancy/audio.h"
 
 namespace Nancy {
 
@@ -37,6 +39,7 @@ NancyConsole::NancyConsole(NancyEngine *vm) : GUI::Debugger(), _vm(vm) {
 	DCmd_Register("res_info", WRAP_METHOD(NancyConsole, Cmd_resInfo));
 	DCmd_Register("res_show_image", WRAP_METHOD(NancyConsole, Cmd_resShowImage));
 	DCmd_Register("play_video", WRAP_METHOD(NancyConsole, Cmd_playVideo));
+	DCmd_Register("play_audio", WRAP_METHOD(NancyConsole, Cmd_playAudio));
 }
 
 NancyConsole::~NancyConsole() {
@@ -185,6 +188,31 @@ bool NancyConsole::Cmd_playVideo(int argc, const char **argv) {
 	_videoFile = argv[1];
 	_videoFile += ".avf";
 	return Cmd_Exit(0, 0);
+}
+
+bool NancyConsole::Cmd_playAudio(int argc, const char **argv) {
+	if (argc != 2) {
+		DebugPrintf("Plays an audio file\n");
+		DebugPrintf("Usage: %s <name>\n", argv[0]);
+		return true;
+	}
+
+	Common::File *f = new Common::File;
+	if (!f->open(Common::String(argv[1]) + ".his")) {
+		DebugPrintf("Failed to open '%s.his'\n", argv[1]);
+		return true;
+	}
+
+	Audio::AudioStream *stream = makeHISStream(f, DisposeAfterUse::YES);
+
+	if (!stream) {
+		DebugPrintf("Failed to load '%s.his'\n", argv[1]);
+		delete f;
+		return true;
+	}
+	Audio::SoundHandle handle;
+	_vm->_system->getMixer()->playStream(Audio::Mixer::kPlainSoundType, &handle, stream);
+	return true;
 }
 
 } // End of namespace Nancy
