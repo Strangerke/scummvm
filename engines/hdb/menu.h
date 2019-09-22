@@ -68,9 +68,13 @@ enum {
 };
 
 struct Star {
-	int x, y, speed, anim, delay;
+	Common::Point pos;
+	int speed, anim, delay;
 
-	Star() : x(0), y(0), speed(0), anim(0), delay(0) {}
+	Star() : speed(0), anim(0), delay(0) {
+		pos = Common::Point(0,0);
+	}
+
 };
 
 class Menu {
@@ -91,13 +95,13 @@ public:
 	void drawMenu();
 	void freeMenu();
 
-	void processInput(int x, int y);	// this is where the items are clicked!
-	void controlsInput(int x, int y);	// take mouse input and pass through to menu
+	void processInput(Common::Point pos);	// this is where the items are clicked!
+	void controlsInput(Common::Point pos);	// take mouse input and pass through to menu
 	void controlsDraw();
 	void drawNebula();
 	void drawRocketAndSelections();		// draw the background stuff
-	void drawSlider(int x, int y, int offset);
-	void drawToggle(int x, int y, bool flag);
+	void drawSlider(Common::Point pos, int offset);
+	void drawToggle(Common::Point pos, bool flag);
 	void drawWarpScreen();
 	void saveSong(SoundType song) {
 		_resumeSong = song;
@@ -113,7 +117,7 @@ public:
 	}
 
 	// Platform-specific Constants
-	int _menuX, _menuY;
+	Common::Point _menuPos;
 	int _menuItemWidth;
 	int _menuItemHeight;
 	int _mResumeY;

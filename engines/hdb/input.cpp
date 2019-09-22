@@ -286,7 +286,7 @@ void Input::stylusDown(Common::Point pos) {
 		g_hdb->changeGameState();
 		break;
 	case GAME_MENU:
-		g_hdb->_menu->processInput(pos.x, pos.y);
+		g_hdb->_menu->processInput(pos);
 		break;
 	case GAME_PLAY:
 		{
@@ -428,7 +428,7 @@ void Input::stylusMove(Common::Point pos) {
 			g_hdb->moveMap(pos.x, pos.y);
 		break;
 	case GAME_MENU:
-		g_hdb->_menu->processInput(pos.x, pos.y);
+		g_hdb->_menu->processInput(pos);
 		break;
 	default:
 		break;
