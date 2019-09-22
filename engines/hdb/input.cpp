@@ -45,9 +45,7 @@ void Input::init() {
 	_keyDebug = Common::KEYCODE_F1;
 	_keyQuit = Common::KEYCODE_F10;
 
-	_mouseX = g_hdb->_screenWidth / 2;
-	_mouseY = g_hdb->_screenHeight / 2;
-
+	_mousePos = Common::Point(g_hdb->_screenWidth / 2, g_hdb->_screenHeight / 2);
 	_mouseLButton = _mouseMButton = _mouseRButton = 0;
 }
 
@@ -269,7 +267,7 @@ uint16 Input::getButtons() {
 	return _buttons;
 }
 
-void Input::stylusDown(int x, int y) {
+void Input::stylusDown(Common::Point pos) {
 	static uint32 delay = 0, time;
 
 	// Don't let the screen get clicked too fast
@@ -279,8 +277,7 @@ void Input::stylusDown(int x, int y) {
 	time = delay;
 
 	_stylusDown = true;
-	_stylusDownX = x;
-	_stylusDownY = y;
+	_stylusDownPos = pos;
 	GameState gs = g_hdb->getGameState();
 
 	switch (gs) {
@@ -289,13 +286,13 @@ void Input::stylusDown(int x, int y) {
 		g_hdb->changeGameState();
 		break;
 	case GAME_MENU:
-		g_hdb->_menu->processInput(x, y);
+		g_hdb->_menu->processInput(pos.x, pos.y);
 		break;
 	case GAME_PLAY:
 		{
 		// Is Player Dead? Click on TRY AGAIN
 		if (g_hdb->_ai->playerDead()) {
-			if (y >= g_hdb->_window->_tryRestartY && y <= g_hdb->_window->_tryRestartY + 24) {
+			if (pos.y >= g_hdb->_window->_tryRestartY && pos.y <= g_hdb->_window->_tryRestartY + 24) {
 				if (g_hdb->loadGameState(kAutoSaveSlot).getCode() == Common::kNoError) {
 					g_hdb->_window->clearTryAgain();
 					g_hdb->setGameState(GAME_PLAY);
@@ -307,7 +304,7 @@ void Input::stylusDown(int x, int y) {
 		if (g_hdb->isPPC()) {
 			// is Deliveries active?
 			if (g_hdb->_window->deliveriesActive()) {
-				if (!g_hdb->_window->checkDlvsClose(x, y))
+				if (!g_hdb->_window->checkDlvsClose(pos.x, pos.y))
 					return;
 				if (!g_hdb->_ai->cinematicsActive())
 					return;
@@ -315,7 +312,7 @@ void Input::stylusDown(int x, int y) {
 
 			// is Inventory active?
 			if (g_hdb->_window->inventoryActive()) {
-				if (!g_hdb->_window->checkInvClose(x, y))
+				if (!g_hdb->_window->checkInvClose(pos.x, pos.y))
 					return;
 				if (!g_hdb->_ai->cinematicsActive())
 					return;
@@ -331,7 +328,7 @@ void Input::stylusDown(int x, int y) {
 
 		// Is a Choice Dialog Active?
 		if (g_hdb->_window->dialogChoiceActive()) {
-			if (!g_hdb->_window->checkDialogChoiceClose(x, y))
+			if (!g_hdb->_window->checkDialogChoiceClose(pos.x, pos.y))
 				return;
 			if (!g_hdb->_ai->cinematicsActive())
 				return;
@@ -339,7 +336,7 @@ void Input::stylusDown(int x, int y) {
 
 		// Is MessageBar active?
 		if (g_hdb->_window->msgBarActive()) {
-			if (g_hdb->_window->checkMsgClose(x, y))
+			if (g_hdb->_window->checkMsgClose(pos.x, pos.y))
 				return;
 		}
 
@@ -352,23 +349,23 @@ void Input::stylusDown(int x, int y) {
 			int mx, my;
 			g_hdb->_map->getMapXY(&mx, &my);
 
-			mx = ((mx + _stylusDownX) / kTileWidth) * kTileWidth;
-			my = ((my + _stylusDownY) / kTileHeight) * kTileHeight;
+			mx = ((mx + _stylusDownPos.x) / kTileWidth) * kTileWidth;
+			my = ((my + _stylusDownPos.y) / kTileHeight) * kTileHeight;
 			g_hdb->_ai->setPlayerXY(mx, my);
 
-			g_hdb->startMoveMap(x, y);
+			g_hdb->startMoveMap(pos.x, pos.y);
 			return;
 		}
 
 		// Clicked in the world
 		int worldX, worldY;
 		g_hdb->_map->getMapXY(&worldX, &worldY);
-		worldX = ((worldX + x) / kTileWidth) * kTileWidth;
-		worldY = ((worldY + y) / kTileHeight) * kTileHeight;
+		worldX = ((worldX + pos.x) / kTileWidth) * kTileWidth;
+		worldY = ((worldY + pos.y) / kTileHeight) * kTileHeight;
 
 		if (!g_hdb->isPPC()) {
 			// Don't allow a click into INV/DELIVERIES area to go into the world
-			if (x >= (g_hdb->_screenWidth - 32 * 5))
+			if (pos.x >= (g_hdb->_screenWidth - 32 * 5))
 				return;
 		}
 
@@ -416,11 +413,11 @@ void Input::stylusDown(int x, int y) {
 	}
 }
 
-void Input::stylusUp(int x, int y) {
+void Input::stylusUp(Common::Point pos) {
 	_stylusDown = false;
 }
 
-void Input::stylusMove(int x, int y) {
+void Input::stylusMove(Common::Point pos) {
 	// In a cinematic?
 	if (g_hdb->_ai->playerLocked() || g_hdb->_ai->playerDead())
 		return;
@@ -428,19 +425,18 @@ void Input::stylusMove(int x, int y) {
 	switch (g_hdb->getGameState()) {
 	case GAME_PLAY:
 		if (g_hdb->getDebug() == 2)
-			g_hdb->moveMap(x, y);
+			g_hdb->moveMap(pos.x, pos.y);
 		break;
 	case GAME_MENU:
-		g_hdb->_menu->processInput(x, y);
+		g_hdb->_menu->processInput(pos.x, pos.y);
 		break;
 	default:
 		break;
 	}
 }
 
-void Input::updateMouse(int newX, int newY) {
-	_mouseX = CLIP(newX, 0, g_hdb->_screenWidth - 1);
-	_mouseY = CLIP(newY, 0, g_hdb->_screenHeight - 1);
+void Input::updateMouse(Common::Point newPos) {
+	_mousePos = Common::Point(CLIP<int>(newPos.x, 0, g_hdb->_screenWidth - 1), CLIP<int>(newPos.y, 0, g_hdb->_screenHeight - 1));
 
 	// Turn Cursor back on?
 	if (!g_hdb->_gfx->getPointer())
@@ -448,7 +444,7 @@ void Input::updateMouse(int newX, int newY) {
 
 	// Check if LButton is being dragged
 	if (_mouseLButton)
-		stylusMove(_mouseX, _mouseY);
+		stylusMove(_mousePos);
 }
 
 void Input::updateMouseButtons(int l, int m, int r) {
@@ -460,22 +456,22 @@ void Input::updateMouseButtons(int l, int m, int r) {
 	// Check if LButton has been lifted
 	if (_mouseLButton) {
 		if (g_hdb->isPPC()) {
-			stylusDown(_mouseX, _mouseY);
+			stylusDown(_mousePos);
 			return;
 		}
-		if (_mouseX > (g_hdb->_screenWidth - 32 * 5) && _mouseY < 240) {
-			g_hdb->_window->checkInvSelect(_mouseX, _mouseY);
-		} else if (_mouseX > (g_hdb->_screenWidth - 32 * 5) && _mouseY >= 240) {
-			g_hdb->_window->checkDlvSelect(_mouseX, _mouseY);
+		if (_mousePos.x > (g_hdb->_screenWidth - 32 * 5) && _mousePos.y < 240) {
+			g_hdb->_window->checkInvSelect(_mousePos.x, _mousePos.y);
+		} else if (_mousePos.x > (g_hdb->_screenWidth - 32 * 5) && _mousePos.y >= 240) {
+			g_hdb->_window->checkDlvSelect(_mousePos.x, _mousePos.y);
 		} else {
 			if (g_hdb->getPause() && g_hdb->getGameState() == GAME_PLAY) {
-				g_hdb->_window->checkPause(_mouseX, _mouseY);
+				g_hdb->_window->checkPause(_mousePos.x, _mousePos.y);
 				return;
 			}
-			stylusDown(_mouseX, _mouseY);
+			stylusDown(_mousePos);
 		}
 	} else if (!_mouseLButton) {
-		stylusUp(_mouseX, _mouseY);
+		stylusUp(_mousePos);
 	}
 
 	// Check if MButton has been pressed

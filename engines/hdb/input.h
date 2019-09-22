@@ -46,28 +46,38 @@ public:
 
 	void setButtons(uint16 b);
 	uint16 getButtons();
-	void stylusDown(int x, int y);
-	void stylusUp(int x, int y);
-	void stylusMove(int x, int y);
+	void stylusDown(Common::Point pos);
+	void stylusUp(Common::Point pos);
+	void stylusMove(Common::Point pos);
 
-	void updateMouse(int newX, int newY);
+	void updateMouse(Common::Point newPos);
 	void updateMouseButtons(int l, int m, int r);
 	void updateKeys(Common::Event event, bool keyDown);
 
 	int getMouseX() {
-		return _mouseX;
+		return _mousePos.x;
 	}
 	int getMouseY() {
-		return _mouseY;
+		return _mousePos.y;
 	}
 
 	void assignKey(int whichKey, Common::KeyCode keyPressed) {
 		switch (whichKey) {
-		case 0: _keyUp = keyPressed; return;
-		case 1: _keyDown = keyPressed; return;
-		case 2: _keyLeft = keyPressed; return;
-		case 3: _keyRight = keyPressed; return;
-		case 4: _keyUse = keyPressed; return;
+		case 0:
+			_keyUp = keyPressed;
+			return;
+		case 1:
+			_keyDown = keyPressed;
+			return;
+		case 2:
+			_keyLeft = keyPressed;
+			return;
+		case 3:
+			_keyRight = keyPressed;
+			return;
+		case 4:
+			_keyUse = keyPressed;
+			return;
 		}
 	}
 
@@ -75,8 +85,8 @@ private:
 
 	uint16 _buttons;	// Flags for buttons
 	bool _stylusDown;
-	int _stylusDownX, _stylusDownY;
-	int _mouseX, _mouseY;
+	Common::Point _stylusDownPos;
+	Common::Point _mousePos;
 	int _mouseLButton, _mouseMButton, _mouseRButton;
 
 	// Definable Keys

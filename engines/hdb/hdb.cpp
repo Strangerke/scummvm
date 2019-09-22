@@ -964,7 +964,7 @@ Common::Error HDBGame::run() {
 		while (g_system->getEventManager()->pollEvent(event)) {
 			switch (event.type) {
 			case Common::EVENT_MOUSEMOVE:
-				_input->updateMouse(event.mouse.x, event.mouse.y);
+				_input->updateMouse(event.mouse);
 				break;
 			case Common::EVENT_LBUTTONDOWN:
 				_input->updateMouseButtons(1, 0, 0);
