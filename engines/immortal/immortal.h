@@ -62,7 +62,6 @@ public:
 	Graphics::Surface *_mainSurface;
 	Common::RandomSource *_rnd;
 
-
 	const ImmortalGameDescription *_gameDescription;
 	uint32 getFeatures() const;
 	const char *getGameId() const;
@@ -93,7 +92,44 @@ private:
 	GameType _gameType;
 	Common::Platform _platform;
 
+	int _Gmode;
+	int _SoundType;
+	int soundon;
+	int gotjoystick;
+	int PlayerInv;
+	int dim;
+	int lastdim;
+	int jiffies;
+	bool gameOverFlag;
+	bool levelOver;
+	Common::File CurLibHand;
+	
 	void initialize();
+
+	void convertPaletteToRGB(int palColor, byte *red, byte *green, byte *blue);
+
+	void D_loadtitle();
+	void kernal_loadSprites();
+	void loadwindow();
+	void kernal_loadmaze(int mazeNumber);
+	void kernal_usenormal();
+	void initmusic();
+	void inituserio();
+	void kernal_loadSingles();
+	void MusicDriver_TuneOn();
+	void kernal_clearSprites();
+	void logic_init();
+	void logic();
+	bool logic_freeze();
+	void D_drawuniv();
+	void IBMPoll();
+	void setcolors();
+	byte *LoadIff(Common::String filename, uint32 *bufSize);
+	void SetTitlePal();
+	void ConvertPic(byte *buffer);
+	void ShowPic(byte *buffer, uint32 size);
+	byte *Load(Common::String filename, uint32 * size);
+	byte *decodeFile(byte * inBuffer, int encodedFilesize, int *decodedFilesize);
 };
 
 } // End of namespace Immortal
