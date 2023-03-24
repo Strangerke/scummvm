@@ -44,10 +44,18 @@ CastlxEngine::CastlxEngine(OSystem *syst, const ADGameDescription *gameDesc) : E
 	SearchMan.addSubDirectoryMatching(gameDataDir, "SONG1");
 	SearchMan.addSubDirectoryMatching(gameDataDir, "GESTION1");
 	SearchMan.addSubDirectoryMatching(gameDataDir, "SPRIT1/PC");
+
+	_gstPtr = nullptr;
+	_song0 = _song1 = nullptr;
+	_lastFileSize = 0;
+	_mouseCursorVisible = false;
 }
 
 CastlxEngine::~CastlxEngine() {
 	delete _screen;
+	delete[] _gstPtr;
+	delete[] _song0;
+	delete[] _song1;
 }
 
 uint32 CastlxEngine::getFeatures() const {
@@ -60,20 +68,42 @@ Common::String CastlxEngine::getGameId() const {
 
 void CastlxEngine::loadGst(int fileNumber) {
 	Common::String filename = Common::String::format("%02d.GST", fileNumber);
+	_gstPtr = loadFile(filename);
+/*
+	word1E7DB = _gstPtr + _decompFileSize;
+	word2A302 = 0;
+	word2A304 = _decompFileSize * 16;
+	word2A306 = 0;
+
+	word1E7D9 = word1E0C0 = word1E0C2 = word1E0C4 = word1E0C6 = word1E0C8 = word1E7DB;
+*/
+	setDisplayStringQueueIdTo0();
+	_mouseCursorVisible = false;
+}
+
+byte *CastlxEngine::loadFile(Common::String &filename) {
 	Common::File f;
 	f.open(filename);
-	// if failed, your return
-	byte *srcBuffer = new byte[f.size()];
-	f.read(srcBuffer, f.size());
+
+	if (!f.isOpen()) {
+		_lastFileSize = 0;
+		return nullptr;
+	}
+
+	int srcSize = f.size();
+	byte *srcBuffer = new byte[srcSize];
+	f.read(srcBuffer, srcSize);
 	f.close();
 	
 	uint32 sign = READ_BE_UINT32(srcBuffer);
-	srcBuffer += 4;
 	uint32 tag = MKTAG('C', 'P', 'X', ' ');
 
-	if (sign != tag)
-		error("Unexpected signature"); // shouldn't error out, should read file
+	if (sign != tag) {
+		_lastFileSize = f.size();
+		return srcBuffer;
+	}
 
+	srcBuffer += 4;
 	int targetSize = 0;
 	uint8 curByte = *srcBuffer++;
 	while (curByte != 0) {
@@ -222,7 +252,8 @@ compFct2 : {
 				dump.write(destBuffer, targetSize);
 				dump.flush();
 				dump.close();
-				return;
+				_lastFileSize = targetSize;
+				return destBuffer;
 			}
 		}
 		cx += 2;
@@ -234,6 +265,11 @@ compFct2 : {
 		continue;
 		}
 	}
+}
+
+void CastlxEngine::setDisplayStringQueueIdTo0() {
+	for (int i = 0; i < 5; ++i)
+		_displayStringList[i]._id = 0;
 }
 
 Common::Error CastlxEngine::run() {
@@ -249,7 +285,23 @@ Common::Error CastlxEngine::run() {
 	if (saveSlot != -1)
 		(void)loadGameState(saveSlot);
 
+	/*
+	initMouse(629, 399, 0, 0);
+	setMousePosition(320, 100);
+	sub1AC52();
+	sub1AC99();
+	sub1E033();
+	*/
+	
+	Common::String filename = "SONG0.OUT";
+	_song0 = loadFile(filename);
+	filename = "SONG1.OUT";
+	_song1 = loadFile(filename);
 	loadGst(0);	
+
+	/*
+	handleGst(_word2A302);
+	*/
 	
 	// Draw a series of boxes on screen as a sample
 	for (int i = 0; i < 100; ++i)

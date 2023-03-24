@@ -40,18 +40,41 @@ namespace Castlx {
 
 struct CastlxGameDescription;
 
+struct DisplayStringQueue {
+	int16 _id;
+	int16 _posX;
+	int16 _posY;
+	void *_unkPtr;
+	void *_headerPtr;
+
+	DisplayStringQueue() {
+		_id = _posX = _posY = 0;
+		_unkPtr = _headerPtr = nullptr;
+	}
+};
+
 class CastlxEngine : public Engine {
 private:
 	const ADGameDescription *_gameDescription;
 	Common::RandomSource _randomSource;
 
+	byte *_gstPtr;
+	byte *_song0;
+	byte *_song1;
+	int _lastFileSize;
+	DisplayStringQueue _displayStringList[5];
+	bool _mouseCursorVisible;
+
+
+	byte * loadFile(Common::String & filename);
+	void setDisplayStringQueueIdTo0();
 	void loadGst(int fileNumber);
 protected:
 	// Engine APIs
 	Common::Error run() override;
 public:
 	Graphics::Screen *_screen = nullptr;
-public:
+
 	CastlxEngine(OSystem *syst, const ADGameDescription *gameDesc);
 	~CastlxEngine() override;
 
