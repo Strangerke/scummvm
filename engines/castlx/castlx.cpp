@@ -81,6 +81,17 @@ void CastlxEngine::loadGst(int fileNumber) {
 	_mouseCursorVisible = false;
 }
 
+byte *CastlxEngine::resize(byte *buffer, int oldSize, int newSize) {
+	byte *newArr = new byte[newSize];
+
+	memset(newArr, 9, newSize);
+	memcpy(newArr, buffer, oldSize);
+
+	delete[] buffer;
+	buffer = newArr;
+	return buffer;
+}
+
 byte *CastlxEngine::loadFile(Common::String &filename) {
 	Common::File f;
 	f.open(filename);
@@ -90,181 +101,180 @@ byte *CastlxEngine::loadFile(Common::String &filename) {
 		return nullptr;
 	}
 
-	int srcSize = f.size();
-	byte *srcBuffer = new byte[srcSize];
-	f.read(srcBuffer, srcSize);
-	f.close();
-	
-	uint32 sign = READ_BE_UINT32(srcBuffer);
+	uint32 sign = f.readUint32BE();
 	uint32 tag = MKTAG('C', 'P', 'X', ' ');
 
 	if (sign != tag) {
 		_lastFileSize = f.size();
+		f.seek(0);
+		byte *srcBuffer = new byte[_lastFileSize];
+		f.read(srcBuffer, _lastFileSize);
+		f.close();
+		
 		return srcBuffer;
 	}
 
-	srcBuffer += 4;
 	int targetSize = 0;
-	uint8 curByte = *srcBuffer++;
+	uint8 curByte = f.readByte();
 	while (curByte != 0) {
 		if (curByte >= 0x30 && curByte <= 0x39)
 			targetSize = targetSize * 10 + (curByte - 0x30);
-		curByte = *srcBuffer++;
+		curByte = f.readByte();
 	}
 
 	int bufferSize = ((targetSize / 32768) + 1) * 32768;
 	byte *destBuffer = new byte[bufferSize];
+	memset(destBuffer, 0, targetSize);
 	byte *destPtr = destBuffer;
-	
-	// skip 2 unknown bytes
-	for (int i = 0; i < 2; ++i)
-		curByte = *srcBuffer++;
 
-	byte fct0 = *srcBuffer++;
-	byte fct1 = *srcBuffer++;
-	byte fct2 = *srcBuffer++;
-	byte maskSize = *srcBuffer++;
-	byte maskl = 0;
-	byte maskh = 0;
-	for (int i = 0; i < maskSize; ++i) {
-		maskl = (maskl << 1) | 1;
-		maskh = (maskh >> 1) | 0x80;
-	}
+	for(;;) {
+		if (f.pos() >= f.size())
+			break;
+		int16 val = f.readSint16LE();
+		int16 blockSize = 0xFF00 - val;
 
-	uint16 bp = 1;
-	uint8 carry = 0;
-	uint8 oldCarry = 0;
-	for (;;) {
-		carry = bp & 1;
-		bp >>= 1;
-		if (!bp) {
-			bp = READ_LE_UINT16(srcBuffer);
-			srcBuffer += 2;
-			oldCarry = carry;
-			carry = bp & 1;
-			bp >>= 1;
-			bp |= (oldCarry << 15);
+		byte fct0 = f.readByte();
+		byte fct1 = f.readByte();
+		byte fct2 = f.readByte();
+		byte maskSize = f.readByte();
+		byte maskl = 0;
+		byte maskh = 0;
+		for (int i = 0; i < maskSize; ++i) {
+			maskl = (maskl << 1) | 1;
+			maskh = (maskh >> 1) | 0x80;
 		}
 
-		if (!carry) {
-			switch (fct0) {
-			case 0:
-				goto compFct0;
-			case 1:
-				goto compFct1;
-			case 2:
-				goto compFct2;
-			default:
-				error("bad fct %d", fct0);
-			}
-		}
-
-		carry = bp & 1;
-		bp >>= 1;
-		if (!bp) {
-			bp = READ_LE_UINT16(srcBuffer);
-			srcBuffer += 2;
-			oldCarry = carry;
-			carry = bp & 1;
-			bp >>= 1;
-			bp |= (oldCarry << 15);
-		}
-		if (!carry) {
-			switch (fct1) {
-			case 0:
-				goto compFct0;
-			case 1:
-				goto compFct1;
-			case 2:
-				goto compFct2;
-			default:
-				error("bad fct %d", fct1);
-			}
-		}
-
-		switch (fct2) {
-		case 0:
-			goto compFct0;
-		case 1:
-			goto compFct1;
-		case 2:
-			goto compFct2;
-		default:
-			error("bad fct %d", fct2);
-		}
-
-compFct0:
-		*destPtr++ = *srcBuffer++;
-		continue;
-compFct1 : {
-		int16 cx = 0;
-		carry = bp & 1;
-		bp >>= 1;
-		if (!bp) {
-			bp = READ_LE_UINT16(srcBuffer);
-			srcBuffer += 2;
-			oldCarry = carry;
-			carry = bp & 1;
-			bp >>= 1;
-			bp |= (oldCarry << 15);
-			cx = (cx << 1) + carry;
-			carry = bp & 1;
-			bp >>= 1;
-		} else {
-			cx = (cx << 1) + carry;
+		uint16 bp = 1;
+		uint8 carry = 0;
+		uint8 oldCarry = 0;
+		for (;;) {
 			carry = bp & 1;
 			bp >>= 1;
 			if (!bp) {
-				bp = READ_LE_UINT16(srcBuffer);
-				srcBuffer += 2;
+				bp = f.readUint16LE();
 				oldCarry = carry;
 				carry = bp & 1;
 				bp >>= 1;
 				bp |= (oldCarry << 15);
 			}
-		}
-		cx = (cx << 1) + carry;
-		int16 pos = *srcBuffer++;
-		pos |= 0xFF00;
-		cx += 2;
 
-		for (; cx > 0; --cx) {
-			*destPtr = destPtr[pos];
-			++destPtr;
-		}
-		continue;
-		}
-compFct2 : {
-		int ax = READ_LE_UINT16(srcBuffer);
-		srcBuffer += 2;
-		int8 ch = ax & 0xFF;
-		ax >>= maskSize;
-		ax |= (maskh << 8);
-		ch &= maskl;
-		int cx = ch;
-		if (!cx) {
-			cx = *srcBuffer++;
-			
+			if (!carry) {
+				switch (fct0) {
+				case 0:
+					goto compFct0;
+				case 1:
+					goto compFct1;
+				case 2:
+					goto compFct2;
+				default:
+					error("bad fct %d", fct0);
+				}
+			}
+
+			carry = bp & 1;
+			bp >>= 1;
+			if (!bp) {
+				bp = f.readUint16LE();
+				oldCarry = carry;
+				carry = bp & 1;
+				bp >>= 1;
+				bp |= (oldCarry << 15);
+			}
+			if (!carry) {
+				switch (fct1) {
+				case 0:
+					goto compFct0;
+				case 1:
+					goto compFct1;
+				case 2:
+					goto compFct2;
+				default:
+					error("bad fct %d", fct1);
+				}
+			}
+
+			switch (fct2) {
+			case 0:
+				goto compFct0;
+			case 1:
+				goto compFct1;
+			case 2:
+				goto compFct2;
+			default:
+				error("bad fct %d", fct2);
+			}
+
+	compFct0:
+			*destPtr++ = f.readByte();
+			continue;
+	compFct1 : {
+			int16 cx = 0;
+			carry = bp & 1;
+			bp >>= 1;
+			if (!bp) {
+				bp = f.readUint16LE();
+				oldCarry = carry;
+				carry = bp & 1;
+				bp >>= 1;
+				bp |= (oldCarry << 15);
+				cx = (cx << 1) + carry;
+				carry = bp & 1;
+				bp >>= 1;
+			} else {
+				cx = (cx << 1) + carry;
+				carry = bp & 1;
+				bp >>= 1;
+				if (!bp) {
+					bp = f.readUint16LE();
+					oldCarry = carry;
+					carry = bp & 1;
+					bp >>= 1;
+					bp |= (oldCarry << 15);
+				}
+			}
+			cx = (cx << 1) + carry;
+			int16 pos = f.readByte();
+			pos |= 0xFF00;
+			cx += 2;
+
+			for (; cx > 0; --cx) {
+				*destPtr = destPtr[pos];
+				++destPtr;
+			}
+			continue;
+			}
+	compFct2 : {
+			int ax = f.readUint16LE();
+			int8 ch = ax & 0xFF;
+			ax >>= maskSize;
+			ax |= (maskh << 8);
+			ch &= maskl;
+			int cx = ch;
 			if (!cx) {
-				// Dump the decompressed file
-				Common::DumpFile dump;
-				dump.open(filename + ".dump");
-				dump.write(destBuffer, targetSize);
-				dump.flush();
-				dump.close();
-				_lastFileSize = targetSize;
-				return destBuffer;
+				cx = f.readByte();
+				
+				if (!cx) {
+					_lastFileSize = targetSize;
+					break;
+				}
+			}
+			cx += 2;
+			int16 pos = ax;
+			for (; cx > 0; --cx) {
+				*destPtr = destPtr[pos];
+				++destPtr;
+			}
+			continue;
 			}
 		}
-		cx += 2;
-		int16 pos = ax;
-		for (; cx > 0; --cx) {
-			*destPtr = destPtr[pos];
-			++destPtr;
-		}
-		continue;
-		}
 	}
+	// Dump the decompressed file
+	Common::DumpFile dump;
+	dump.open(filename + ".dump");
+	dump.write(destBuffer, targetSize);
+	dump.flush();
+	dump.close();
+	return destBuffer;
 }
 
 void CastlxEngine::setDisplayStringQueueIdTo0() {
@@ -295,6 +305,29 @@ Common::Error CastlxEngine::run() {
 	
 	Common::String filename = "SONG0.OUT";
 	_song0 = loadFile(filename);
+	for (int i = 1; i < 14; ++i) {
+		filename = Common::String::format("I%02d.IMG", i);
+		byte *test = loadFile(filename);
+		delete[] test;
+		filename = Common::String::format("S%02d.SPR", i);
+		test = loadFile(filename);
+		delete[] test;
+	}
+	for (int i = 80; i < 84; ++i) {
+		filename = Common::String::format("I%02d.IMG", i);
+		byte *test = loadFile(filename);
+		delete[] test;
+	}
+	for (int i = 87; i < 91; ++i) {
+		if (i == 88)
+			continue;
+		filename = Common::String::format("I%02d.IMG", i);
+		byte *test = loadFile(filename);
+		delete[] test;
+		filename = Common::String::format("S%02d.SPR", i);
+		test = loadFile(filename);
+		delete[] test;
+	}
 	filename = "SONG1.OUT";
 	_song1 = loadFile(filename);
 	loadGst(0);	

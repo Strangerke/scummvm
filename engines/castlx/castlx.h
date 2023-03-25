@@ -69,6 +69,7 @@ private:
 	byte * loadFile(Common::String & filename);
 	void setDisplayStringQueueIdTo0();
 	void loadGst(int fileNumber);
+	byte * resize(byte *buffer, int oldSize, int newSize);
 protected:
 	// Engine APIs
 	Common::Error run() override;
