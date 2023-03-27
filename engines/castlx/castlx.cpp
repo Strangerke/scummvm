@@ -49,6 +49,16 @@ CastlxEngine::CastlxEngine(OSystem *syst, const ADGameDescription *gameDesc) : E
 	_song0 = _song1 = nullptr;
 	_lastFileSize = 0;
 	_mouseCursorVisible = false;
+	_word2A302 = nullptr;
+	_gstEndPtr = nullptr;
+
+	for (int i = 0; i < 128; ++i)
+		_engineFlags[i] = 0;
+
+	for (int i = 0; i < 63; ++i) {
+		_opcodes[i]._keyword = "";
+		_opcodes[i]._opcodePtr = nullptr;
+	}
 }
 
 CastlxEngine::~CastlxEngine() {
@@ -66,30 +76,273 @@ Common::String CastlxEngine::getGameId() const {
 	return _gameDescription->gameId;
 }
 
+void CastlxEngine::opLOADIMG(byte *buffer) {}
+void CastlxEngine::opEXIT(byte *buffer) {}
+void CastlxEngine::opTEMPO(byte *buffer) {}
+void CastlxEngine::opOTEPALETTE(byte *buffer) {}
+void CastlxEngine::opMETPALETTE(byte *buffer) {}
+void CastlxEngine::opDEF(byte *buffer) {}
+void CastlxEngine::opNAME(byte *buffer) {}
+void CastlxEngine::opIF(byte *buffer) {}
+void CastlxEngine::opDummy1(byte *buffer) {}
+void CastlxEngine::opJUMP(byte *buffer) {}
+void CastlxEngine::opCALL(byte *buffer) {}
+void CastlxEngine::opRETURN(byte *buffer) {}
+void CastlxEngine::opUNCALL(byte *buffer) {}
+void CastlxEngine::opKEY(byte *buffer) {}
+void CastlxEngine::opRESO(byte *buffer) {}
+void CastlxEngine::opTIMER(byte *buffer) {}
+void CastlxEngine::opWAIT(byte *buffer) {}
+void CastlxEngine::opTIMEPLAY(byte *buffer) {}
+void CastlxEngine::opPLAYFLI(byte *buffer) {}
+void CastlxEngine::opPLAYFLX(byte *buffer) {}
+void CastlxEngine::opCLIPPLAY(byte *buffer) {}
+void CastlxEngine::opAFFMOUSEV(byte *buffer) {}
+void CastlxEngine::opAFFMOUSEF(byte *buffer) {}
+void CastlxEngine::opVBL(byte *buffer) {}
+void CastlxEngine::opDummy2(byte *buffer) {}
+void CastlxEngine::opOPENFLI(byte *buffer) {}
+void CastlxEngine::opOPENFLX(byte *buffer) {}
+void CastlxEngine::opENDPLAY(byte *buffer) {}
+void CastlxEngine::opSETMOUSE(byte *buffer) {}
+void CastlxEngine::opCLIPMOUSE(byte *buffer) {}
+void CastlxEngine::opLOAD(byte *buffer) {}
+void CastlxEngine::opLOADSPR(byte *buffer) {}
+void CastlxEngine::opPAUSE(byte *buffer) {}
+void CastlxEngine::opRAZSPR(byte *buffer) {}
+void CastlxEngine::opDummy3(byte *buffer) {}
+void CastlxEngine::opPALNOIR(byte *buffer) {}
+void CastlxEngine::opLOADPALETTE(byte *buffer) {}
+void CastlxEngine::opSETPLAY(byte *buffer) {}
+void CastlxEngine::opCLOSEPLAY(byte *buffer) {}
+void CastlxEngine::opPALETTE(byte *buffer) {}
+void CastlxEngine::opSETCOLORPLAY(byte *buffer) {}
+void CastlxEngine::opSWITCH(byte *buffer) {}
+void CastlxEngine::opMODEPLAY(byte *buffer) {}
+void CastlxEngine::opINCRUSTIMGV(byte *buffer) {}
+void CastlxEngine::opINCRUSTIMGF(byte *buffer) {}
+void CastlxEngine::opCOPYVF(byte *buffer) {}
+void CastlxEngine::opCOPYFV(byte *buffer) {}
+void CastlxEngine::opCOPYVB(byte *buffer) {}
+void CastlxEngine::opCOPYFB(byte *buffer) {}
+void CastlxEngine::opCOPYBV(byte *buffer) {}
+void CastlxEngine::opCOPYBF(byte *buffer) {}
+void CastlxEngine::opAFFSPRITEV(byte *buffer) {}
+void CastlxEngine::opAFFSPRITEF(byte *buffer) {}
+void CastlxEngine::opMODESPRITE(byte *buffer) {}
+void CastlxEngine::opCLEARV(byte *buffer) {}
+void CastlxEngine::opCLEARF(byte *buffer) {}
+void CastlxEngine::opOTEPAL(byte *buffer) {}
+void CastlxEngine::opMETPAL(byte *buffer) {}
+void CastlxEngine::opREADMOUSE(byte *buffer) {}
+void CastlxEngine::opGAME(byte *buffer) {}
+void CastlxEngine::opTRANSV(byte *buffer) {}
+void CastlxEngine::opTRANSF(byte *buffer) {}
+void CastlxEngine::opTRANSPARENCE(byte *buffer) {}
+
+void CastlxEngine::initOpcodes() {
+	_opcodes[0]._keyword = "LOADIMG";
+	_opcodes[0]._opcodePtr = &CastlxEngine::opLOADIMG;
+	_opcodes[1]._keyword = "EXIT";
+	_opcodes[1]._opcodePtr = &CastlxEngine::opEXIT;
+	_opcodes[2]._keyword = "TEMPO";
+	_opcodes[2]._opcodePtr = &CastlxEngine::opTEMPO;
+	_opcodes[3]._keyword = "OTEPALETTE";
+	_opcodes[3]._opcodePtr = &CastlxEngine::opOTEPALETTE;
+	_opcodes[4]._keyword = "METPALETTE";
+	_opcodes[4]._opcodePtr = &CastlxEngine::opMETPALETTE;
+	_opcodes[5]._keyword = "DEF";
+	_opcodes[5]._opcodePtr = &CastlxEngine::opDEF;
+	_opcodes[6]._keyword = "NAME";
+	_opcodes[6]._opcodePtr = &CastlxEngine::opNAME;
+	_opcodes[7]._keyword = "IF";
+	_opcodes[7]._opcodePtr = &CastlxEngine::opIF;
+	_opcodes[8]._keyword = ":";
+	_opcodes[8]._opcodePtr = &CastlxEngine::opDummy1;
+	_opcodes[9]._keyword = "JUMP";
+	_opcodes[9]._opcodePtr = &CastlxEngine::opJUMP;
+	_opcodes[10]._keyword = "CALL";
+	_opcodes[10]._opcodePtr = &CastlxEngine::opCALL;
+	_opcodes[11]._keyword = "RETURN";
+	_opcodes[11]._opcodePtr = &CastlxEngine::opRETURN;
+	_opcodes[12]._keyword = "UNCALL";
+	_opcodes[12]._opcodePtr = &CastlxEngine::opUNCALL;
+	_opcodes[13]._keyword = "KEY";
+	_opcodes[13]._opcodePtr = &CastlxEngine::opKEY;
+	_opcodes[14]._keyword = "RESO";
+	_opcodes[14]._opcodePtr = &CastlxEngine::opRESO;
+	_opcodes[15]._keyword = "TIMER";
+	_opcodes[15]._opcodePtr = &CastlxEngine::opTIMER;
+	_opcodes[16]._keyword = "WAIT";
+	_opcodes[16]._opcodePtr = &CastlxEngine::opWAIT;
+	_opcodes[17]._keyword = "TIMEPLAY";
+	_opcodes[17]._opcodePtr = &CastlxEngine::opTIMEPLAY;
+	_opcodes[18]._keyword = "PLAYFLI";
+	_opcodes[18]._opcodePtr = &CastlxEngine::opPLAYFLI;
+	_opcodes[19]._keyword = "PLAYFLX";
+	_opcodes[19]._opcodePtr = &CastlxEngine::opPLAYFLX;
+	_opcodes[20]._keyword = "CLIPPLAY";
+	_opcodes[20]._opcodePtr = &CastlxEngine::opCLIPPLAY;
+	_opcodes[21]._keyword = "AFFMOUSEV";
+	_opcodes[21]._opcodePtr = &CastlxEngine::opAFFMOUSEV;
+	_opcodes[22]._keyword = "AFFMOUSEF";
+	_opcodes[22]._opcodePtr = &CastlxEngine::opAFFMOUSEF;
+	_opcodes[23]._keyword = "VBL";
+	_opcodes[23]._opcodePtr = &CastlxEngine::opVBL;
+	_opcodes[24]._keyword = "Libre";
+	_opcodes[24]._opcodePtr = &CastlxEngine::opDummy2;
+	_opcodes[25]._keyword = "OPENFLI";
+	_opcodes[25]._opcodePtr = &CastlxEngine::opOPENFLI;
+	_opcodes[26]._keyword = "OPENFLX";
+	_opcodes[26]._opcodePtr = &CastlxEngine::opOPENFLX;
+	_opcodes[27]._keyword = "ENDPLAY";
+	_opcodes[27]._opcodePtr = &CastlxEngine::opENDPLAY;
+	_opcodes[28]._keyword = "SETMOUSE";
+	_opcodes[28]._opcodePtr = &CastlxEngine::opSETMOUSE;
+	_opcodes[29]._keyword = "CLIPMOUSE";
+	_opcodes[29]._opcodePtr = &CastlxEngine::opCLIPMOUSE;
+	_opcodes[30]._keyword = "LOAD";
+	_opcodes[30]._opcodePtr = &CastlxEngine::opLOAD;
+	_opcodes[31]._keyword = "LOADSPR";
+	_opcodes[31]._opcodePtr = &CastlxEngine::opLOADSPR;
+	_opcodes[32]._keyword = "PAUSE";
+	_opcodes[32]._opcodePtr = &CastlxEngine::opPAUSE;
+	_opcodes[33]._keyword = "RAZSPR";
+	_opcodes[33]._opcodePtr = &CastlxEngine::opRAZSPR;
+	_opcodes[34]._keyword = "Libre";
+	_opcodes[34]._opcodePtr = &CastlxEngine::opDummy3;
+	_opcodes[35]._keyword = "PALNOIR";
+	_opcodes[35]._opcodePtr = &CastlxEngine::opPALNOIR;
+	_opcodes[36]._keyword = "LOADPALETTE";
+	_opcodes[36]._opcodePtr = &CastlxEngine::opLOADPALETTE;
+	_opcodes[37]._keyword = "SETPLAY";
+	_opcodes[37]._opcodePtr = &CastlxEngine::opSETPLAY;
+	_opcodes[38]._keyword = "CLOSEPLAY";
+	_opcodes[38]._opcodePtr = &CastlxEngine::opCLOSEPLAY;
+	_opcodes[39]._keyword = "PALETTE";
+	_opcodes[39]._opcodePtr = &CastlxEngine::opPALETTE;
+	_opcodes[40]._keyword = "SETCOLORPLAY";
+	_opcodes[40]._opcodePtr = &CastlxEngine::opSETCOLORPLAY;
+	_opcodes[41]._keyword = "SWITCH";
+	_opcodes[41]._opcodePtr = &CastlxEngine::opSWITCH;
+	_opcodes[42]._keyword = "MODEPLAY";
+	_opcodes[42]._opcodePtr = &CastlxEngine::opMODEPLAY;
+	_opcodes[43]._keyword = "INCRUSTIMGV";
+	_opcodes[43]._opcodePtr = &CastlxEngine::opINCRUSTIMGV;
+	_opcodes[44]._keyword = "INCRUSTIMGF";
+	_opcodes[44]._opcodePtr = &CastlxEngine::opINCRUSTIMGF;
+	_opcodes[45]._keyword = "COPYVF";
+	_opcodes[45]._opcodePtr = &CastlxEngine::opCOPYVF;
+	_opcodes[46]._keyword = "COPYFV";
+	_opcodes[46]._opcodePtr = &CastlxEngine::opCOPYFV;
+	_opcodes[47]._keyword = "COPYVB";
+	_opcodes[47]._opcodePtr = &CastlxEngine::opCOPYVB;
+	_opcodes[48]._keyword = "COPYFB";
+	_opcodes[48]._opcodePtr = &CastlxEngine::opCOPYFB;
+	_opcodes[49]._keyword = "COPYBV";
+	_opcodes[49]._opcodePtr = &CastlxEngine::opCOPYBV;
+	_opcodes[50]._keyword = "COPYBF";
+	_opcodes[50]._opcodePtr = &CastlxEngine::opCOPYBF;
+	_opcodes[51]._keyword = "AFFSPRITEV";
+	_opcodes[51]._opcodePtr = &CastlxEngine::opAFFSPRITEV;
+	_opcodes[52]._keyword = "AFFSPRITEF";
+	_opcodes[52]._opcodePtr = &CastlxEngine::opAFFSPRITEF;
+	_opcodes[53]._keyword = "MODESPRITE";
+	_opcodes[53]._opcodePtr = &CastlxEngine::opMODESPRITE;
+	_opcodes[54]._keyword = "CLEARV";
+	_opcodes[54]._opcodePtr = &CastlxEngine::opCLEARV;
+	_opcodes[55]._keyword = "CLEARF";
+	_opcodes[55]._opcodePtr = &CastlxEngine::opCLEARF;
+	_opcodes[56]._keyword = "OTEPAL";
+	_opcodes[56]._opcodePtr = &CastlxEngine::opOTEPAL;
+	_opcodes[57]._keyword = "METPAL";
+	_opcodes[57]._opcodePtr = &CastlxEngine::opMETPAL;
+	_opcodes[58]._keyword = "READMOUSE";
+	_opcodes[58]._opcodePtr = &CastlxEngine::opREADMOUSE;
+	_opcodes[59]._keyword = "GAME";
+	_opcodes[59]._opcodePtr = &CastlxEngine::opGAME;
+	_opcodes[60]._keyword = "TRANSV";
+	_opcodes[60]._opcodePtr = &CastlxEngine::opTRANSV;
+	_opcodes[61]._keyword = "TRANSF";
+	_opcodes[61]._opcodePtr = &CastlxEngine::opTRANSF;
+	_opcodes[62]._keyword = "TRANSPARENCE";
+	_opcodes[62]._opcodePtr = &CastlxEngine::opTRANSPARENCE;
+}
+
 void CastlxEngine::loadGst(int fileNumber) {
 	Common::String filename = Common::String::format("%02d.GST", fileNumber);
 	_gstPtr = loadFile(filename);
 /*
-	word1E7DB = _gstPtr + _decompFileSize;
-	word2A302 = 0;
-	word2A304 = _decompFileSize * 16;
-	word2A306 = 0;
-
-	word1E7D9 = word1E0C0 = word1E0C2 = word1E0C4 = word1E0C6 = word1E0C8 = word1E7DB;
+	_guess_postGstSegment = _gstPtr + _decompFileSize;
+*/
+	_gstEndPtr = _gstPtr + _lastFileSize;
+	
+/*
+	word1E7D9 = word1E0C0 = word1E0C2 = word1E0C4 = word1E0C6 = word1E0C8 = _guess_postGstSegment;
 */
 	setDisplayStringQueueIdTo0();
 	_mouseCursorVisible = false;
 }
 
-byte *CastlxEngine::resize(byte *buffer, int oldSize, int newSize) {
-	byte *newArr = new byte[newSize];
+void CastlxEngine::sub19A16() {
+	if (!_engineFlags[29])
+		return;
 
-	memset(newArr, 9, newSize);
-	memcpy(newArr, buffer, oldSize);
+	if (_engineFlags[46]) {
+		warning("TODO: sub19A16 - Exit");
+	}
 
-	delete[] buffer;
-	buffer = newArr;
-	return buffer;
+	if (_engineFlags[56] && _engineFlags[83]) {
+		warning("TODO: sub19A16 - Replace 'and bl, 0DFh' by 'xor al, 0x12' at loc_10472");
+	}
+}
+
+void CastlxEngine::sub1024E() {
+	if (!_engineFlags[25])
+		return;
+
+	warning("STUB: sub1024E");
+}
+
+void CastlxEngine::handleGst(byte *buffer) {
+	byte *curGstPtr = _gstPtr;
+	while (curGstPtr <= _gstEndPtr) {
+		byte curByte = *curGstPtr;
+		if (!curByte)
+			break;
+
+		if (curByte == '#') {
+			Common::String comment;
+			while (curByte != 0xA && curByte != 0xD && curByte) {
+				comment += curByte;
+				curByte = *++curGstPtr;
+			}
+			warning("Handle GST - Comment : %s", comment.c_str());
+		}
+
+		if (curByte <= ' ') {
+			++curGstPtr;
+			continue;
+		}
+
+		sub19A16();
+		sub1024E();
+
+		Common::String nextWord;
+		while (curByte > ' ') {
+			nextWord += curByte;
+			curByte = *++curGstPtr;
+		}
+
+		warning("Next word: %s", nextWord.c_str());
+
+		for (int i = 0; i < 63; ++i) {
+			if (nextWord.equalsIgnoreCase(_opcodes[i]._keyword)) {
+				(this->*_opcodes[i]._opcodePtr)(curGstPtr);
+			}
+		}
+	}
+	
 }
 
 byte *CastlxEngine::loadFile(Common::String &filename) {
@@ -295,6 +548,8 @@ Common::Error CastlxEngine::run() {
 	if (saveSlot != -1)
 		(void)loadGameState(saveSlot);
 
+	initOpcodes();
+	
 	/*
 	initMouse(629, 399, 0, 0);
 	setMousePosition(320, 100);
@@ -305,36 +560,11 @@ Common::Error CastlxEngine::run() {
 	
 	Common::String filename = "SONG0.OUT";
 	_song0 = loadFile(filename);
-	for (int i = 1; i < 14; ++i) {
-		filename = Common::String::format("I%02d.IMG", i);
-		byte *test = loadFile(filename);
-		delete[] test;
-		filename = Common::String::format("S%02d.SPR", i);
-		test = loadFile(filename);
-		delete[] test;
-	}
-	for (int i = 80; i < 84; ++i) {
-		filename = Common::String::format("I%02d.IMG", i);
-		byte *test = loadFile(filename);
-		delete[] test;
-	}
-	for (int i = 87; i < 91; ++i) {
-		if (i == 88)
-			continue;
-		filename = Common::String::format("I%02d.IMG", i);
-		byte *test = loadFile(filename);
-		delete[] test;
-		filename = Common::String::format("S%02d.SPR", i);
-		test = loadFile(filename);
-		delete[] test;
-	}
 	filename = "SONG1.OUT";
 	_song1 = loadFile(filename);
 	loadGst(0);	
 
-	/*
 	handleGst(_word2A302);
-	*/
 	
 	// Draw a series of boxes on screen as a sample
 	for (int i = 0; i < 100; ++i)
