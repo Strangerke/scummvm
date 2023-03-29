@@ -59,6 +59,10 @@ CastlxEngine::CastlxEngine(OSystem *syst, const ADGameDescription *gameDesc) : E
 		_opcodes[i]._keyword = "";
 		_opcodes[i]._opcodePtr = nullptr;
 	}
+
+	_label._keyword = "";
+	_label._gstLabelPtr = nullptr;
+	_mousePosX = _mousePosY = 0;
 }
 
 CastlxEngine::~CastlxEngine() {
@@ -76,69 +80,152 @@ Common::String CastlxEngine::getGameId() const {
 	return _gameDescription->gameId;
 }
 
-void CastlxEngine::opLOADIMG(byte *buffer) {}
-void CastlxEngine::opEXIT(byte *buffer) {}
-void CastlxEngine::opTEMPO(byte *buffer) {}
-void CastlxEngine::opOTEPALETTE(byte *buffer) {}
-void CastlxEngine::opMETPALETTE(byte *buffer) {}
-void CastlxEngine::opDEF(byte *buffer) {}
-void CastlxEngine::opNAME(byte *buffer) {}
-void CastlxEngine::opIF(byte *buffer) {}
-void CastlxEngine::opDummy1(byte *buffer) {}
-void CastlxEngine::opJUMP(byte *buffer) {}
-void CastlxEngine::opCALL(byte *buffer) {}
-void CastlxEngine::opRETURN(byte *buffer) {}
-void CastlxEngine::opUNCALL(byte *buffer) {}
-void CastlxEngine::opKEY(byte *buffer) {}
-void CastlxEngine::opRESO(byte *buffer) {}
-void CastlxEngine::opTIMER(byte *buffer) {}
-void CastlxEngine::opWAIT(byte *buffer) {}
-void CastlxEngine::opTIMEPLAY(byte *buffer) {}
-void CastlxEngine::opPLAYFLI(byte *buffer) {}
-void CastlxEngine::opPLAYFLX(byte *buffer) {}
-void CastlxEngine::opCLIPPLAY(byte *buffer) {}
-void CastlxEngine::opAFFMOUSEV(byte *buffer) {}
-void CastlxEngine::opAFFMOUSEF(byte *buffer) {}
-void CastlxEngine::opVBL(byte *buffer) {}
-void CastlxEngine::opDummy2(byte *buffer) {}
-void CastlxEngine::opOPENFLI(byte *buffer) {}
-void CastlxEngine::opOPENFLX(byte *buffer) {}
-void CastlxEngine::opENDPLAY(byte *buffer) {}
-void CastlxEngine::opSETMOUSE(byte *buffer) {}
-void CastlxEngine::opCLIPMOUSE(byte *buffer) {}
-void CastlxEngine::opLOAD(byte *buffer) {}
-void CastlxEngine::opLOADSPR(byte *buffer) {}
-void CastlxEngine::opPAUSE(byte *buffer) {}
-void CastlxEngine::opRAZSPR(byte *buffer) {}
-void CastlxEngine::opDummy3(byte *buffer) {}
-void CastlxEngine::opPALNOIR(byte *buffer) {}
-void CastlxEngine::opLOADPALETTE(byte *buffer) {}
-void CastlxEngine::opSETPLAY(byte *buffer) {}
-void CastlxEngine::opCLOSEPLAY(byte *buffer) {}
-void CastlxEngine::opPALETTE(byte *buffer) {}
-void CastlxEngine::opSETCOLORPLAY(byte *buffer) {}
-void CastlxEngine::opSWITCH(byte *buffer) {}
-void CastlxEngine::opMODEPLAY(byte *buffer) {}
-void CastlxEngine::opINCRUSTIMGV(byte *buffer) {}
-void CastlxEngine::opINCRUSTIMGF(byte *buffer) {}
-void CastlxEngine::opCOPYVF(byte *buffer) {}
-void CastlxEngine::opCOPYFV(byte *buffer) {}
-void CastlxEngine::opCOPYVB(byte *buffer) {}
-void CastlxEngine::opCOPYFB(byte *buffer) {}
-void CastlxEngine::opCOPYBV(byte *buffer) {}
-void CastlxEngine::opCOPYBF(byte *buffer) {}
-void CastlxEngine::opAFFSPRITEV(byte *buffer) {}
-void CastlxEngine::opAFFSPRITEF(byte *buffer) {}
-void CastlxEngine::opMODESPRITE(byte *buffer) {}
-void CastlxEngine::opCLEARV(byte *buffer) {}
-void CastlxEngine::opCLEARF(byte *buffer) {}
-void CastlxEngine::opOTEPAL(byte *buffer) {}
-void CastlxEngine::opMETPAL(byte *buffer) {}
-void CastlxEngine::opREADMOUSE(byte *buffer) {}
-void CastlxEngine::opGAME(byte *buffer) {}
-void CastlxEngine::opTRANSV(byte *buffer) {}
-void CastlxEngine::opTRANSF(byte *buffer) {}
-void CastlxEngine::opTRANSPARENCE(byte *buffer) {}
+void CastlxEngine::opLOADIMG(byte **buffer) { warning("STUB - opLOADIMG"); }
+void CastlxEngine::opEXIT(byte **buffer) { warning("STUB - opEXIT"); }
+void CastlxEngine::opTEMPO(byte **buffer) { warning("STUB - opTEMPO"); }
+void CastlxEngine::opOTEPALETTE(byte **buffer) { warning("opOTEPALETTE"); }
+void CastlxEngine::opMETPALETTE(byte **buffer) { warning("opMETPALETTE"); }
+
+int CastlxEngine::skipNoiseInString(byte **bufferPtr) {
+	byte *oldPtr = *bufferPtr;
+	byte *curPtr = *bufferPtr;
+
+	byte curByte = *curPtr;
+	while (curByte != 0 && curByte != 0xA && curByte != 0xD) {
+		if (curByte == '=' || curByte == '.' || curByte == '"' || curByte == '\'' || curByte < 0x20) {
+			curByte = *++curPtr;
+			continue;
+		}
+		*bufferPtr = curPtr;
+		return 1;
+	}
+	*bufferPtr = oldPtr;
+	return 0;
+}
+
+int CastlxEngine::parseString(byte **bufferPtr) {
+	byte *curPtr = *bufferPtr;
+	byte curByte = *curPtr;
+
+	if (curByte == '\'' || curByte == '"') {
+		int retVal = *++curPtr;
+		curPtr += 2;
+		return retVal;
+	}
+
+	if (curByte == 'h' || curByte == 'H') {
+		int retVal = 0;
+		for (int i = 0; i < 4; ++i) {
+			retVal <<= 4;
+			curByte = *++curPtr;
+			if (curByte >= 'a' && curByte <= 'z')
+				curByte &= 0xDF;
+
+			if (curByte >= 0x41)
+				curByte -= 0x37;
+			else
+				curByte -= 0x30;
+
+			retVal += curByte;
+		}
+		return retVal;
+	}
+
+	if (curByte == '_') {
+		warning("STUB parseString case _");
+		*bufferPtr = curPtr;
+		return 0;
+	}
+
+	if (curByte == 'x' || curByte == 'X') {
+		++curPtr;
+		*bufferPtr = curPtr;
+		return _mousePosX;
+	}
+
+	if (curByte == 'y' || curByte == 'Y') {
+		++curPtr;
+		*bufferPtr = curPtr;
+		return _mousePosY;
+	}
+
+	int retval = 0;
+	for (int i = 0; i < 5; ++i) {
+		if (curByte < 0x30 || curByte > 0x39)
+			break;
+
+		retval *= 10;
+		retval += (curByte - 0x30);
+		curByte = *++curPtr;
+	}
+	*bufferPtr = curPtr;
+	return retval;
+}
+
+void CastlxEngine::opDEF(byte **bufferPtr) {
+	warning("opDEF");
+	skipNoiseInString(bufferPtr);
+	int index = parseString(bufferPtr);
+	skipNoiseInString(bufferPtr);
+	warning("copyValue(bufferPtr, _defineArray[index]);");
+}
+
+void CastlxEngine::opNAME(byte **buffer) { warning("opNAME"); }
+void CastlxEngine::opIF(byte **buffer) { warning("opIF"); }
+void CastlxEngine::opLabel(byte **buffer) { warning("opLabel"); }
+void CastlxEngine::opJUMP(byte **buffer) { warning("opJUMP"); }
+void CastlxEngine::opCALL(byte **buffer) { warning("opCALL"); }
+void CastlxEngine::opRETURN(byte **buffer) { warning("opRETURN"); }
+void CastlxEngine::opUNCALL(byte **buffer) { warning("opUNCALL"); }
+void CastlxEngine::opKEY(byte **buffer) { warning("opKEY"); }
+void CastlxEngine::opRESO(byte **buffer) { warning("opRESO"); }
+void CastlxEngine::opTIMER(byte **buffer) { warning("opTIMER"); }
+void CastlxEngine::opWAIT(byte **buffer) { warning("opWAIT"); }
+void CastlxEngine::opTIMEPLAY(byte **buffer) { warning("opTIMEPLAY"); }
+void CastlxEngine::opPLAYFLI(byte **buffer) { warning("opPLAYFLI"); }
+void CastlxEngine::opPLAYFLX(byte **buffer) { warning("opPLAYFLX"); }
+void CastlxEngine::opCLIPPLAY(byte **buffer) { warning("opCLIPPLAY"); }
+void CastlxEngine::opAFFMOUSEV(byte **buffer) { warning("opAFFMOUSEV"); }
+void CastlxEngine::opAFFMOUSEF(byte **buffer) { warning("opAFFMOUSEF"); }
+void CastlxEngine::opVBL(byte **buffer) { warning("opVBL"); }
+void CastlxEngine::opDummy(byte **buffer) { warning("opDummy"); }
+void CastlxEngine::opOPENFLI(byte **buffer) { warning("opOPENFLI"); }
+void CastlxEngine::opOPENFLX(byte **buffer) { warning("opOPENFLX"); }
+void CastlxEngine::opENDPLAY(byte **buffer) { warning("opENDPLAY"); }
+void CastlxEngine::opSETMOUSE(byte **buffer) { warning("opSETMOUSE"); }
+void CastlxEngine::opCLIPMOUSE(byte **buffer) { warning("opCLIPMOUSE"); }
+void CastlxEngine::opLOAD(byte **buffer) { warning("opLOAD"); }
+void CastlxEngine::opLOADSPR(byte **buffer) { warning("opLOADSPR"); }
+void CastlxEngine::opPAUSE(byte **buffer) { warning("opPAUSE"); }
+void CastlxEngine::opRAZSPR(byte **buffer) { warning("opRAZSPR"); }
+void CastlxEngine::opPALNOIR(byte **buffer) { warning("opPALNOIR"); }
+void CastlxEngine::opLOADPALETTE(byte **buffer) { warning("opLOADPALETTE"); }
+void CastlxEngine::opSETPLAY(byte **buffer) { warning("opSETPLAY"); }
+void CastlxEngine::opCLOSEPLAY(byte **buffer) { warning("opCLOSEPLAY"); }
+void CastlxEngine::opPALETTE(byte **buffer) { warning("opPALETTE"); }
+void CastlxEngine::opSETCOLORPLAY(byte **buffer) { warning("opSETCOLORPLAY"); }
+void CastlxEngine::opSWITCH(byte **buffer) { warning("opSWITCH"); }
+void CastlxEngine::opMODEPLAY(byte **buffer) { warning("opMODEPLAY"); }
+void CastlxEngine::opINCRUSTIMGV(byte **buffer) { warning("opINCRUSTIMGV"); }
+void CastlxEngine::opINCRUSTIMGF(byte **buffer) { warning("opINCRUSTIMGF"); }
+void CastlxEngine::opCOPYVF(byte **buffer) { warning("opCOPYVF"); }
+void CastlxEngine::opCOPYFV(byte **buffer) { warning("opCOPYFV"); }
+void CastlxEngine::opCOPYVB(byte **buffer) { warning("opCOPYVB"); }
+void CastlxEngine::opCOPYFB(byte **buffer) { warning("opCOPYFB"); }
+void CastlxEngine::opCOPYBV(byte **buffer) { warning("opCOPYBV"); }
+void CastlxEngine::opCOPYBF(byte **buffer) { warning("opCOPYBF"); }
+void CastlxEngine::opAFFSPRITEV(byte **buffer) { warning("opAFFSPRITEV"); }
+void CastlxEngine::opAFFSPRITEF(byte **buffer) { warning("opAFFSPRITEF"); }
+void CastlxEngine::opMODESPRITE(byte **buffer) { warning("opMODESPRITE"); }
+void CastlxEngine::opCLEARV(byte **buffer) { warning("opCLEARV"); }
+void CastlxEngine::opCLEARF(byte **buffer) { warning("opCLEARF"); }
+void CastlxEngine::opOTEPAL(byte **buffer) { warning("opOTEPAL"); }
+void CastlxEngine::opMETPAL(byte **buffer) { warning("opMETPAL"); }
+void CastlxEngine::opREADMOUSE(byte **buffer) { warning("opREADMOUSE"); }
+void CastlxEngine::opGAME(byte **buffer) { warning("opGAME"); }
+void CastlxEngine::opTRANSV(byte **buffer) { warning("opTRANSV"); }
+void CastlxEngine::opTRANSF(byte **buffer) { warning("opTRANSF"); }
+void CastlxEngine::opTRANSPARENCE(byte **buffer) { warning("opTRANSPARENCE"); }
 
 void CastlxEngine::initOpcodes() {
 	_opcodes[0]._keyword = "LOADIMG";
@@ -158,7 +245,7 @@ void CastlxEngine::initOpcodes() {
 	_opcodes[7]._keyword = "IF";
 	_opcodes[7]._opcodePtr = &CastlxEngine::opIF;
 	_opcodes[8]._keyword = ":";
-	_opcodes[8]._opcodePtr = &CastlxEngine::opDummy1;
+	_opcodes[8]._opcodePtr = &CastlxEngine::opLabel;
 	_opcodes[9]._keyword = "JUMP";
 	_opcodes[9]._opcodePtr = &CastlxEngine::opJUMP;
 	_opcodes[10]._keyword = "CALL";
@@ -190,7 +277,7 @@ void CastlxEngine::initOpcodes() {
 	_opcodes[23]._keyword = "VBL";
 	_opcodes[23]._opcodePtr = &CastlxEngine::opVBL;
 	_opcodes[24]._keyword = "Libre";
-	_opcodes[24]._opcodePtr = &CastlxEngine::opDummy2;
+	_opcodes[24]._opcodePtr = &CastlxEngine::opDummy;
 	_opcodes[25]._keyword = "OPENFLI";
 	_opcodes[25]._opcodePtr = &CastlxEngine::opOPENFLI;
 	_opcodes[26]._keyword = "OPENFLX";
@@ -210,7 +297,7 @@ void CastlxEngine::initOpcodes() {
 	_opcodes[33]._keyword = "RAZSPR";
 	_opcodes[33]._opcodePtr = &CastlxEngine::opRAZSPR;
 	_opcodes[34]._keyword = "Libre";
-	_opcodes[34]._opcodePtr = &CastlxEngine::opDummy3;
+	_opcodes[34]._opcodePtr = &CastlxEngine::opDummy;
 	_opcodes[35]._keyword = "PALNOIR";
 	_opcodes[35]._opcodePtr = &CastlxEngine::opPALNOIR;
 	_opcodes[36]._keyword = "LOADPALETTE";
@@ -304,9 +391,9 @@ void CastlxEngine::sub1024E() {
 	warning("STUB: sub1024E");
 }
 
-void CastlxEngine::handleGst(byte *buffer) {
+void CastlxEngine::handleGst(byte **buffer) {
 	byte *curGstPtr = _gstPtr;
-	while (curGstPtr <= _gstEndPtr) {
+	while (curGstPtr < _gstEndPtr) {
 		byte curByte = *curGstPtr;
 		if (!curByte)
 			break;
@@ -336,9 +423,15 @@ void CastlxEngine::handleGst(byte *buffer) {
 
 		warning("Next word: %s", nextWord.c_str());
 
-		for (int i = 0; i < 63; ++i) {
-			if (nextWord.equalsIgnoreCase(_opcodes[i]._keyword)) {
-				(this->*_opcodes[i]._opcodePtr)(curGstPtr);
+		if (nextWord[0] == ':') {
+			_label._keyword = nextWord;
+			_label._keyword.deleteChar(0);
+			_label._gstLabelPtr = curGstPtr;
+		} else {
+			for (int i = 0; i < 63; ++i) {
+				if (nextWord.equalsIgnoreCase(_opcodes[i]._keyword)) {
+					(this->*_opcodes[i]._opcodePtr)(&curGstPtr);
+				}
 			}
 		}
 	}
@@ -562,9 +655,9 @@ Common::Error CastlxEngine::run() {
 	_song0 = loadFile(filename);
 	filename = "SONG1.OUT";
 	_song1 = loadFile(filename);
-	loadGst(0);	
 
-	handleGst(_word2A302);
+	loadGst(0);
+	handleGst(&_word2A302);
 	
 	// Draw a series of boxes on screen as a sample
 	for (int i = 0; i < 100; ++i)

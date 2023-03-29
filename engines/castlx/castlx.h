@@ -54,11 +54,16 @@ struct DisplayStringQueue {
 };
 
 class CastlxEngine;
-typedef void (CastlxEngine::*OpcodePtr)(byte *buffer);
+typedef void (CastlxEngine::*OpcodePtr)(byte **buffer);
 
 struct OpcodeDic {
 	Common::String _keyword;
 	OpcodePtr _opcodePtr;
+};
+
+struct Label {
+	Common::String _keyword;
+	byte *_gstLabelPtr;
 };
 
 class CastlxEngine : public Engine {
@@ -76,71 +81,74 @@ private:
 	byte *_gstEndPtr;
 	byte _engineFlags[128];
 	OpcodeDic _opcodes[63];
+	Label _label;
+	int _mousePosX, _mousePosY;
 
+	int skipNoiseInString(byte **bufferPtr);
+	int parseString(byte **buffer);
 
-	void opLOADIMG(byte *buffer);
-	void opEXIT(byte *buffer);
-	void opTEMPO(byte *buffer);
-	void opOTEPALETTE(byte *buffer);
-	void opMETPALETTE(byte *buffer);
-	void opDEF(byte *buffer);
-	void opNAME(byte *buffer);
-	void opIF(byte *buffer);
-	void opDummy1(byte *buffer);
-	void opJUMP(byte *buffer);
-	void opCALL(byte *buffer);
-	void opRETURN(byte *buffer);
-	void opUNCALL(byte *buffer);
-	void opKEY(byte *buffer);
-	void opRESO(byte *buffer);
-	void opTIMER(byte *buffer);
-	void opWAIT(byte *buffer);
-	void opTIMEPLAY(byte *buffer);
-	void opPLAYFLI(byte *buffer);
-	void opPLAYFLX(byte *buffer);
-	void opCLIPPLAY(byte *buffer);
-	void opAFFMOUSEV(byte *buffer);
-	void opAFFMOUSEF(byte *buffer);
-	void opVBL(byte *buffer);
-	void opDummy2(byte *buffer);
-	void opOPENFLI(byte *buffer);
-	void opOPENFLX(byte *buffer);
-	void opENDPLAY(byte *buffer);
-	void opSETMOUSE(byte *buffer);
-	void opCLIPMOUSE(byte *buffer);
-	void opLOAD(byte *buffer);
-	void opLOADSPR(byte *buffer);
-	void opPAUSE(byte *buffer);
-	void opRAZSPR(byte *buffer);
-	void opDummy3(byte *buffer);
-	void opPALNOIR(byte *buffer);
-	void opLOADPALETTE(byte *buffer);
-	void opSETPLAY(byte *buffer);
-	void opCLOSEPLAY(byte *buffer);
-	void opPALETTE(byte *buffer);
-	void opSETCOLORPLAY(byte *buffer);
-	void opSWITCH(byte *buffer);
-	void opMODEPLAY(byte *buffer);
-	void opINCRUSTIMGV(byte *buffer);
-	void opINCRUSTIMGF(byte *buffer);
-	void opCOPYVF(byte *buffer);
-	void opCOPYFV(byte *buffer);
-	void opCOPYVB(byte *buffer);
-	void opCOPYFB(byte *buffer);
-	void opCOPYBV(byte *buffer);
-	void opCOPYBF(byte *buffer);
-	void opAFFSPRITEV(byte *buffer);
-	void opAFFSPRITEF(byte *buffer);
-	void opMODESPRITE(byte *buffer);
-	void opCLEARV(byte *buffer);
-	void opCLEARF(byte *buffer);
-	void opOTEPAL(byte *buffer);
-	void opMETPAL(byte *buffer);
-	void opREADMOUSE(byte *buffer);
-	void opGAME(byte *buffer);
-	void opTRANSV(byte *buffer);
-	void opTRANSF(byte *buffer);
-	void opTRANSPARENCE(byte *buffer);
+	void opLOADIMG(byte **buffer);
+	void opEXIT(byte **buffer);
+	void opTEMPO(byte **buffer);
+	void opOTEPALETTE(byte **buffer);
+	void opMETPALETTE(byte **buffer);
+	void opDEF(byte **buffer);
+	void opNAME(byte **buffer);
+	void opIF(byte **buffer);
+	void opLabel(byte **buffer);
+	void opJUMP(byte **buffer);
+	void opCALL(byte **buffer);
+	void opRETURN(byte **buffer);
+	void opUNCALL(byte **buffer);
+	void opKEY(byte **buffer);
+	void opRESO(byte **buffer);
+	void opTIMER(byte **buffer);
+	void opWAIT(byte **buffer);
+	void opTIMEPLAY(byte **buffer);
+	void opPLAYFLI(byte **buffer);
+	void opPLAYFLX(byte **buffer);
+	void opCLIPPLAY(byte **buffer);
+	void opAFFMOUSEV(byte **buffer);
+	void opAFFMOUSEF(byte **buffer);
+	void opVBL(byte **buffer);
+	void opDummy(byte **buffer);
+	void opOPENFLI(byte **buffer);
+	void opOPENFLX(byte **buffer);
+	void opENDPLAY(byte **buffer);
+	void opSETMOUSE(byte **buffer);
+	void opCLIPMOUSE(byte **buffer);
+	void opLOAD(byte **buffer);
+	void opLOADSPR(byte **buffer);
+	void opPAUSE(byte **buffer);
+	void opRAZSPR(byte **buffer);
+	void opPALNOIR(byte **buffer);
+	void opLOADPALETTE(byte **buffer);
+	void opSETPLAY(byte **buffer);
+	void opCLOSEPLAY(byte **buffer);
+	void opPALETTE(byte **buffer);
+	void opSETCOLORPLAY(byte **buffer);
+	void opSWITCH(byte **buffer);
+	void opMODEPLAY(byte **buffer);
+	void opINCRUSTIMGV(byte **buffer);
+	void opINCRUSTIMGF(byte **buffer);
+	void opCOPYVF(byte **buffer);
+	void opCOPYFV(byte **buffer);
+	void opCOPYVB(byte **buffer);
+	void opCOPYFB(byte **buffer);
+	void opCOPYBV(byte **buffer);
+	void opCOPYBF(byte **buffer);
+	void opAFFSPRITEV(byte **buffer);
+	void opAFFSPRITEF(byte **buffer);
+	void opMODESPRITE(byte **buffer);
+	void opCLEARV(byte **buffer);
+	void opCLEARF(byte **buffer);
+	void opOTEPAL(byte **buffer);
+	void opMETPAL(byte **buffer);
+	void opREADMOUSE(byte **buffer);
+	void opGAME(byte **buffer);
+	void opTRANSV(byte **buffer);
+	void opTRANSF(byte **buffer);
+	void opTRANSPARENCE(byte **buffer);
 
 
 	byte *loadFile(Common::String &filename);
@@ -149,7 +157,7 @@ private:
 	void loadGst(int fileNumber);
 	void sub19A16();
 	void sub1024E();
-	void handleGst(byte *buffer);
+	void handleGst(byte **buffer);
 
 protected:
 	// Engine APIs
