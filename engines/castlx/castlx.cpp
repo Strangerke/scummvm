@@ -48,7 +48,7 @@ CastlxEngine::CastlxEngine(OSystem *syst, const ADGameDescription *gameDesc) : E
 	_gstPtr = nullptr;
 	_song0 = _song1 = nullptr;
 	_lastFileSize = 0;
-	_mouseCursorVisible = false;
+	_mouseCursorVisible = true;
 	_word2A302 = nullptr;
 	_gstEndPtr = nullptr;
 
@@ -63,6 +63,11 @@ CastlxEngine::CastlxEngine(OSystem *syst, const ADGameDescription *gameDesc) : E
 	_label._keyword = "";
 	_label._gstLabelPtr = nullptr;
 	_mousePosX = _mousePosY = 0;
+
+	for (int i = 0; i < 16; ++i)
+		_defineArray[i] = "";
+
+	_word1E7E5 = _word1E7E7 = 0;
 }
 
 CastlxEngine::~CastlxEngine() {
@@ -80,19 +85,13 @@ Common::String CastlxEngine::getGameId() const {
 	return _gameDescription->gameId;
 }
 
-void CastlxEngine::opLOADIMG(byte **buffer) { warning("STUB - opLOADIMG"); }
-void CastlxEngine::opEXIT(byte **buffer) { warning("STUB - opEXIT"); }
-void CastlxEngine::opTEMPO(byte **buffer) { warning("STUB - opTEMPO"); }
-void CastlxEngine::opOTEPALETTE(byte **buffer) { warning("opOTEPALETTE"); }
-void CastlxEngine::opMETPALETTE(byte **buffer) { warning("opMETPALETTE"); }
-
 int CastlxEngine::skipNoiseInString(byte **bufferPtr) {
 	byte *oldPtr = *bufferPtr;
 	byte *curPtr = *bufferPtr;
 
 	byte curByte = *curPtr;
 	while (curByte != 0 && curByte != 0xA && curByte != 0xD) {
-		if (curByte == '=' || curByte == '.' || curByte == '"' || curByte == '\'' || curByte < 0x20) {
+		if (curByte == '=' || curByte == '.' || curByte == '"' || curByte == '\'' || curByte <= 0x20) {
 			curByte = *++curPtr;
 			continue;
 		}
@@ -162,12 +161,48 @@ int CastlxEngine::parseString(byte **bufferPtr) {
 	return retval;
 }
 
+Common::String CastlxEngine::copyBuffer(byte **srcBufferPtr) {
+	Common::String destStr = "";
+	byte* curPtr = *srcBufferPtr;
+	byte curByte = *curPtr;
+	while (curByte != 0xA && curByte != 0xD && curByte != 0x23 && curByte != 0x20 && curByte != 0x27 && curByte != 0x22 && curByte !=0x9) {
+		destStr += curByte;
+		curByte = *++curPtr;
+	}
+
+	*srcBufferPtr = curPtr;
+	return destStr;
+}
+
+void CastlxEngine::sub1AFFE() {
+	warning("STUB sub1AFFE (palette)");
+}
+
+void CastlxEngine::opLOADIMG(byte **buffer) { warning("STUB - opLOADIMG"); }
+void CastlxEngine::opEXIT(byte **buffer) { warning("STUB - opEXIT"); }
+void CastlxEngine::opTEMPO(byte **buffer) { warning("STUB - opTEMPO"); }
+void CastlxEngine::opOTEPALETTE(byte **buffer) {
+	if (_mouseCursorVisible) {
+		skipNoiseInString(buffer);
+		_word1E7E5 = parseString(buffer);
+		skipNoiseInString(buffer);
+		_word1E7E7 = parseString(buffer);
+		sub1AFFE();
+		warning("opOTEPALETTE %d %d", _word1E7E5, _word1E7E7);
+	} else {
+		warning("opOTEPALETTE - STUB");
+	}
+}
+
+void CastlxEngine::opMETPALETTE(byte **buffer) { warning("opMETPALETTE"); }
+
 void CastlxEngine::opDEF(byte **bufferPtr) {
-	warning("opDEF");
 	skipNoiseInString(bufferPtr);
 	int index = parseString(bufferPtr);
 	skipNoiseInString(bufferPtr);
-	warning("copyValue(bufferPtr, _defineArray[index]);");
+	_defineArray[index] = copyBuffer(bufferPtr);
+
+	warning("opDEF - %d %s", index, _defineArray[index].c_str());
 }
 
 void CastlxEngine::opNAME(byte **buffer) { warning("opNAME"); }
@@ -368,7 +403,7 @@ void CastlxEngine::loadGst(int fileNumber) {
 	word1E7D9 = word1E0C0 = word1E0C2 = word1E0C4 = word1E0C6 = word1E0C8 = _guess_postGstSegment;
 */
 	setDisplayStringQueueIdTo0();
-	_mouseCursorVisible = false;
+	_mouseCursorVisible = true;
 }
 
 void CastlxEngine::sub19A16() {

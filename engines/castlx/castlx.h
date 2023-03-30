@@ -83,10 +83,16 @@ private:
 	OpcodeDic _opcodes[63];
 	Label _label;
 	int _mousePosX, _mousePosY;
+	Common::String  _defineArray[16];
+	int _word1E7E5;
+	int _word1E7E7;
 
 	int skipNoiseInString(byte **bufferPtr);
 	int parseString(byte **buffer);
+	Common::String copyBuffer(byte **srcBuffer);
+	void sub1AFFE();
 
+	
 	void opLOADIMG(byte **buffer);
 	void opEXIT(byte **buffer);
 	void opTEMPO(byte **buffer);
