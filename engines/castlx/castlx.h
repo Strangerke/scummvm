@@ -78,6 +78,7 @@ private:
 	DisplayStringQueue _displayStringList[5];
 	bool _mouseCursorVisible;
 	byte *_word2A302;
+	byte *_backgroundImgPtr;
 	byte *_gstEndPtr;
 	byte _engineFlags[128];
 	OpcodeDic _opcodes[63];
@@ -86,13 +87,19 @@ private:
 	Common::String  _defineArray[16];
 	int _word1E7E5;
 	int _word1E7E7;
+	Common::String _filename;
+	byte *_spritePtr[5];
+	byte *_postGstSegment;
+	byte _unkPalette[768];
 
 	int skipNoiseInString(byte **bufferPtr);
 	int parseString(byte **buffer);
 	Common::String copyBuffer(byte **srcBuffer);
 	void sub1AFFE();
+	void loadImgFile(Common::String &filename);
+	void sub19B51();
+	void setUnkPalette2(byte *palPtr);
 
-	
 	void opLOADIMG(byte **buffer);
 	void opEXIT(byte **buffer);
 	void opTEMPO(byte **buffer);

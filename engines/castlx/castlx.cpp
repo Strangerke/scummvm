@@ -48,8 +48,9 @@ CastlxEngine::CastlxEngine(OSystem *syst, const ADGameDescription *gameDesc) : E
 	_gstPtr = nullptr;
 	_song0 = _song1 = nullptr;
 	_lastFileSize = 0;
-	_mouseCursorVisible = true;
+	_mouseCursorVisible = false;
 	_word2A302 = nullptr;
+	_backgroundImgPtr = nullptr;
 	_gstEndPtr = nullptr;
 
 	for (int i = 0; i < 128; ++i)
@@ -68,6 +69,14 @@ CastlxEngine::CastlxEngine(OSystem *syst, const ADGameDescription *gameDesc) : E
 		_defineArray[i] = "";
 
 	_word1E7E5 = _word1E7E7 = 0;
+	_filename = "";
+
+	_postGstSegment = nullptr;
+	for (int i = 0; i < 5; ++i)
+		_spritePtr[i] = _postGstSegment;
+
+	for (int i = 0; i < 768; ++i)
+		_unkPalette[i] = 0;
 }
 
 CastlxEngine::~CastlxEngine() {
@@ -75,6 +84,7 @@ CastlxEngine::~CastlxEngine() {
 	delete[] _gstPtr;
 	delete[] _song0;
 	delete[] _song1;
+	delete[] _backgroundImgPtr;
 }
 
 uint32 CastlxEngine::getFeatures() const {
@@ -178,11 +188,44 @@ void CastlxEngine::sub1AFFE() {
 	warning("STUB sub1AFFE (palette)");
 }
 
-void CastlxEngine::opLOADIMG(byte **buffer) { warning("STUB - opLOADIMG"); }
+void CastlxEngine::loadImgFile(Common::String &filename) {
+	_backgroundImgPtr = loadFile(filename);
+}
+
+void CastlxEngine::sub19B51() {
+	warning("STUB - sub19B51 (display background?)");
+}
+
+void CastlxEngine::setUnkPalette2(byte *palPtr) {
+	warning("STUB - setUnkPalette2");
+}
+
+/**
+ * @brief Opcode:Load Image
+ * @param buffer 
+*/
+void CastlxEngine::opLOADIMG(byte **buffer) {
+	if (!_mouseCursorVisible) {
+		skipNoiseInString(buffer);
+		_filename = copyBuffer(buffer);
+	}
+	loadImgFile(_filename);
+
+	if (_mouseCursorVisible)
+		warning("STUB opLOADIMG call direct");
+
+	warning("opLOADIMG %s", _filename.c_str());
+	sub19B51();
+}
+
 void CastlxEngine::opEXIT(byte **buffer) { warning("STUB - opEXIT"); }
 void CastlxEngine::opTEMPO(byte **buffer) { warning("STUB - opTEMPO"); }
+/**
+ * @brief opCode : Remove palette from/to
+ * @param buffer 
+*/
 void CastlxEngine::opOTEPALETTE(byte **buffer) {
-	if (_mouseCursorVisible) {
+	if (!_mouseCursorVisible) {
 		skipNoiseInString(buffer);
 		_word1E7E5 = parseString(buffer);
 		skipNoiseInString(buffer);
@@ -194,8 +237,27 @@ void CastlxEngine::opOTEPALETTE(byte **buffer) {
 	}
 }
 
-void CastlxEngine::opMETPALETTE(byte **buffer) { warning("opMETPALETTE"); }
+/**
+ * @brief Opcode: Set palette
+ * @param buffer
+*/
+void CastlxEngine::opMETPALETTE(byte **buffer) {
+	if (_mouseCursorVisible) {
+		warning("opMETPALETTE- missing parameters");
+	} else {
+		skipNoiseInString(buffer);
+		_word1E7E5 = parseString(buffer);
+		skipNoiseInString(buffer);
+		_word1E7E7 = parseString(buffer);
+	}
+	warning("opMETPALETTE %d %d", _word1E7E5, _word1E7E7);
+	setUnkPalette2(&_unkPalette[_word1E7E5 * 3]);
+}
 
+/**
+ * @brief Opcode: Define
+ * @param bufferPtr 
+*/
 void CastlxEngine::opDEF(byte **bufferPtr) {
 	skipNoiseInString(bufferPtr);
 	int index = parseString(bufferPtr);
@@ -230,16 +292,98 @@ void CastlxEngine::opENDPLAY(byte **buffer) { warning("opENDPLAY"); }
 void CastlxEngine::opSETMOUSE(byte **buffer) { warning("opSETMOUSE"); }
 void CastlxEngine::opCLIPMOUSE(byte **buffer) { warning("opCLIPMOUSE"); }
 void CastlxEngine::opLOAD(byte **buffer) { warning("opLOAD"); }
-void CastlxEngine::opLOADSPR(byte **buffer) { warning("opLOADSPR"); }
+
+/**
+ * @brief Opcode: Load sprite
+ * @param buffer 
+*/
+void CastlxEngine::opLOADSPR(byte **buffer) {
+	warning("opLOADSPR");
+	int index = 1;
+	if(!_mouseCursorVisible) {
+		skipNoiseInString(buffer);
+		_filename = copyBuffer(buffer);
+		skipNoiseInString(buffer);
+		index = parseString(buffer);
+	} else {
+		warning("opLOADSPR params not set");
+	}
+
+	--index;
+	_spritePtr[index] = loadFile(_filename);
+	for (int i = 2; i < 10; i += 2) {
+		int16 unkVal = READ_LE_INT16(&_spritePtr[index][i]);
+		warning("sprite %d - val %d", i, unkVal);
+	}
+	warning("opLOADSPR - Weird set of _backGroundImgPtr");
+}
+
 void CastlxEngine::opPAUSE(byte **buffer) { warning("opPAUSE"); }
-void CastlxEngine::opRAZSPR(byte **buffer) { warning("opRAZSPR"); }
+
+/**
+ * @brief Opcode: Reset sprite
+ * @param buffer 
+*/
+void CastlxEngine::opRAZSPR(byte **buffer) {
+	int index = 1;
+	if (!_mouseCursorVisible) {
+		skipNoiseInString(buffer);
+		index = parseString(buffer);
+	} else
+		warning("opRAZSPR missing param");
+
+	--index;
+	byte *ptr;
+	if (!index)
+		ptr = _backgroundImgPtr;
+	else
+		ptr = _postGstSegment;
+
+	_spritePtr[index] = ptr;
+	_backgroundImgPtr = ptr;
+
+	warning("opRAZSPR %d", index);
+}
+
 void CastlxEngine::opPALNOIR(byte **buffer) { warning("opPALNOIR"); }
-void CastlxEngine::opLOADPALETTE(byte **buffer) { warning("opLOADPALETTE"); }
+/**
+ * @brief Opcode: Load partial palette
+ * @param buffer 
+*/
+void CastlxEngine::opLOADPALETTE(byte **buffer) {
+	int param = 0;
+	if (!_mouseCursorVisible) {
+		skipNoiseInString(buffer);
+		param = parseString(buffer);
+		skipNoiseInString(buffer);
+		_filename = copyBuffer(buffer);
+	} else
+		warning("opLOADPALETTE - params not set");
+
+	byte *palette = loadFile(_filename);
+	for (int i = param * 3, j = 0; i < 768;) {
+		if (j > _lastFileSize)
+			break;
+		_unkPalette[i++] = palette[j++];
+	}
+	_word1E7E5 = 0;
+	warning("opLOADPALETTE %d %s", param, _filename.c_str());
+	delete[] palette;
+}
+
 void CastlxEngine::opSETPLAY(byte **buffer) { warning("opSETPLAY"); }
 void CastlxEngine::opCLOSEPLAY(byte **buffer) { warning("opCLOSEPLAY"); }
 void CastlxEngine::opPALETTE(byte **buffer) { warning("opPALETTE"); }
+
 void CastlxEngine::opSETCOLORPLAY(byte **buffer) { warning("opSETCOLORPLAY"); }
-void CastlxEngine::opSWITCH(byte **buffer) { warning("opSWITCH"); }
+/**
+ * @brief Opcode: switch between back and front screen buffer
+ * @param buffer (not used)
+*/
+void CastlxEngine::opSWITCH(byte **buffer) {
+	warning("opSWITCH");
+}
+
 void CastlxEngine::opMODEPLAY(byte **buffer) { warning("opMODEPLAY"); }
 void CastlxEngine::opINCRUSTIMGV(byte **buffer) { warning("opINCRUSTIMGV"); }
 void CastlxEngine::opINCRUSTIMGF(byte **buffer) { warning("opINCRUSTIMGF"); }
@@ -398,12 +542,14 @@ void CastlxEngine::loadGst(int fileNumber) {
 	_guess_postGstSegment = _gstPtr + _decompFileSize;
 */
 	_gstEndPtr = _gstPtr + _lastFileSize;
-	
+
+	for (int i = 0; i < 5; ++i)
+		_spritePtr[i] = _postGstSegment;
 /*
-	word1E7D9 = word1E0C0 = word1E0C2 = word1E0C4 = word1E0C6 = word1E0C8 = _guess_postGstSegment;
+	word1E7D9 = _guess_postGstSegment;
 */
 	setDisplayStringQueueIdTo0();
-	_mouseCursorVisible = true;
+	_mouseCursorVisible = false;
 }
 
 void CastlxEngine::sub19A16() {
@@ -456,26 +602,32 @@ void CastlxEngine::handleGst(byte **buffer) {
 			curByte = *++curGstPtr;
 		}
 
-		warning("Next word: %s", nextWord.c_str());
-
 		if (nextWord[0] == ':') {
 			_label._keyword = nextWord;
 			_label._keyword.deleteChar(0);
 			_label._gstLabelPtr = curGstPtr;
 		} else {
-			for (int i = 0; i < 63; ++i) {
+			int i;
+			for (i = 0; i < 63; ++i) {
 				if (nextWord.equalsIgnoreCase(_opcodes[i]._keyword)) {
 					(this->*_opcodes[i]._opcodePtr)(&curGstPtr);
+					break;
 				}
 			}
+			if (i == 63)
+				warning("Missed word: %s", nextWord.c_str());
 		}
 	}
 	
 }
 
 byte *CastlxEngine::loadFile(Common::String &filename) {
+	Common::String shortName = filename;
+	while (shortName.contains('\\'))
+		shortName.deleteChar(0);
+	
 	Common::File f;
-	f.open(filename);
+	f.open(shortName);
 
 	if (!f.isOpen()) {
 		_lastFileSize = 0;
@@ -651,7 +803,7 @@ byte *CastlxEngine::loadFile(Common::String &filename) {
 	}
 	// Dump the decompressed file
 	Common::DumpFile dump;
-	dump.open(filename + ".dump");
+	dump.open(shortName + ".dump");
 	dump.write(destBuffer, targetSize);
 	dump.flush();
 	dump.close();
