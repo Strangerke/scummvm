@@ -46,9 +46,10 @@ CastlxEngine::CastlxEngine(OSystem *syst, const ADGameDescription *gameDesc) : E
 	SearchMan.addSubDirectoryMatching(gameDataDir, "SPRIT1/PC");
 
 	_gstPtr = nullptr;
+	_curGstPtr = nullptr;
 	_song0 = _song1 = nullptr;
 	_lastFileSize = 0;
-	_mouseCursorVisible = false;
+	_mouseCursorVisible = 0;
 	_word2A302 = nullptr;
 	_backgroundImgPtr = nullptr;
 	_gstEndPtr = nullptr;
@@ -65,8 +66,10 @@ CastlxEngine::CastlxEngine(OSystem *syst, const ADGameDescription *gameDesc) : E
 	_label._gstLabelPtr = nullptr;
 	_mousePosX = _mousePosY = 0;
 
-	for (int i = 0; i < 16; ++i)
-		_defineArray[i] = "";
+	for (int i = 0; i < 16; ++i) {
+		_defineArray[i]._name = "";
+		_defineArray[i]._value = 0;
+	}
 
 	_word1E7E5 = _word1E7E7 = 0;
 	_filename = "";
@@ -77,6 +80,22 @@ CastlxEngine::CastlxEngine(OSystem *syst, const ADGameDescription *gameDesc) : E
 
 	for (int i = 0; i < 768; ++i)
 		_unkPalette[i] = 0;
+
+	for (int i = 0; i < 3; ++i)
+		_unkCol1[i] = 0;
+
+	_flagEnableHotspots = 0;
+	_mouseButtonStatus = 0;
+
+	for (int i = 0; i < 14; ++i) {
+		_hardcodedLogic[i] = nullptr;
+	}
+	_word113C8 = _word113CA = 0;
+	_word113CC = _word113CE = 0;
+	_word1E0B0_screenPtr1 = _word1E0B2_screenPtr2 = nullptr;
+	_word1E0B6 = nullptr;
+	_byte1E7EA = 0;
+	_int8Counter3 = 0;
 }
 
 CastlxEngine::~CastlxEngine() {
@@ -112,6 +131,16 @@ int CastlxEngine::skipNoiseInString(byte **bufferPtr) {
 	return 0;
 }
 
+void CastlxEngine::skipEndOfLine(byte **bufferPtr) {
+	byte *curPtr = *bufferPtr;
+
+	byte curByte = *curPtr;
+	while (curByte != 0 && curByte != 0xA && curByte != 0xD)
+			curByte = *++curPtr;
+
+	*bufferPtr = curPtr;
+}
+
 int CastlxEngine::parseString(byte **bufferPtr) {
 	byte *curPtr = *bufferPtr;
 	byte curByte = *curPtr;
@@ -119,6 +148,7 @@ int CastlxEngine::parseString(byte **bufferPtr) {
 	if (curByte == '\'' || curByte == '"') {
 		int retVal = *++curPtr;
 		curPtr += 2;
+		*bufferPtr = curPtr;
 		return retVal;
 	}
 
@@ -137,13 +167,19 @@ int CastlxEngine::parseString(byte **bufferPtr) {
 
 			retVal += curByte;
 		}
+		*bufferPtr = curPtr;
 		return retVal;
 	}
 
 	if (curByte == '_') {
-		warning("STUB parseString case _");
+		++curPtr;
 		*bufferPtr = curPtr;
-		return 0;
+		Common::String defName = copyBuffer(bufferPtr);
+		for (int i = 0; i < 16; ++i) {
+			if (_defineArray[i]._name.equalsIgnoreCase(defName))
+				return i;
+		}
+		error("parseString - parsing error, defName %s not found", defName.c_str());
 	}
 
 	if (curByte == 'x' || curByte == 'X') {
@@ -175,7 +211,9 @@ Common::String CastlxEngine::copyBuffer(byte **srcBufferPtr) {
 	Common::String destStr = "";
 	byte* curPtr = *srcBufferPtr;
 	byte curByte = *curPtr;
-	while (curByte != 0xA && curByte != 0xD && curByte != 0x23 && curByte != 0x20 && curByte != 0x27 && curByte != 0x22 && curByte !=0x9) {
+	// Note: In comparison to the original, added a check on '=' in order to reuse this function in various places.
+	// This shouldn't be an issue, but this is a reminder in case a problem appears with a missing substring containing '='
+	while (curByte != 0xA && curByte != 0xD && curByte != '#' && curByte != ' ' && curByte != '\'' && curByte != '"' && curByte !=0x9 && curByte != '=') {
 		destStr += curByte;
 		curByte = *++curPtr;
 	}
@@ -198,6 +236,46 @@ void CastlxEngine::sub19B51() {
 
 void CastlxEngine::setUnkPalette2(byte *palPtr) {
 	warning("STUB - setUnkPalette2");
+}
+
+void CastlxEngine::sub1C2B0() {
+	warning("STUB - sub1C2B0 (transparency)");
+}
+
+void CastlxEngine::sub12C73() {
+	warning("STUB - sub12C73");
+}
+
+void CastlxEngine::sub12279() {
+	warning("STUB - sub12279");
+}
+
+void CastlxEngine::handleSoundOff() {
+	warning("STUB - handleSoundOff");
+}
+
+void CastlxEngine::displayMessageUselessAction() {
+	warning("STUB - displayMessageUselessAction");
+}
+
+void CastlxEngine::sub1114D(byte *screen, byte *buffer) {
+	warning("STUB - sub1114D");
+}
+
+void CastlxEngine::sub11475(byte *screen2, byte *screen1) {
+	warning("STUB - sub11475");
+}
+
+void CastlxEngine::sub10FC9() {
+	warning("STUB - sub10FC9");
+}
+
+void CastlxEngine::sub1B1A4(int param1, int param2, int param3, byte *str) {
+	warning("STUB sub1B1A4 (display sprite)");
+}
+
+void CastlxEngine::sub19817() {
+	warning("STUB sub19817 (mouse)");
 }
 
 /**
@@ -262,36 +340,109 @@ void CastlxEngine::opDEF(byte **bufferPtr) {
 	skipNoiseInString(bufferPtr);
 	int index = parseString(bufferPtr);
 	skipNoiseInString(bufferPtr);
-	_defineArray[index] = copyBuffer(bufferPtr);
+	_defineArray[index]._name = copyBuffer(bufferPtr);
 
-	warning("opDEF - %d %s", index, _defineArray[index].c_str());
+	warning("opDEF - %d %s", index, _defineArray[index]._name.c_str());
 }
 
-void CastlxEngine::opNAME(byte **buffer) { warning("opNAME"); }
+/**
+ * @brief  Opcode: set name
+ * @param buffer 
+*/
+void CastlxEngine::opNAME(byte **buffer) {
+	skipNoiseInString(buffer);
+	int index = parseString(buffer);
+	skipNoiseInString(buffer);
+	int value = parseString(buffer);
+
+	_defineArray[index]._value = value;
+
+	warning("opNAME - keyword found at id %d,set value to %d", index, value);
+}
+
 void CastlxEngine::opIF(byte **buffer) { warning("opIF"); }
 void CastlxEngine::opLabel(byte **buffer) { warning("opLabel"); }
-void CastlxEngine::opJUMP(byte **buffer) { warning("opJUMP"); }
+
+/**
+ * @brief Opcode: Jump to Label
+ * @param buffer 
+*/
+void CastlxEngine::opJUMP(byte **buffer) {
+	skipNoiseInString(buffer);
+	Common::String targetLabel = copyBuffer(buffer);
+	warning("opJUMP %s", targetLabel.c_str());
+	if (targetLabel.equalsIgnoreCase(_label._keyword))
+		*buffer = _label._gstLabelPtr;
+	else
+		warning("Label not found %s (found %s)", targetLabel.c_str(), _label._keyword.c_str());
+}
+
 void CastlxEngine::opCALL(byte **buffer) { warning("opCALL"); }
 void CastlxEngine::opRETURN(byte **buffer) { warning("opRETURN"); }
 void CastlxEngine::opUNCALL(byte **buffer) { warning("opUNCALL"); }
 void CastlxEngine::opKEY(byte **buffer) { warning("opKEY"); }
 void CastlxEngine::opRESO(byte **buffer) { warning("opRESO"); }
-void CastlxEngine::opTIMER(byte **buffer) { warning("opTIMER"); }
-void CastlxEngine::opWAIT(byte **buffer) { warning("opWAIT"); }
+/**
+ * @brief Opcode: set timer
+ * @param buffer 
+*/
+void CastlxEngine::opTIMER(byte **buffer) {
+	skipNoiseInString(buffer);
+	int delay = parseString(buffer);
+	_int8Counter3 = delay;
+	warning("opTIMER %d", delay);
+}
+
+/**
+ * @brief 
+ * @param buffer 
+*/
+void CastlxEngine::opWAIT(byte **buffer) {
+	skipNoiseInString(buffer);
+	int target = parseString(buffer);
+
+	if (_int8Counter3 <= target) {
+		warning("opWAIT - Condition not met %d > %d", _int8Counter3, target);
+		_int8Counter3 += 10;
+		return;
+	}
+
+	skipEndOfLine(buffer);
+}
+
 void CastlxEngine::opTIMEPLAY(byte **buffer) { warning("opTIMEPLAY"); }
 void CastlxEngine::opPLAYFLI(byte **buffer) { warning("opPLAYFLI"); }
 void CastlxEngine::opPLAYFLX(byte **buffer) { warning("opPLAYFLX"); }
 void CastlxEngine::opCLIPPLAY(byte **buffer) { warning("opCLIPPLAY"); }
 void CastlxEngine::opAFFMOUSEV(byte **buffer) { warning("opAFFMOUSEV"); }
 void CastlxEngine::opAFFMOUSEF(byte **buffer) { warning("opAFFMOUSEF"); }
-void CastlxEngine::opVBL(byte **buffer) { warning("opVBL"); }
+/**
+ * @brief Opcode: wait for retrace
+ * @param buffer 
+*/
+void CastlxEngine::opVBL(byte **buffer) {
+	warning("STUB - opVBL");
+}
+
 void CastlxEngine::opDummy(byte **buffer) { warning("opDummy"); }
 void CastlxEngine::opOPENFLI(byte **buffer) { warning("opOPENFLI"); }
 void CastlxEngine::opOPENFLX(byte **buffer) { warning("opOPENFLX"); }
 void CastlxEngine::opENDPLAY(byte **buffer) { warning("opENDPLAY"); }
 void CastlxEngine::opSETMOUSE(byte **buffer) { warning("opSETMOUSE"); }
 void CastlxEngine::opCLIPMOUSE(byte **buffer) { warning("opCLIPMOUSE"); }
-void CastlxEngine::opLOAD(byte **buffer) { warning("opLOAD"); }
+
+/**
+ * @brief Opcode: Load GST file
+ * @param buffer 
+*/
+void CastlxEngine::opLOAD(byte **buffer) {
+	warning("opLOAD");
+	skipNoiseInString(buffer);
+	int index = parseString(buffer);
+	loadGst(index);
+	sub19817();
+	_int8Counter3 = 0;
+}
 
 /**
  * @brief Opcode: Load sprite
@@ -318,7 +469,21 @@ void CastlxEngine::opLOADSPR(byte **buffer) {
 	warning("opLOADSPR - Weird set of _backGroundImgPtr");
 }
 
-void CastlxEngine::opPAUSE(byte **buffer) { warning("opPAUSE"); }
+/**
+ * @brief Opcode: Skippable delay (skipped by user input
+ * @param buffer 
+*/
+void CastlxEngine::opPAUSE(byte **buffer) {
+	int delay = 0;
+	if (!_mouseCursorVisible) {
+		skipNoiseInString(buffer);
+		delay = parseString(buffer);
+	} else {
+		warning("opPAUSE: missing variable init");
+	}
+
+	warning("opPAUSE : TODO implement skippable delay - %d", delay);
+}
 
 /**
  * @brief Opcode: Reset sprite
@@ -381,19 +546,83 @@ void CastlxEngine::opSETCOLORPLAY(byte **buffer) { warning("opSETCOLORPLAY"); }
  * @param buffer (not used)
 */
 void CastlxEngine::opSWITCH(byte **buffer) {
-	warning("opSWITCH");
+	warning("STUB opSWITCH");
 }
 
 void CastlxEngine::opMODEPLAY(byte **buffer) { warning("opMODEPLAY"); }
 void CastlxEngine::opINCRUSTIMGV(byte **buffer) { warning("opINCRUSTIMGV"); }
 void CastlxEngine::opINCRUSTIMGF(byte **buffer) { warning("opINCRUSTIMGF"); }
-void CastlxEngine::opCOPYVF(byte **buffer) { warning("opCOPYVF"); }
+/**
+ * @brief Opcode: TODO - no idea
+ * @param buffer 
+*/
+void CastlxEngine::opCOPYVF(byte **buffer) {
+	if (_mouseCursorVisible) {
+		warning("opCOPYVF missing parameters");
+	} else {
+		skipNoiseInString(buffer);
+		_word113C8 = parseString(buffer);
+		skipNoiseInString(buffer);
+		_word113CA = parseString(buffer);
+		skipNoiseInString(buffer);
+		_word113CC = parseString(buffer);
+		skipNoiseInString(buffer);
+		_word113CE = parseString(buffer);
+	}
+	warning("opCOPYVF %d %d %d %d", _word113C8, _word113CA, _word113CC, _word113CE);
+	sub11475(_word1E0B2_screenPtr2, _word1E0B0_screenPtr1);
+	sub10FC9();
+}
 void CastlxEngine::opCOPYFV(byte **buffer) { warning("opCOPYFV"); }
-void CastlxEngine::opCOPYVB(byte **buffer) { warning("opCOPYVB"); }
+
+/**
+ * @brief Opcode: TODO - no idea
+ * @param buffer 
+*/
+void CastlxEngine::opCOPYVB(byte **buffer) {
+	if (_mouseCursorVisible) {
+		warning("opCOPYVB missing parameters");
+	} else {
+		skipNoiseInString(buffer);
+		_word113C8 = parseString(buffer);
+		skipNoiseInString(buffer);
+		_word113CA = parseString(buffer);
+		skipNoiseInString(buffer);
+		_word113CC = parseString(buffer);
+		skipNoiseInString(buffer);
+		_word113CE = parseString(buffer);
+	}
+
+	warning("opCOPYVB %d %d %d %d", _word113C8, _word113CA, _word113CC, _word113CE);
+	sub1114D(_word1E0B2_screenPtr2, _word1E0B6);
+	sub10FC9();
+}
 void CastlxEngine::opCOPYFB(byte **buffer) { warning("opCOPYFB"); }
 void CastlxEngine::opCOPYBV(byte **buffer) { warning("opCOPYBV"); }
 void CastlxEngine::opCOPYBF(byte **buffer) { warning("opCOPYBF"); }
-void CastlxEngine::opAFFSPRITEV(byte **buffer) { warning("opAFFSPRITEV"); }
+
+/**
+ * @brief Opcode: TODO: clarify which type of sprite display it is
+ * @param buffer 
+*/
+void CastlxEngine::opAFFSPRITEV(byte **buffer) {
+	skipNoiseInString(buffer);
+	int param1 = parseString(buffer);
+	skipNoiseInString(buffer);
+	int param2 = parseString(buffer);
+	skipNoiseInString(buffer);
+	int param3 = parseString(buffer);
+	skipNoiseInString(buffer);
+	int param4 = parseString(buffer);
+	if (skipNoiseInString(buffer))
+		_byte1E7EA = parseString(buffer);
+	else
+		_byte1E7EA = 0;
+
+	warning("opAFFSPRITEV %d %d %d index: %d [%d]", param1, param2, param3, param4, _byte1E7EA);
+	
+	sub1B1A4(param1, param2, param3, _spritePtr[param4]);
+}
 void CastlxEngine::opAFFSPRITEF(byte **buffer) { warning("opAFFSPRITEF"); }
 void CastlxEngine::opMODESPRITE(byte **buffer) { warning("opMODESPRITE"); }
 void CastlxEngine::opCLEARV(byte **buffer) { warning("opCLEARV"); }
@@ -401,10 +630,51 @@ void CastlxEngine::opCLEARF(byte **buffer) { warning("opCLEARF"); }
 void CastlxEngine::opOTEPAL(byte **buffer) { warning("opOTEPAL"); }
 void CastlxEngine::opMETPAL(byte **buffer) { warning("opMETPAL"); }
 void CastlxEngine::opREADMOUSE(byte **buffer) { warning("opREADMOUSE"); }
-void CastlxEngine::opGAME(byte **buffer) { warning("opGAME"); }
+
+/**
+ * @brief Opcode: Call the hardcoded logic of the game
+ * @param buffer 
+*/
+void CastlxEngine::opGAME(byte **buffer) {
+	skipNoiseInString(buffer);
+	int index = parseString(buffer);
+	warning("opGAME %d", index);
+
+	_flagEnableHotspots = _mouseButtonStatus;
+	++_mouseCursorVisible;
+
+	if (index == 0) {
+		sub12C73();
+		sub12279();
+	}
+
+	(this->*_hardcodedLogic[index])();
+
+	if (index == 0) {
+		handleSoundOff();
+		displayMessageUselessAction();
+		--_mouseCursorVisible;
+	}
+}
 void CastlxEngine::opTRANSV(byte **buffer) { warning("opTRANSV"); }
 void CastlxEngine::opTRANSF(byte **buffer) { warning("opTRANSF"); }
-void CastlxEngine::opTRANSPARENCE(byte **buffer) { warning("opTRANSPARENCE"); }
+
+/**
+ * @brief Opcode: Handle transparency
+ * @param buffer 
+*/
+void CastlxEngine::opTRANSPARENCE(byte **buffer) {
+	warning("opTRANSPARENCE");
+	if (_mouseCursorVisible)
+		warning("opTRANSPARENCE - col1 not set");
+	else {
+		_unkCol1[0] = 110;
+		_unkCol1[1] = 110;
+		_unkCol1[2] = 110;
+	}
+
+	sub1C2B0();
+}
 
 void CastlxEngine::initOpcodes() {
 	_opcodes[0]._keyword = "LOADIMG";
@@ -535,8 +805,41 @@ void CastlxEngine::initOpcodes() {
 	_opcodes[62]._opcodePtr = &CastlxEngine::opTRANSPARENCE;
 }
 
+void CastlxEngine::hlCheckAge() { warning("STUB hlCheckAge"); }
+void CastlxEngine::hlGate() { warning("STUB hlGate"); }
+void CastlxEngine::hlHall() { warning("STUB hlHall"); }
+void CastlxEngine::hlKitchen() { warning("STUB hlKitchen"); }
+void CastlxEngine::hlCellar() { warning("STUB hlCellar"); }
+void CastlxEngine::hlDiningRoom() { warning("STUB hlDiningRoom"); }
+void CastlxEngine::hlLivingRoom() { warning("STUB hlLivingRoom"); }
+void CastlxEngine::hlDungeon() { warning("STUB hlDungeon"); }
+void CastlxEngine::hlLibrary() { warning("STUB hlLibrary"); }
+void CastlxEngine::hlMaevaRoom() { warning("STUB hlMaevaRoom"); }
+void CastlxEngine::hlBathroom() { warning("STUB hlBathroom"); }
+void CastlxEngine::hlBedroom1() { warning("STUB hlBedroom1"); }
+void CastlxEngine::hlBedroom2() { warning("STUB hlBedroom2"); }
+void CastlxEngine::hlAttic() { warning("STUB hlAttic"); }
+
+void CastlxEngine::initHardcodedLogic() {
+	_hardcodedLogic[0] = &CastlxEngine::hlCheckAge;
+	_hardcodedLogic[1] = &CastlxEngine::hlGate;
+	_hardcodedLogic[2] = &CastlxEngine::hlHall;
+	_hardcodedLogic[3] = &CastlxEngine::hlKitchen;
+	_hardcodedLogic[4] = &CastlxEngine::hlCellar;
+	_hardcodedLogic[5] = &CastlxEngine::hlDiningRoom;
+	_hardcodedLogic[6] = &CastlxEngine::hlLivingRoom;
+	_hardcodedLogic[7] = &CastlxEngine::hlDungeon;
+	_hardcodedLogic[8] = &CastlxEngine::hlLibrary;
+	_hardcodedLogic[9] = &CastlxEngine::hlMaevaRoom;
+	_hardcodedLogic[10] = &CastlxEngine::hlBathroom;
+	_hardcodedLogic[11] = &CastlxEngine::hlBedroom1;
+	_hardcodedLogic[12] = &CastlxEngine::hlBedroom2;
+	_hardcodedLogic[13] = &CastlxEngine::hlAttic;
+}
+
 void CastlxEngine::loadGst(int fileNumber) {
 	Common::String filename = Common::String::format("%02d.GST", fileNumber);
+	delete[] _gstPtr;
 	_gstPtr = loadFile(filename);
 /*
 	_guess_postGstSegment = _gstPtr + _decompFileSize;
@@ -550,6 +853,11 @@ void CastlxEngine::loadGst(int fileNumber) {
 */
 	setDisplayStringQueueIdTo0();
 	_mouseCursorVisible = false;
+
+	_label._keyword = "";
+	_label._gstLabelPtr = nullptr;
+
+	_curGstPtr = _gstPtr;
 }
 
 void CastlxEngine::sub19A16() {
@@ -573,9 +881,8 @@ void CastlxEngine::sub1024E() {
 }
 
 void CastlxEngine::handleGst(byte **buffer) {
-	byte *curGstPtr = _gstPtr;
-	while (curGstPtr < _gstEndPtr) {
-		byte curByte = *curGstPtr;
+	while (_curGstPtr < _gstEndPtr) {
+		byte curByte = *_curGstPtr;
 		if (!curByte)
 			break;
 
@@ -583,13 +890,13 @@ void CastlxEngine::handleGst(byte **buffer) {
 			Common::String comment;
 			while (curByte != 0xA && curByte != 0xD && curByte) {
 				comment += curByte;
-				curByte = *++curGstPtr;
+				curByte = *++_curGstPtr;
 			}
 			warning("Handle GST - Comment : %s", comment.c_str());
 		}
 
 		if (curByte <= ' ') {
-			++curGstPtr;
+			++_curGstPtr;
 			continue;
 		}
 
@@ -599,18 +906,18 @@ void CastlxEngine::handleGst(byte **buffer) {
 		Common::String nextWord;
 		while (curByte > ' ') {
 			nextWord += curByte;
-			curByte = *++curGstPtr;
+			curByte = *++_curGstPtr;
 		}
 
 		if (nextWord[0] == ':') {
 			_label._keyword = nextWord;
 			_label._keyword.deleteChar(0);
-			_label._gstLabelPtr = curGstPtr;
+			_label._gstLabelPtr = _curGstPtr;
 		} else {
 			int i;
 			for (i = 0; i < 63; ++i) {
 				if (nextWord.equalsIgnoreCase(_opcodes[i]._keyword)) {
-					(this->*_opcodes[i]._opcodePtr)(&curGstPtr);
+					(this->*_opcodes[i]._opcodePtr)(&_curGstPtr);
 					break;
 				}
 			}
@@ -829,6 +1136,7 @@ Common::Error CastlxEngine::run() {
 		(void)loadGameState(saveSlot);
 
 	initOpcodes();
+	initHardcodedLogic();
 	
 	/*
 	initMouse(629, 399, 0, 0);
@@ -844,6 +1152,9 @@ Common::Error CastlxEngine::run() {
 	_song1 = loadFile(filename);
 
 	loadGst(0);
+	sub19817();
+	_int8Counter3 = 0;
+
 	handleGst(&_word2A302);
 	
 	// Draw a series of boxes on screen as a sample

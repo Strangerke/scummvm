@@ -55,6 +55,7 @@ struct DisplayStringQueue {
 
 class CastlxEngine;
 typedef void (CastlxEngine::*OpcodePtr)(byte **buffer);
+typedef void (CastlxEngine::*HardcodedLogic)();
 
 struct OpcodeDic {
 	Common::String _keyword;
@@ -66,39 +67,68 @@ struct Label {
 	byte *_gstLabelPtr;
 };
 
+struct DefinedVar {
+	Common::String _name;
+	int _value;
+};
+
 class CastlxEngine : public Engine {
 private:
 	const ADGameDescription *_gameDescription;
 	Common::RandomSource _randomSource;
 
 	byte *_gstPtr;
+	byte *_curGstPtr;
 	byte *_song0;
 	byte *_song1;
 	int _lastFileSize;
 	DisplayStringQueue _displayStringList[5];
-	bool _mouseCursorVisible;
+	int _mouseCursorVisible;
 	byte *_word2A302;
 	byte *_backgroundImgPtr;
 	byte *_gstEndPtr;
 	byte _engineFlags[128];
 	OpcodeDic _opcodes[63];
+	HardcodedLogic _hardcodedLogic[14];
 	Label _label;
 	int _mousePosX, _mousePosY;
-	Common::String  _defineArray[16];
+	DefinedVar _defineArray[16];
 	int _word1E7E5;
 	int _word1E7E7;
 	Common::String _filename;
 	byte *_spritePtr[5];
 	byte *_postGstSegment;
 	byte _unkPalette[768];
+	byte _unkCol1[3];
+	int _flagEnableHotspots;
+	int _mouseButtonStatus;
+	int _word113C8, _word113CA;
+	int _word113CC, _word113CE;
+	byte *_word1E0B0_screenPtr1;
+	byte *_word1E0B2_screenPtr2;
+	byte *_word1E0B6;
+	byte _byte1E7EA;
+	int _int8Counter3;
+
 
 	int skipNoiseInString(byte **bufferPtr);
+	void skipEndOfLine(byte **buffer);
 	int parseString(byte **buffer);
 	Common::String copyBuffer(byte **srcBuffer);
 	void sub1AFFE();
 	void loadImgFile(Common::String &filename);
 	void sub19B51();
 	void setUnkPalette2(byte *palPtr);
+	void sub1C2B0();
+	void sub12C73();
+	void sub12279();
+	void handleSoundOff();
+	void displayMessageUselessAction();
+	void sub1114D(byte *screen, byte *buffer);
+	void sub11475(byte *screen2, byte *screen1);
+	void sub10FC9();
+	void sub1B1A4(int param1, int param2, int param3, byte *str);
+	void sub19817();
 
 	void opLOADIMG(byte **buffer);
 	void opEXIT(byte **buffer);
@@ -163,10 +193,25 @@ private:
 	void opTRANSF(byte **buffer);
 	void opTRANSPARENCE(byte **buffer);
 
-
+	void hlCheckAge();
+	void hlGate();
+	void hlHall();
+	void hlKitchen();
+	void hlCellar();
+	void hlDiningRoom();
+	void hlLivingRoom();
+	void hlDungeon();
+	void hlLibrary();
+	void hlMaevaRoom();
+	void hlBathroom();
+	void hlBedroom1();
+	void hlBedroom2();
+	void hlAttic();
+	
 	byte *loadFile(Common::String &filename);
 	void setDisplayStringQueueIdTo0();
 	void initOpcodes();
+	void initHardcodedLogic();
 	void loadGst(int fileNumber);
 	void sub19A16();
 	void sub1024E();
