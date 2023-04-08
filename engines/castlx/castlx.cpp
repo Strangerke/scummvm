@@ -36,7 +36,7 @@ namespace Castlx {
 CastlxEngine *g_engine;
 
 CastlxEngine::CastlxEngine(OSystem *syst, const ADGameDescription *gameDesc) : Engine(syst),
-	_gameDescription(gameDesc), _randomSource("Castlx") {
+	_gameDescription(gameDesc), _rnd("Castlx") {
 	g_engine = this;
 
 	// Add the game folder to the search manager path variable
@@ -44,7 +44,7 @@ CastlxEngine::CastlxEngine(OSystem *syst, const ADGameDescription *gameDesc) : E
 	SearchMan.addSubDirectoryMatching(gameDataDir, "SONG1");
 	SearchMan.addSubDirectoryMatching(gameDataDir, "GESTION1");
 	SearchMan.addSubDirectoryMatching(gameDataDir, "SPRIT1/PC");
-
+	
 	_gstPtr = nullptr;
 	_curGstPtr = nullptr;
 	_song0 = _song1 = nullptr;
@@ -65,6 +65,8 @@ CastlxEngine::CastlxEngine(OSystem *syst, const ADGameDescription *gameDesc) : E
 	_label._keyword = "";
 	_label._gstLabelPtr = nullptr;
 	_mousePosX = _mousePosY = 0;
+	_mouseMinX = _mouseMaxX = 0;
+	_mouseMinY = _mouseMaxY = 0;
 
 	for (int i = 0; i < 16; ++i) {
 		_defineArray[i]._name = "";
@@ -96,6 +98,14 @@ CastlxEngine::CastlxEngine(OSystem *syst, const ADGameDescription *gameDesc) : E
 	_word1E0B6 = nullptr;
 	_byte1E7EA = 0;
 	_int8Counter3 = 0;
+	_byte2C0BC = 0;
+	_activeSoundFl = 0;
+	_word2C0A8 = 0;
+	for (int i = 0; i < 8; ++i)
+		_word2C0AA[i] = 0;
+	_byte2C0BE = 0;
+	_byte2C0F3 = 0;
+	_unkSpriteNumber = 0;
 }
 
 CastlxEngine::~CastlxEngine() {
@@ -242,12 +252,31 @@ void CastlxEngine::sub1C2B0() {
 	warning("STUB - sub1C2B0 (transparency)");
 }
 
+void CastlxEngine::sub19306(void *ptr, int16 posX, int16 poxY) {
+	warning("STUB sub19306");
+}
+
 void CastlxEngine::sub12C73() {
-	warning("STUB - sub12C73");
+	warning("sub12C73");
+	for (int i = 0; i < 5; ++i) {
+		if (!_displayStringList[i]._id)
+			continue;
+
+		if (_int8Counter3 > READ_LE_INT16(_displayStringList[i]._headerPtr)) {
+			_displayStringList[i]._id = 0;
+			
+			sub19306(_displayStringList[i]._unkPtr, _displayStringList[i]._posX, _displayStringList[i]._posY);
+		}
+	}
+}
+
+void CastlxEngine::sub1228A() {
+	warning("STUB - sub1228A");
 }
 
 void CastlxEngine::sub12279() {
-	warning("STUB - sub12279");
+	if ((_mouseButtonStatus & 2) || _engineFlags[57])
+		sub1228A();
 }
 
 void CastlxEngine::handleSoundOff() {
@@ -274,8 +303,45 @@ void CastlxEngine::sub1B1A4(int param1, int param2, int param3, byte *str) {
 	warning("STUB sub1B1A4 (display sprite)");
 }
 
-void CastlxEngine::sub19817() {
-	warning("STUB sub19817 (mouse)");
+int CastlxEngine::getRandom(int max) {
+	return _rnd.getRandomNumber(max);
+}
+
+void CastlxEngine::waitForMouseClick() {
+	warning("waitForMouseClick");
+
+	getRandom(1); // wtf ??
+
+	for (;;) {
+	Common::Event event;
+		_eventMan->pollEvent(event);
+
+		if (event.type == Common::EVENT_LBUTTONUP)
+			break;
+
+		_system->updateScreen();
+		_system->delayMillis(10);
+	}
+	
+	Common::Point mousePos = _eventMan->getMousePos();
+	_mousePosX = CLIP(mousePos.x, _mouseMinX, _mouseMaxX);
+	_mousePosY = mousePos.y;
+
+	_flagEnableHotspots = 0;
+	
+}
+
+void CastlxEngine::initMouse(int16 minX, int16 minY, int16 width, int16 height) {
+	_mouseMinX = minX;
+	_mouseMinY = minY;
+	_mouseMaxX = minX + height;
+	_mouseMaxY = minY + width;
+}
+
+void CastlxEngine::setMousePosition(int16 posX, int16 posY) {
+	_mousePosX = posX;
+	_mousePosY = posY;
+	g_system->warpMouse(_mousePosX, _mousePosY);
 }
 
 /**
@@ -440,7 +506,7 @@ void CastlxEngine::opLOAD(byte **buffer) {
 	skipNoiseInString(buffer);
 	int index = parseString(buffer);
 	loadGst(index);
-	sub19817();
+	waitForMouseClick();
 	_int8Counter3 = 0;
 }
 
@@ -676,6 +742,33 @@ void CastlxEngine::opTRANSPARENCE(byte **buffer) {
 	sub1C2B0();
 }
 
+void CastlxEngine::handleExitRoom() {
+	warning("STUB handleExitRoom");
+}
+
+void CastlxEngine::sub1E033(int i, int i1, int i2, int i3) {
+	warning("STUB sub1E033");
+}
+
+void CastlxEngine::sub126AE() {
+	warning("STUB sub126AE");
+}
+
+void CastlxEngine::initRoom00() { warning("STUB initRoom00"); }
+void CastlxEngine::initRoom01() { warning("STUB initRoom01"); }
+void CastlxEngine::initRoom02() { warning("STUB initRoom02"); }
+void CastlxEngine::initRoom03() { warning("STUB initRoom03"); }
+void CastlxEngine::initRoom04() { warning("STUB initRoom04"); }
+void CastlxEngine::initRoom05() { warning("STUB initRoom05"); }
+void CastlxEngine::initRoom06() { warning("STUB initRoom06"); }
+void CastlxEngine::initRoom07() { warning("STUB initRoom07"); }
+void CastlxEngine::initRoom08() { warning("STUB initRoom08"); }
+void CastlxEngine::initRoom09() { warning("STUB initRoom09"); }
+void CastlxEngine::initRoom10() { warning("STUB initRoom10"); }
+void CastlxEngine::initRoom11() { warning("STUB initRoom11"); }
+void CastlxEngine::initRoom12() { warning("STUB initRoom12"); }
+void CastlxEngine::initRoom13() { warning("STUB initRoom13"); }
+
 void CastlxEngine::initOpcodes() {
 	_opcodes[0]._keyword = "LOADIMG";
 	_opcodes[0]._opcodePtr = &CastlxEngine::opLOADIMG;
@@ -805,7 +898,79 @@ void CastlxEngine::initOpcodes() {
 	_opcodes[62]._opcodePtr = &CastlxEngine::opTRANSPARENCE;
 }
 
-void CastlxEngine::hlCheckAge() { warning("STUB hlCheckAge"); }
+void CastlxEngine::hlInit() {
+	warning("STUB hlInit");
+	int room = _defineArray[0]._value;
+	switch (room) {
+	case 0:
+		initRoom00();
+		return;
+	case 100:
+		if (!_byte2C0BC || !_activeSoundFl) {
+			_word2C0A8 = 0;
+			// the rest is part of a function
+			handleExitRoom();
+			sub1E033(1, 0, 0, _word2C0AA[_word2C0A8]);
+			sub1E033(3, 0, 0x80, 0x2800);
+			_byte2C0BE = 1;
+			_byte2C0BC = 1;
+		}
+		_byte2C0F3 = 0;
+		return;
+	case 101:
+		handleExitRoom();
+		return;
+	default:
+		break;
+	}
+
+	_unkSpriteNumber = 0;
+	sub126AE();
+
+	switch (room) {
+	case 1:
+		initRoom01();
+		break;
+	case 2:
+		initRoom02();
+		break;
+	case 3:
+		initRoom03();
+		break;
+	case 4:
+		initRoom04();
+		break;
+	case 5:
+		initRoom05();
+		break;
+	case 6:
+		initRoom06();
+		break;
+	case 7:
+		initRoom07();
+		break;
+	case 8:
+		initRoom08();
+		break;
+	case 9:
+		initRoom09();
+		break;
+	case 10:
+		initRoom10();
+		break;
+	case 11:
+		initRoom11();
+		break;
+	case 12:
+		initRoom12();
+		break;
+	case 13:
+		initRoom13();
+		break;
+	default:
+		error("Unexpected room %d", room);
+	}
+}
 void CastlxEngine::hlGate() { warning("STUB hlGate"); }
 void CastlxEngine::hlHall() { warning("STUB hlHall"); }
 void CastlxEngine::hlKitchen() { warning("STUB hlKitchen"); }
@@ -821,7 +986,7 @@ void CastlxEngine::hlBedroom2() { warning("STUB hlBedroom2"); }
 void CastlxEngine::hlAttic() { warning("STUB hlAttic"); }
 
 void CastlxEngine::initHardcodedLogic() {
-	_hardcodedLogic[0] = &CastlxEngine::hlCheckAge;
+	_hardcodedLogic[0] = &CastlxEngine::hlInit;
 	_hardcodedLogic[1] = &CastlxEngine::hlGate;
 	_hardcodedLogic[2] = &CastlxEngine::hlHall;
 	_hardcodedLogic[3] = &CastlxEngine::hlKitchen;
@@ -1126,6 +1291,7 @@ Common::Error CastlxEngine::run() {
 	// Initialize 320x200 paletted graphics mode
 	initGraphics(320, 200);
 	_screen = new Graphics::Screen();
+	_rnd.setSeed(g_system->getMillis()); // Kick random number generator
 
 	// Set the engine's debugger console
 	setDebugger(new Console());
@@ -1138,9 +1304,10 @@ Common::Error CastlxEngine::run() {
 	initOpcodes();
 	initHardcodedLogic();
 	
-	/*
-	initMouse(629, 399, 0, 0);
+	initMouse(0, 0, 629, 399);
 	setMousePosition(320, 100);
+
+	/*
 	sub1AC52();
 	sub1AC99();
 	sub1E033();
@@ -1152,7 +1319,7 @@ Common::Error CastlxEngine::run() {
 	_song1 = loadFile(filename);
 
 	loadGst(0);
-	sub19817();
+	waitForMouseClick();
 	_int8Counter3 = 0;
 
 	handleGst(&_word2A302);

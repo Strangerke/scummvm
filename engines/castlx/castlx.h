@@ -75,7 +75,7 @@ struct DefinedVar {
 class CastlxEngine : public Engine {
 private:
 	const ADGameDescription *_gameDescription;
-	Common::RandomSource _randomSource;
+	Common::RandomSource _rnd;
 
 	byte *_gstPtr;
 	byte *_curGstPtr;
@@ -91,7 +91,9 @@ private:
 	OpcodeDic _opcodes[63];
 	HardcodedLogic _hardcodedLogic[14];
 	Label _label;
-	int _mousePosX, _mousePosY;
+	int16 _mousePosX, _mousePosY;
+	int16 _mouseMinX, _mouseMaxX;
+	int16 _mouseMinY, _mouseMaxY;
 	DefinedVar _defineArray[16];
 	int _word1E7E5;
 	int _word1E7E7;
@@ -109,7 +111,14 @@ private:
 	byte *_word1E0B6;
 	byte _byte1E7EA;
 	int _int8Counter3;
-
+	byte _byte2C0BC;
+	byte _activeSoundFl;
+	int16 _word2C0A8;
+	int16 _word2C0AA[8];
+	byte _byte2C0BE;
+	byte _byte2C0F3;
+	int16 _unkSpriteNumber;
+	
 
 	int skipNoiseInString(byte **bufferPtr);
 	void skipEndOfLine(byte **buffer);
@@ -120,7 +129,9 @@ private:
 	void sub19B51();
 	void setUnkPalette2(byte *palPtr);
 	void sub1C2B0();
+	void sub19306(void *ptr, int16 posX, int16 poxY);
 	void sub12C73();
+	void sub1228A();
 	void sub12279();
 	void handleSoundOff();
 	void displayMessageUselessAction();
@@ -128,7 +139,10 @@ private:
 	void sub11475(byte *screen2, byte *screen1);
 	void sub10FC9();
 	void sub1B1A4(int param1, int param2, int param3, byte *str);
-	void sub19817();
+	int getRandom(int max);
+	void waitForMouseClick();
+	void initMouse(int16 minX, int16 minY, int16 width, int16 height);
+	void setMousePosition(int16 cx, int16 dx);
 
 	void opLOADIMG(byte **buffer);
 	void opEXIT(byte **buffer);
@@ -193,7 +207,26 @@ private:
 	void opTRANSF(byte **buffer);
 	void opTRANSPARENCE(byte **buffer);
 
-	void hlCheckAge();
+	void handleExitRoom();
+	void sub1E033(int i, int i1, int i2, int i3);
+	void sub126AE();
+
+	void initRoom00();
+	void initRoom01();
+	void initRoom02();
+	void initRoom03();
+	void initRoom04();
+	void initRoom05();
+	void initRoom06();
+	void initRoom07();
+	void initRoom08();
+	void initRoom09();
+	void initRoom10();
+	void initRoom11();
+	void initRoom12();
+	void initRoom13();
+
+	void hlInit();
 	void hlGate();
 	void hlHall();
 	void hlKitchen();
@@ -238,7 +271,7 @@ public:
 	 * Gets a random number
 	 */
 	uint32 getRandomNumber(uint maxNum) {
-		return _randomSource.getRandomNumber(maxNum);
+		return _rnd.getRandomNumber(maxNum);
 	}
 
 	bool hasFeature(EngineFeature f) const override {
