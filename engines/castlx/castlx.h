@@ -38,6 +38,7 @@
 
 namespace Castlx {
 
+class CastlxEngine;
 struct CastlxGameDescription;
 
 struct DisplayStringQueue {
@@ -53,7 +54,21 @@ struct DisplayStringQueue {
 	}
 };
 
-class CastlxEngine;
+struct Message {
+	uint16 _field1;
+	uint8 _field2;
+	uint8 _field3;
+	Common::String _detail;
+
+	Message() {
+		_field1 = 0;
+		_field2 = _field3 = 0;
+		_detail = "";
+	}
+	void setParam(uint16 param1, uint8 param2) { _field1 = param1; _field2 = param2; };
+	void init(uint8 param3, Common::String msg) { _field3 = param3;  _detail = msg; };
+};
+
 typedef void (CastlxEngine::*OpcodePtr)(byte **buffer);
 typedef void (CastlxEngine::*HardcodedLogic)();
 
@@ -77,6 +92,7 @@ private:
 	const ADGameDescription *_gameDescription;
 	Common::RandomSource _rnd;
 
+	Graphics::Surface *_surface1, *_surface2; 
 	byte *_gstPtr;
 	byte *_curGstPtr;
 	byte *_song0;
@@ -92,16 +108,21 @@ private:
 	HardcodedLogic _hardcodedLogic[14];
 	Label _label;
 	int16 _mousePosX, _mousePosY;
+	int16 _oldMousePosX, _oldMousePosY;
 	int16 _mouseMinX, _mouseMaxX;
 	int16 _mouseMinY, _mouseMaxY;
 	DefinedVar _defineArray[16];
-	int _word1E7E5;
-	int _word1E7E7;
+	int _paletteFctStart;
+	int _paletteFctCounter;
 	Common::String _filename;
 	byte *_spritePtr[5];
 	byte *_postGstSegment;
 	byte _unkPalette[768];
+	byte _unkPalette2[768];
+	byte _unkPalette3[768];
 	byte _unkCol1[3];
+	byte _unkCol2[3];
+	byte _byte1C198[256];
 	int _flagEnableHotspots;
 	int _mouseButtonStatus;
 	int _word113C8, _word113CA;
@@ -118,32 +139,56 @@ private:
 	byte _byte2C0BE;
 	byte _byte2C0F3;
 	int16 _unkSpriteNumber;
+	byte _byte2C0BF;
+
+	int16 _hotspotX, _hotspotY;
+	int16 _hotspotWidth, _hotspotHeight;
+	int16 _unkHotspotVal1, _unkHotspotVal2;
+	int8 _hotspotHit;
+
+	byte _byte1EFF0;
+	byte _byte1F49D;
+	uint16 _word19144 = 0;
+	bool _word1913C;
 	
+	Message _message2871;
 
 	int skipNoiseInString(byte **bufferPtr);
 	void skipEndOfLine(byte **buffer);
 	int parseString(byte **buffer);
 	Common::String copyBuffer(byte **srcBuffer);
-	void sub1AFFE();
+	void waitRetrace();
+	void setPartialPalette(byte *palette);
+	void fadeInPalette2();
+	void fadeOutPalette2(byte *palPtr);
 	void loadImgFile(Common::String &filename);
-	void sub19B51();
-	void setUnkPalette2(byte *palPtr);
+	void sub19B51(byte *imgBuffer, Graphics::Surface *surface);
 	void sub1C2B0();
 	void sub19306(void *ptr, int16 posX, int16 poxY);
-	void sub12C73();
+	void resetDisplayStringList();
 	void sub1228A();
 	void sub12279();
 	void handleSoundOff();
-	void displayMessageUselessAction();
+	bool checkHotspot(int ax, int bx, int cx, int dx);
+	bool setDisplayStringQueue(int16 di, int16 cx, int16 dx, Message *message, byte *bp);
+	int16 sub12D4C(int16 si);
+	void sub1918D(int16 si, int16 cx, int16 dx);
+	void sub1915D(int16 si, int16 cx, int16 dx);
+	void addHotSpotUseObjectOn(int16 ax, int16 bx, int16 cx, int16 dx, Message *message, byte *bp);
+	void setBackgroundHotspot();
 	void sub1114D(byte *screen, byte *buffer);
 	void sub11475(byte *screen2, byte *screen1);
 	void sub10FC9();
 	void sub1B1A4(int param1, int param2, int param3, byte *str);
 	int getRandom(int max);
 	void waitForMouseClick();
+	void initDisplayMode();
+	void switchSurfaceBuffers();
 	void initMouse(int16 minX, int16 minY, int16 width, int16 height);
 	void setMousePosition(int16 cx, int16 dx);
-
+	void sub11104(byte *byteArr, Graphics::Surface *surface);
+	void sub10902();
+	
 	void opLOADIMG(byte **buffer);
 	void opEXIT(byte **buffer);
 	void opTEMPO(byte **buffer);
@@ -208,7 +253,13 @@ private:
 	void opTRANSPARENCE(byte **buffer);
 
 	void handleExitRoom();
-	void sub1E033(int i, int i1, int i2, int i3);
+	byte sub1DF1D(int param1);
+	byte sub1DFD0(int param1, int param2);
+	byte sub1DF8F();
+	byte sub1DFC0(int param1, int param2, int param3);
+	byte sub1DFDD(int param1, int param2, int param3);
+	byte sub1E01E();
+	byte sub1E033(int type, int param1, int param2, int param3);
 	void sub126AE();
 
 	void initRoom00();

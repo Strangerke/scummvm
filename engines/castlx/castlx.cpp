@@ -45,6 +45,7 @@ CastlxEngine::CastlxEngine(OSystem *syst, const ADGameDescription *gameDesc) : E
 	SearchMan.addSubDirectoryMatching(gameDataDir, "GESTION1");
 	SearchMan.addSubDirectoryMatching(gameDataDir, "SPRIT1/PC");
 	
+	_surface1 = _surface2 = nullptr;
 	_gstPtr = nullptr;
 	_curGstPtr = nullptr;
 	_song0 = _song1 = nullptr;
@@ -65,6 +66,7 @@ CastlxEngine::CastlxEngine(OSystem *syst, const ADGameDescription *gameDesc) : E
 	_label._keyword = "";
 	_label._gstLabelPtr = nullptr;
 	_mousePosX = _mousePosY = 0;
+	_oldMousePosX = _oldMousePosY = 0;
 	_mouseMinX = _mouseMaxX = 0;
 	_mouseMinY = _mouseMaxY = 0;
 
@@ -73,18 +75,23 @@ CastlxEngine::CastlxEngine(OSystem *syst, const ADGameDescription *gameDesc) : E
 		_defineArray[i]._value = 0;
 	}
 
-	_word1E7E5 = _word1E7E7 = 0;
+	_paletteFctStart = _paletteFctCounter = 0;
 	_filename = "";
 
 	_postGstSegment = nullptr;
 	for (int i = 0; i < 5; ++i)
 		_spritePtr[i] = _postGstSegment;
 
-	for (int i = 0; i < 768; ++i)
+	for (int i = 0; i < 768; ++i) {
 		_unkPalette[i] = 0;
+		_unkPalette2[i] = 0;
+		_unkPalette3[i] = 0;
+	}
 
-	for (int i = 0; i < 3; ++i)
+	for (int i = 0; i < 3; ++i) {
 		_unkCol1[i] = 0;
+		_unkCol2[i] = 0;
+	}
 
 	_flagEnableHotspots = 0;
 	_mouseButtonStatus = 0;
@@ -106,6 +113,21 @@ CastlxEngine::CastlxEngine(OSystem *syst, const ADGameDescription *gameDesc) : E
 	_byte2C0BE = 0;
 	_byte2C0F3 = 0;
 	_unkSpriteNumber = 0;
+
+	for (int i = 0; i < 256; ++i)
+		_byte1C198[i] = 0;
+	_byte2C0BF = 0;
+
+	_hotspotX = _hotspotY = 0;
+	_hotspotWidth = _hotspotHeight = 0;
+	_unkHotspotVal1 = _unkHotspotVal2 = 0;
+	_hotspotHit = 0;
+	
+	_byte1EFF0 = 0;
+	_byte1F49D = 0;
+	_word1913C = false;
+	
+	_message2871.init(35, Common::String("L'utilisation de cet objet ne déclenche rien de spécial.ÿRIEN"));
 }
 
 CastlxEngine::~CastlxEngine() {
@@ -114,6 +136,13 @@ CastlxEngine::~CastlxEngine() {
 	delete[] _song0;
 	delete[] _song1;
 	delete[] _backgroundImgPtr;
+	if (_surface1)
+		_surface1->free();
+	if (_surface2)
+		_surface2->free();
+
+	delete _surface1;
+	delete _surface2;
 }
 
 uint32 CastlxEngine::getFeatures() const {
@@ -232,20 +261,76 @@ Common::String CastlxEngine::copyBuffer(byte **srcBufferPtr) {
 	return destStr;
 }
 
-void CastlxEngine::sub1AFFE() {
-	warning("STUB sub1AFFE (palette)");
+void CastlxEngine::waitRetrace() {
+	// No longer needed for display quality, replaced by a short delay
+	_system->delayMillis(5);
+}
+
+void CastlxEngine::setPartialPalette(byte *palette) {
+	waitRetrace();
+	_system->getPaletteManager()->setPalette(palette, _paletteFctStart, _paletteFctCounter);
+}
+
+/**
+ * @brief Fade from black to _unkPalette2 using _unkPalette3
+*/
+void CastlxEngine::fadeInPalette2() {
+	warning("fadeInPalette2");
+
+	int start = _paletteFctStart * 3;
+	int counter = _paletteFctCounter * 3;
+	for (int16 factor = 256; factor >= 0; factor -= 16) {
+		for (int i = 0; i < counter; ++i) {
+			_unkPalette3[start + i] = (_unkPalette2[start + i] * factor) >> 8;
+		}
+		waitRetrace();
+		setPartialPalette(_unkPalette3);
+	}
+}
+
+/**
+ * @brief Fade palette to back using _unkPalette2
+ * @param palPtr 
+*/
+void CastlxEngine::fadeOutPalette2(byte *palPtr) {
+	warning("fadeOutPalette2");
+	int start = _paletteFctStart * 3;
+	int counter = _paletteFctCounter * 3;
+	for (int16 factor = 0; factor <= 256; factor += 8) {
+		for (int i = 0; i < counter; ++i) {
+			_unkPalette2[start + i] = (palPtr[start + i] * factor) >> 8;
+		}
+		waitRetrace();
+		setPartialPalette(_unkPalette2);
+	}
 }
 
 void CastlxEngine::loadImgFile(Common::String &filename) {
 	_backgroundImgPtr = loadFile(filename);
 }
 
-void CastlxEngine::sub19B51() {
-	warning("STUB - sub19B51 (display background?)");
-}
+void CastlxEngine::sub19B51(byte *imgBuffer, Graphics::Surface *surface) {
+	byte *curPtr = imgBuffer;
+	curPtr += 32;
 
-void CastlxEngine::setUnkPalette2(byte *palPtr) {
-	warning("STUB - setUnkPalette2");
+	for (int i = 0; i < 768; ++i)
+		_unkPalette[i] = *curPtr++;
+
+	_system->getPaletteManager()->setPalette(_unkPalette, 0, 256);
+
+	byte *dest = (byte *)surface->getBasePtr(0,0);
+	for (int y = 0; y < 400; ++y) {
+		for (int x = 0; x < 320; ++x) {
+			// Images are stored in 320x400, each pixel is doubled at display
+			dest[(y * 640) + (2 * x)] = curPtr[y * 320 + x];
+			dest[(y * 640) + (2 * x) + 1] = curPtr[y * 320 + x];
+		}
+	}
+	_surface1->setPixels(dest);
+	_surface2->setPixels(dest);
+	
+	_system->copyRectToScreen((uint8 *)surface->getPixels(), surface->pitch, 0, 0, 640, 400);
+	_system->updateScreen();
 }
 
 void CastlxEngine::sub1C2B0() {
@@ -256,8 +341,8 @@ void CastlxEngine::sub19306(void *ptr, int16 posX, int16 poxY) {
 	warning("STUB sub19306");
 }
 
-void CastlxEngine::sub12C73() {
-	warning("sub12C73");
+void CastlxEngine::resetDisplayStringList() {
+	warning("resetDisplayStringList");
 	for (int i = 0; i < 5; ++i) {
 		if (!_displayStringList[i]._id)
 			continue;
@@ -283,8 +368,107 @@ void CastlxEngine::handleSoundOff() {
 	warning("STUB - handleSoundOff");
 }
 
-void CastlxEngine::displayMessageUselessAction() {
-	warning("STUB - displayMessageUselessAction");
+bool CastlxEngine::checkHotspot(int ax, int bx, int cx, int dx) {
+	_hotspotX = dx;
+	_hotspotY = cx;
+	_hotspotWidth = ax;
+	_hotspotHeight = bx;
+	_hotspotHit = 0;
+
+	if (_mousePosY >= dx && _mousePosY <= dx + ax && _mousePosX >= cx && _mousePosX <= cx + bx)
+		_hotspotHit = 1;
+
+	return _hotspotHit;
+}
+
+bool CastlxEngine::setDisplayStringQueue(int16 di, int16 cx, int16 dx, Message* message, byte *bp) {
+	for (int i = 0; i < 5; ++i) {
+		if (!_displayStringList[i]._id) {
+			_displayStringList[i]._id = di;
+			_displayStringList[i]._posX = dx;
+			_displayStringList[i]._posY = cx;
+			_displayStringList[i]._unkPtr = message;
+			_displayStringList[i]._headerPtr = bp;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+int16 CastlxEngine::sub12D4C(int16 si) {
+	int16 bp = _hotspotX;
+	int16 dx = bp + _hotspotWidth;
+	int16 ax = 400 - dx;
+
+	if (ax <= bp) {
+		dx = 64;
+		ax = bp;
+	} else {
+		dx = bp + _hotspotWidth + 64;
+	}
+
+	dx += getRandom(128) - 64;
+	CLIP<int16>(dx, 0, 340);
+
+	ax = 5 * si;
+	int16 cx = 8 + getRandom(320 - ax - 16);
+
+	return (cx & 0xFFFC);
+}
+
+void CastlxEngine::sub1918D(int16 si, int16 cx, int16 dx) {
+	warning("STUB - sub1918D");
+}
+
+void CastlxEngine::sub1915D(int16 si, int16 cx, int16 dx) {
+	_word1913C = false;
+	Graphics::Surface *back = _surface1;
+
+	switchSurfaceBuffers();
+	waitRetrace();
+	sub1918D(si, cx, dx);
+	switchSurfaceBuffers();
+	waitRetrace();
+	
+	_surface1 = back;
+}
+
+void CastlxEngine::addHotSpotUseObjectOn(int16 ax, int16 bx, int16 cx, int16 dx, Message *message, byte *bp) {
+	if (!_flagEnableHotspots || (_byte1EFF0 & 0x80))
+		return;
+
+	if (bp != nullptr) {
+		if (*bp == 0)
+			return;
+
+		if (bp != &_byte1F49D) {
+			warning("STUB - addHotSpotUseObjectOn - inventory");
+			return;
+		}
+	}
+
+	if (!checkHotspot(ax, bx, cx, dx))
+		return;
+
+	waitForMouseClick();
+	sub10902();
+	++message->_field2;
+	if (!_unkHotspotVal1 && !_unkHotspotVal2)
+		cx = sub12D4C(message->_field2);
+
+	if (setDisplayStringQueue(message->_field2, cx, dx, message, bp)) {
+		sub1915D(message->_field2, cx, dx);
+		message->_field1 = _word19144 + _int8Counter3;
+		_flagEnableHotspots = false;
+		_byte1EFF0 = 0;
+	}
+}
+
+void CastlxEngine::setBackgroundHotspot() {
+	warning("setBackgroundHotspot");
+	_unkHotspotVal1 = _unkHotspotVal2 = 0;
+	addHotSpotUseObjectOn(400, 320, 0, 0, &_message2871, nullptr);
 }
 
 void CastlxEngine::sub1114D(byte *screen, byte *buffer) {
@@ -331,6 +515,34 @@ void CastlxEngine::waitForMouseClick() {
 	
 }
 
+/**
+ * @brief Initialize display
+ * The original is using a parameter as this function is also used in opRESO.
+ * As this opcode isn't used in the game, I only considered the value used in
+ * start(), which is 1. The is used to access multiple arrays in order to
+ * set a 640x400 ModeX display.
+*/
+void CastlxEngine::initDisplayMode() {
+	_surface1 = new Graphics::Surface();
+	_surface1->create(640, 400, Graphics::PixelFormat::createFormatCLUT8());
+	_surface2 = new Graphics::Surface();
+	_surface2->create(640, 400, Graphics::PixelFormat::createFormatCLUT8());
+}
+
+void CastlxEngine::switchSurfaceBuffers() {
+	warning("Switch surface buffers");
+	SWAP(_surface1, _surface2);
+	_system->copyRectToScreen((const byte *)_surface1->getBasePtr(0, 0), _surface1->pitch, 0, 0, 640, 400);
+	_system->updateScreen();
+}
+
+/**
+ * @brief initMouse - Init mouse variables
+ * @param minX 
+ * @param minY 
+ * @param width 
+ * @param height 
+*/
 void CastlxEngine::initMouse(int16 minX, int16 minY, int16 width, int16 height) {
 	_mouseMinX = minX;
 	_mouseMinY = minY;
@@ -338,14 +550,38 @@ void CastlxEngine::initMouse(int16 minX, int16 minY, int16 width, int16 height) 
 	_mouseMaxY = minY + width;
 }
 
+/**
+ * @brief setMousePosition - Set Mouse Position
+ * @param posX 
+ * @param posY 
+*/
 void CastlxEngine::setMousePosition(int16 posX, int16 posY) {
 	_mousePosX = posX;
 	_mousePosY = posY;
 	g_system->warpMouse(_mousePosX, _mousePosY);
 }
 
+void CastlxEngine::sub11104(byte *byteArr, Graphics::Surface *surface) {
+	warning("STUB sub11104 (guess restore surface under mouse cursor)");
+}
+
+void CastlxEngine::sub10902() {
+	if (_byte1EFF0) {
+		_word113C8 = _oldMousePosX;
+		_word113CA = _oldMousePosY;
+		_word113CC = 11;
+		_word113CE = 6;
+	} else {
+		_word113C8 = _oldMousePosX - 1;
+		_word113CA = _oldMousePosY - 1;
+		_word113CC = 17;
+		_word113CE = 10;
+	}
+	sub11104(_word1E0B6, _surface2);
+}
+
 /**
- * @brief Opcode:Load Image
+ * @brief Opcode: Load Image
  * @param buffer 
 */
 void CastlxEngine::opLOADIMG(byte **buffer) {
@@ -359,7 +595,7 @@ void CastlxEngine::opLOADIMG(byte **buffer) {
 		warning("STUB opLOADIMG call direct");
 
 	warning("opLOADIMG %s", _filename.c_str());
-	sub19B51();
+	sub19B51(_backgroundImgPtr, _surface1);
 }
 
 void CastlxEngine::opEXIT(byte **buffer) { warning("STUB - opEXIT"); }
@@ -371,11 +607,11 @@ void CastlxEngine::opTEMPO(byte **buffer) { warning("STUB - opTEMPO"); }
 void CastlxEngine::opOTEPALETTE(byte **buffer) {
 	if (!_mouseCursorVisible) {
 		skipNoiseInString(buffer);
-		_word1E7E5 = parseString(buffer);
+		_paletteFctStart = parseString(buffer);
 		skipNoiseInString(buffer);
-		_word1E7E7 = parseString(buffer);
-		sub1AFFE();
-		warning("opOTEPALETTE %d %d", _word1E7E5, _word1E7E7);
+		_paletteFctCounter = parseString(buffer);
+		fadeInPalette2();
+		warning("opOTEPALETTE %d %d", _paletteFctStart, _paletteFctCounter);
 	} else {
 		warning("opOTEPALETTE - STUB");
 	}
@@ -390,12 +626,12 @@ void CastlxEngine::opMETPALETTE(byte **buffer) {
 		warning("opMETPALETTE- missing parameters");
 	} else {
 		skipNoiseInString(buffer);
-		_word1E7E5 = parseString(buffer);
+		_paletteFctStart = parseString(buffer);
 		skipNoiseInString(buffer);
-		_word1E7E7 = parseString(buffer);
+		_paletteFctCounter = parseString(buffer);
 	}
-	warning("opMETPALETTE %d %d", _word1E7E5, _word1E7E7);
-	setUnkPalette2(&_unkPalette[_word1E7E5 * 3]);
+	warning("opMETPALETTE %d %d", _paletteFctStart, _paletteFctCounter);
+	fadeOutPalette2(&_unkPalette[_paletteFctStart * 3]);
 }
 
 /**
@@ -431,6 +667,8 @@ void CastlxEngine::opLabel(byte **buffer) { warning("opLabel"); }
 
 /**
  * @brief Opcode: Jump to Label
+ * @note This implementation differs from the one in the original, it was easier to keep track of the label and jump to it, rather than re-parsing the whole script, looking for a (random) label.
+ *       Keeping the label offset and it's name is far more readable and works for all the scripts. 
  * @param buffer 
 */
 void CastlxEngine::opJUMP(byte **buffer) {
@@ -460,7 +698,7 @@ void CastlxEngine::opTIMER(byte **buffer) {
 }
 
 /**
- * @brief 
+ * @brief Followed by a loop, it corresponds to a while. Only used once in script 00
  * @param buffer 
 */
 void CastlxEngine::opWAIT(byte **buffer) {
@@ -487,10 +725,10 @@ void CastlxEngine::opAFFMOUSEF(byte **buffer) { warning("opAFFMOUSEF"); }
  * @param buffer 
 */
 void CastlxEngine::opVBL(byte **buffer) {
-	warning("STUB - opVBL");
+	waitRetrace();
 }
 
-void CastlxEngine::opDummy(byte **buffer) { warning("opDummy"); }
+void CastlxEngine::opDummy(byte **buffer) { warning("Unexpected call to opDummy"); }
 void CastlxEngine::opOPENFLI(byte **buffer) { warning("opOPENFLI"); }
 void CastlxEngine::opOPENFLX(byte **buffer) { warning("opOPENFLX"); }
 void CastlxEngine::opENDPLAY(byte **buffer) { warning("opENDPLAY"); }
@@ -515,7 +753,6 @@ void CastlxEngine::opLOAD(byte **buffer) {
  * @param buffer 
 */
 void CastlxEngine::opLOADSPR(byte **buffer) {
-	warning("opLOADSPR");
 	int index = 1;
 	if(!_mouseCursorVisible) {
 		skipNoiseInString(buffer);
@@ -526,11 +763,13 @@ void CastlxEngine::opLOADSPR(byte **buffer) {
 		warning("opLOADSPR params not set");
 	}
 
+	warning("opLOADSPR %s %d", _filename.c_str(), index);
+
 	--index;
 	_spritePtr[index] = loadFile(_filename);
 	for (int i = 2; i < 10; i += 2) {
 		int16 unkVal = READ_LE_INT16(&_spritePtr[index][i]);
-		warning("sprite %d - val %d", i, unkVal);
+		warning("sprite %d - val %d", i / 2, unkVal);
 	}
 	warning("opLOADSPR - Weird set of _backGroundImgPtr");
 }
@@ -597,7 +836,7 @@ void CastlxEngine::opLOADPALETTE(byte **buffer) {
 			break;
 		_unkPalette[i++] = palette[j++];
 	}
-	_word1E7E5 = 0;
+	_paletteFctStart = 0;
 	warning("opLOADPALETTE %d %s", param, _filename.c_str());
 	delete[] palette;
 }
@@ -607,12 +846,13 @@ void CastlxEngine::opCLOSEPLAY(byte **buffer) { warning("opCLOSEPLAY"); }
 void CastlxEngine::opPALETTE(byte **buffer) { warning("opPALETTE"); }
 
 void CastlxEngine::opSETCOLORPLAY(byte **buffer) { warning("opSETCOLORPLAY"); }
+
 /**
  * @brief Opcode: switch between back and front screen buffer
  * @param buffer (not used)
 */
 void CastlxEngine::opSWITCH(byte **buffer) {
-	warning("STUB opSWITCH");
+	switchSurfaceBuffers();
 }
 
 void CastlxEngine::opMODEPLAY(byte **buffer) { warning("opMODEPLAY"); }
@@ -710,7 +950,7 @@ void CastlxEngine::opGAME(byte **buffer) {
 	++_mouseCursorVisible;
 
 	if (index == 0) {
-		sub12C73();
+		resetDisplayStringList();
 		sub12279();
 	}
 
@@ -718,7 +958,7 @@ void CastlxEngine::opGAME(byte **buffer) {
 
 	if (index == 0) {
 		handleSoundOff();
-		displayMessageUselessAction();
+		setBackgroundHotspot();
 		--_mouseCursorVisible;
 	}
 }
@@ -746,8 +986,53 @@ void CastlxEngine::handleExitRoom() {
 	warning("STUB handleExitRoom");
 }
 
-void CastlxEngine::sub1E033(int i, int i1, int i2, int i3) {
-	warning("STUB sub1E033");
+byte CastlxEngine::sub1DF1D(int param1) {
+	warning("STUB - sub1DF1D %d (sound?)", param1);
+	return 0;
+}
+
+byte CastlxEngine::sub1DFD0(int param1, int param2) {
+	warning("STUB - sub1DFD0 %d %d (sound?)", param1, param2);
+	return 0;
+}
+
+byte CastlxEngine::sub1DF8F() {
+	warning("STUB - sub1DF8F (sound?)");
+	return 0;
+}
+
+byte CastlxEngine::sub1DFC0(int param1, int param2, int param3) {
+	warning("STUB - sub1DFC0 %d %d %d (sound?)", param1, param2, param3);
+	return 0;
+}
+
+byte CastlxEngine::sub1DFDD(int param1, int param2, int param3) {
+	warning("STUB - sub1DFDD %d %d %d (sound?)", param1, param2, param3);
+	return 0;
+}
+
+byte CastlxEngine::sub1E01E() {
+	warning("STUB - sub1E01E (sound?)");
+	return 0;
+}
+
+byte CastlxEngine::sub1E033(int type, int param1, int param2, int param3) {
+	switch (type) {
+	case 0:
+		return sub1DF1D(param1);
+	case 1:
+		return sub1DFD0(param1, param2);		
+	case 2:
+		return sub1DF8F();
+	case 3:
+		return sub1DFC0(param1, param2, param3);
+	case 4:
+		return sub1DFDD(param1, param2, param3);
+	case 5:
+		return sub1E01E();
+	default:
+		error("sub1E033 - unexpected type");
+	}
 }
 
 void CastlxEngine::sub126AE() {
@@ -1288,8 +1573,8 @@ void CastlxEngine::setDisplayStringQueueIdTo0() {
 }
 
 Common::Error CastlxEngine::run() {
-	// Initialize 320x200 paletted graphics mode
-	initGraphics(320, 200);
+	// Initialize 640x400 paletted graphics mode
+	initGraphics(640, 400);
 	_screen = new Graphics::Screen();
 	_rnd.setSeed(g_system->getMillis()); // Kick random number generator
 
@@ -1305,13 +1590,14 @@ Common::Error CastlxEngine::run() {
 	initHardcodedLogic();
 	
 	initMouse(0, 0, 629, 399);
-	setMousePosition(320, 100);
-
+	setMousePosition(640, 100);
+	initDisplayMode();
+	
 	/*
-	sub1AC52();
 	sub1AC99();
-	sub1E033();
 	*/
+
+	_byte2C0BF = sub1E033(0, 0, -1,-1);
 	
 	Common::String filename = "SONG0.OUT";
 	_song0 = loadFile(filename);
@@ -1325,8 +1611,8 @@ Common::Error CastlxEngine::run() {
 	handleGst(&_word2A302);
 	
 	// Draw a series of boxes on screen as a sample
-	for (int i = 0; i < 100; ++i)
-		_screen->frameRect(Common::Rect(i, i, 320 - i, 200 - i), i);
+	for (int i = 0; i < 120; ++i)
+		_screen->frameRect(Common::Rect(i, i, 640 - i, 400 - i), i);
 	_screen->update();
 
 	// Simple event handling loop
