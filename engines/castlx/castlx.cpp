@@ -492,6 +492,9 @@ void CastlxEngine::sub1B3B1(SpriteCtrl *spriteCtrl) {
 
 	byte *curSprite = &curBankPtr[startPos];
 	uint32 sign = READ_LE_UINT32(curSprite);
+	if (sign != MKTAG('N', 'E', 'X', 'T'))
+		error("Invalid signature");
+
 	uint16 posY = READ_LE_UINT32(curSprite + 4);
 	uint16 posX = READ_LE_UINT32(curSprite + 6);
 	uint16 height = READ_LE_UINT32(curSprite + 8);
@@ -820,14 +823,7 @@ void CastlxEngine::opLOADSPR(byte **buffer) {
 
 	--index;
 	_spritePtr[index] = loadFile(_filename);
-	uint16 stopVal = READ_LE_UINT16(_spritePtr[index]);
-	for (int i = 0; i < stopVal; i += 8) {
-		uint16 unkVal0 = READ_LE_UINT16(&_spritePtr[index][i + 0]);
-		uint16 unkVal1 = READ_LE_UINT16(&_spritePtr[index][i + 2]);
-		uint16 unkVal2 = READ_LE_UINT16(&_spritePtr[index][i + 4]);
-		uint16 unkVal3 = READ_LE_UINT16(&_spritePtr[index][i + 6]);
-		warning("sprite %d - start pos %d params- %d - %d - %d", i / 8, unkVal0, unkVal1, unkVal2, unkVal3);
-	}
+
 	warning("opLOADSPR - Weird set of _backGroundImgPtr");
 }
 
