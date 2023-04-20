@@ -126,6 +126,7 @@ CastlxEngine::CastlxEngine(OSystem *syst, const ADGameDescription *gameDesc) : E
 	_byte1EFF0 = 0;
 	_byte1F49D = 0;
 	_word1913C = false;
+	_word2C7D0 = 0;
 	
 	_message2871.init(35, Common::String("L'utilisation de cet objet ne déclenche rien de spécial.ÿRIEN"));
 }
@@ -303,6 +304,7 @@ void CastlxEngine::fadeOutPalette2(byte *palPtr) {
 		waitRetrace();
 		setPartialPalette(_unkPalette2);
 	}
+	
 }
 
 void CastlxEngine::loadImgFile(Common::String &filename) {
@@ -483,8 +485,59 @@ void CastlxEngine::sub10FC9() {
 	warning("STUB - sub10FC9");
 }
 
-void CastlxEngine::sub1B1A4(int param1, int param2, int param3, byte *str) {
-	warning("STUB sub1B1A4 (display sprite)");
+void CastlxEngine::sub1B3B1(SpriteCtrl *spriteCtrl) {
+	byte *curBankPtr = _spritePtr[spriteCtrl->_spriteBank - 1];
+	uint16 startPos = READ_LE_UINT16(&curBankPtr[8 * spriteCtrl->_spriteId]);
+	uint16 size = READ_LE_UINT16(&curBankPtr[8 * spriteCtrl->_spriteId] + 4) * READ_LE_UINT16(&curBankPtr[8 * spriteCtrl->_spriteId] + 6);
+
+	byte *curSprite = &curBankPtr[startPos];
+	uint32 sign = READ_LE_UINT32(curSprite);
+	uint16 posY = READ_LE_UINT32(curSprite + 4);
+	uint16 posX = READ_LE_UINT32(curSprite + 6);
+	uint16 height = READ_LE_UINT32(curSprite + 8);
+	uint16 width = READ_LE_UINT32(curSprite + 10);
+
+	byte *curPtr = curSprite + 12;
+
+	byte *dest = (byte *)_surface1->getBasePtr(0, 0);
+	
+	for (int plane = 0; plane != 4; ++plane) {
+		for (int y = 0; y != height; ++y) {
+			for (int x = 0; x != width / 4; ++x) {
+				int dst = 640 * (posY + y) + 4 * (posX / 2 + 2 * x) + plane * 2;
+				uint8 c = *curPtr++;
+				if (c)
+					dest[dst + 0] = dest[dst + 1] = c;
+			}
+		}
+	}
+	
+	_surface1->setPixels(dest);
+	_surface2->setPixels(dest);
+
+	_system->copyRectToScreen((uint8 *)_surface1->getPixels(), _surface1->pitch, 0, 0, 640, 400);
+	_system->updateScreen();
+}
+
+// ax = sprite Idx, bx = sprite bank
+void CastlxEngine::sub1B1DC(int16 ax, int16 bx, int16 cx, uint16 dx) {
+	warning("STUB sub1B1DC");
+	warning("ax %d bx %d cx %d dx %d word2C7D0", ax, bx, cx, dx);
+	_spriteCtrl._field0 = _word2C7D0;
+	_spriteCtrl._param1 = dx;
+	_spriteCtrl._param2 = cx;
+	_spriteCtrl._spriteId = ax;
+	_spriteCtrl._spriteBank = bx;
+
+	sub1B3B1(&_spriteCtrl);
+}
+
+// ax = sprite Idx, bx = sprite bank
+void CastlxEngine::sub1B1A4(int16 ax, int16 bx, int16 cx, int16 dx) {
+	Graphics::Surface *tmpSurface = _surface1;
+	_surface1 = _surface2;
+	sub1B1DC(ax, bx, cx, dx);
+	_surface1 = tmpSurface;	
 }
 
 int CastlxEngine::getRandom(int max) {
@@ -767,9 +820,13 @@ void CastlxEngine::opLOADSPR(byte **buffer) {
 
 	--index;
 	_spritePtr[index] = loadFile(_filename);
-	for (int i = 2; i < 10; i += 2) {
-		int16 unkVal = READ_LE_INT16(&_spritePtr[index][i]);
-		warning("sprite %d - val %d", i / 2, unkVal);
+	uint16 stopVal = READ_LE_UINT16(_spritePtr[index]);
+	for (int i = 0; i < stopVal; i += 8) {
+		uint16 unkVal0 = READ_LE_UINT16(&_spritePtr[index][i + 0]);
+		uint16 unkVal1 = READ_LE_UINT16(&_spritePtr[index][i + 2]);
+		uint16 unkVal2 = READ_LE_UINT16(&_spritePtr[index][i + 4]);
+		uint16 unkVal3 = READ_LE_UINT16(&_spritePtr[index][i + 6]);
+		warning("sprite %d - start pos %d params- %d - %d - %d", i / 8, unkVal0, unkVal1, unkVal2, unkVal3);
 	}
 	warning("opLOADSPR - Weird set of _backGroundImgPtr");
 }
@@ -917,17 +974,17 @@ void CastlxEngine::opAFFSPRITEV(byte **buffer) {
 	skipNoiseInString(buffer);
 	int param2 = parseString(buffer);
 	skipNoiseInString(buffer);
-	int param3 = parseString(buffer);
+	int spriteId = parseString(buffer);
 	skipNoiseInString(buffer);
-	int param4 = parseString(buffer);
+	int spriteBank = parseString(buffer);
 	if (skipNoiseInString(buffer))
 		_byte1E7EA = parseString(buffer);
 	else
 		_byte1E7EA = 0;
 
-	warning("opAFFSPRITEV %d %d %d index: %d [%d]", param1, param2, param3, param4, _byte1E7EA);
+	warning("opAFFSPRITEV %d %d %d index: %d [%d]", param1, param2, spriteId, spriteBank, _byte1E7EA);
 	
-	sub1B1A4(param1, param2, param3, _spritePtr[param4]);
+	sub1B1A4(spriteId, spriteBank, param2, param1);
 }
 void CastlxEngine::opAFFSPRITEF(byte **buffer) { warning("opAFFSPRITEF"); }
 void CastlxEngine::opMODESPRITE(byte **buffer) { warning("opMODESPRITE"); }
@@ -1184,8 +1241,8 @@ void CastlxEngine::initOpcodes() {
 }
 
 void CastlxEngine::hlInit() {
-	warning("STUB hlInit");
 	int room = _defineArray[0]._value;
+	warning("hlInit %d", room);
 	switch (room) {
 	case 0:
 		initRoom00();

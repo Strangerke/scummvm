@@ -69,6 +69,19 @@ struct Message {
 	void init(uint8 param3, Common::String msg) { _field3 = param3;  _detail = msg; };
 };
 
+struct SpriteCtrl {
+	int16 _field0;
+	int16 _param1;
+	int16 _param2;
+	int16 _spriteId;
+	int16 _spriteBank;
+
+	SpriteCtrl() {
+		_field0 = -1;
+		_param1 = _param2 = _spriteId = _spriteBank = -1;
+	}
+};
+
 typedef void (CastlxEngine::*OpcodePtr)(byte **buffer);
 typedef void (CastlxEngine::*HardcodedLogic)();
 
@@ -150,6 +163,8 @@ private:
 	byte _byte1F49D;
 	uint16 _word19144 = 0;
 	bool _word1913C;
+	SpriteCtrl _spriteCtrl;
+	int16 _word2C7D0;
 	
 	Message _message2871;
 
@@ -179,7 +194,9 @@ private:
 	void sub1114D(byte *screen, byte *buffer);
 	void sub11475(byte *screen2, byte *screen1);
 	void sub10FC9();
-	void sub1B1A4(int param1, int param2, int param3, byte *str);
+	void sub1B3B1(SpriteCtrl * spriteCtrl);
+	void sub1B1DC(int16 ax, int16 bx, int16 cx, uint16 dx);
+	void sub1B1A4(int16 ax, int16 bx, int16 cx, int16 dx);
 	int getRandom(int max);
 	void waitForMouseClick();
 	void initDisplayMode();
