@@ -42,53 +42,30 @@ struct DisplayStringQueue {
 	int16 _id;
 	int16 _posX;
 	int16 _posY;
-	void *_unkPtr;
+	Common::String _message;
 	void *_headerPtr;
 
 	DisplayStringQueue() {
 		_id = _posX = _posY = 0;
-		_unkPtr = _headerPtr = nullptr;
+		_message = "";
+		_headerPtr = nullptr;
 	}
 };
 
-struct HotspotMessage {
+struct DisplMessage {
 	uint16 _field1;
 	uint8 _field2;
 
 	uint8 _field3;
 	Common::String _detail;
 
-	HotspotMessage() {
+	DisplMessage() {
 		_field1 = 0;
 		_field2 = _field3 = 0;
 		_detail = "";
 	}
 	void setParam(uint16 param1, uint8 param2) { _field1 = param1; _field2 = param2; };
 	void init(uint8 param3, Common::String msg) { _field3 = param3;  _detail = msg; };
-};
-
-struct InfoMessage {
-	uint16 _field1;
-	uint8 _field2;
-
-	uint8 _field3;
-	uint8 _field4;
-	Common::String _detail;
-
-	InfoMessage() {
-		_field1 = 0;
-		_field2 = _field3 = _field4 = 0;
-		_detail = "";
-	}
-	void setParam(uint16 param1, uint8 param2) {
-		_field1 = param1;
-		_field2 = param2;
-	};
-	void init(uint8 param3, uint8 param4, Common::String msg) {
-		_field3 = param3;
-		_field4 = param4;
-		_detail = msg;
-	};
 };
 
 struct SpriteCtrl {
@@ -127,7 +104,9 @@ private:
 	const ADGameDescription *_gameDescription;
 	Common::RandomSource _rnd;
 
-	Graphics::Surface *_surface1, *_surface2; 
+	Graphics::Surface *_surfaceF, *_surfaceV;
+	Graphics::Surface *_surfaceB;
+
 	byte *_gstPtr;
 	byte *_curGstPtr;
 	byte *_song0;
@@ -161,11 +140,8 @@ private:
 	byte _byte1C198[256];
 	int _flagEnableHotspots;
 	int _mouseButtonStatus;
-	int _word113C8, _word113CA;
-	int _word113CC, _word113CE;
-	byte *_word1E0B0_screenPtr1;
-	byte *_word1E0B2_screenPtr2;
-	byte *_word1E0B6;
+	int _opCopyMinY, _opCopyMinX;
+	int _opCopyMaxY, _opCopyMaxX;
 	byte _byte1E7EA;
 	int _int8Counter3;
 	byte _byte2C0BC;
@@ -192,9 +168,10 @@ private:
 	SpriteCtrl _spriteCtrl;
 	int16 _boundaryType;
 	
-	HotspotMessage _hotspot2871;
-	InfoMessage _infoC068;
-	InfoMessage _infoC0DA;
+	DisplMessage _hotspot2871;
+
+	DisplMessage _infoC068;
+	DisplMessage _infoC0DA;
 
 	int skipNoiseInString(byte **bufferPtr);
 	void skipEndOfLine(byte **buffer);
@@ -207,25 +184,25 @@ private:
 	void loadImgFile(Common::String &filename);
 	void loadImgToSurface(byte *imgBuffer, Graphics::Surface *surface);
 	void sub1C2B0();
-	void sub19306(void *ptr, int16 posX, int16 poxY);
+	void sub19306(Common::String message, int16 posX, int16 poxY);
 	void resetDisplayStringList();
 	void sub1228A();
 	void sub12279();
 	void handleSoundOff();
 	bool checkHotspot(int ax, int bx, int cx, int dx);
-	bool setDisplayStringQueue(int16 di, int16 cx, int16 dx, HotspotMessage *message, byte *bp);
+	bool setDisplayStringQueue(int16 di, int16 cx, int16 dx, Common::String message, DisplMessage *bp);
 	int16 sub12D4C(int16 si);
-	void sub1918D(int16 si, int16 cx, int16 dx);
-	void sub1915D(int16 si, int16 cx, int16 dx);
-	void addHotSpotUseObjectOn(int16 ax, int16 bx, int16 cx, int16 dx, HotspotMessage *message, byte *bp);
+	void sub1918D(Common::String si, int16 cx, int16 dx);
+	void sub1915D(Common::String si, int16 cx, int16 dx);
+	void addHotSpotUseObjectOn(int16 ax, int16 bx, int16 cx, int16 dx, DisplMessage *message, DisplMessage *bp);
 	void setBackgroundHotspot();
-	void sub1114D(byte *screen, byte *buffer);
-	void sub11475(byte *screen2, byte *screen1);
+	void opCopySurface(Graphics::Surface *src, Graphics::Surface *dest);
+	void sub11475(Graphics::Surface *screen2, Graphics::Surface *screen1);
 	void sub10FC9();
 	void setSpriteBlitBoundaries();
-	void blitSpriteCtrlOnSurface1(SpriteCtrl * spriteCtrl);
-	void setSpriteCtrlAndBlitOnSurface1(int16 ax, int16 bx, int16 cx, uint16 dx);
-	void setSpriteCtrlAndBlitOnSurface2(int16 ax, int16 bx, int16 cx, int16 dx);
+	void blitSpriteCtrlOnSurfaceF(SpriteCtrl * spriteCtrl);
+	void setSpriteCtrlAndBlitOnSurfaceF(int16 ax, int16 bx, int16 cx, uint16 dx);
+	void setSpriteCtrlAndBlitOnSurfaceV(int16 ax, int16 bx, int16 cx, int16 dx);
 	int getRandom(int max);
 	void cleanEvents();
 	void getEvents();
@@ -233,9 +210,9 @@ private:
 	void switchSurfaceBuffers();
 	void initMouse(int16 minX, int16 minY, int16 width, int16 height);
 	void setMousePosition(int16 cx, int16 dx);
-	void sub11104(byte *byteArr, Graphics::Surface *surface);
+	void sub11104(Graphics::Surface *byteArr, Graphics::Surface *surface);
 	void sub10902();
-	void displayInfoMessage(const InfoMessage &info_message, uint16 cx, uint16 dx);
+	void displayInfoMessage(DisplMessage *info_message, uint16 cx, uint16 dx);
 	void sub12CAF();
 
 	
@@ -347,7 +324,7 @@ private:
 	void initOpcodes();
 	void initHardcodedLogic();
 	void loadGst(int fileNumber);
-	void sub19A16();
+	void checkExit();
 	void sub1024E();
 	void handleGst(byte **buffer);
 
