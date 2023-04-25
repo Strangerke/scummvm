@@ -683,9 +683,66 @@ void CastlxEngine::displayInfoMessage(DisplMessage *info, uint16 cx, uint16 dx) 
 
 	sub1915D(info->_detail, cx, dx);
 	
-	const Graphics::Font *font = FontMan.getFontByUsage(Graphics::FontManager::kConsoleFont);
-	int width = font->getStringWidth(info->_detail.c_str()); 
-	font->drawString(_surfaceF, info->_detail, cx, dx, width, 0);
+	const Graphics::Font *font = FontMan.getFontByUsage(Graphics::FontManager::kBigGUIFont);
+
+	const char *head = info->_detail.c_str();
+	const char *ptr = head;
+	int lineCtr = 1;
+	int maxLength = 0;
+	Common::String curLine = "";
+	while (*ptr) {
+		if (*ptr == '$') {
+			++lineCtr;
+			int len = font->getStringWidth(curLine);
+			warning("%s -> %d", curLine.c_str(), len);
+			curLine.trim();
+			warning("Trimmed: %s -> %d (%d)", curLine.c_str(), font->getStringWidth(curLine), font->getFontHeight());
+			if (len > maxLength)
+				maxLength = len;
+			curLine = "";
+		} else if (*ptr == -1) {
+			warning("ÿ found");
+			break;
+		} else {
+			curLine += *ptr;
+		}
+		++ptr;
+	}
+
+	int posX = cx * 2;
+	int posY = dx;
+	int delta = 0;
+	int color = 0xFF;
+	if (_displayMessageRect) {
+		delta = 10;
+		// +2 and -2 are used to cut corner
+		_surfaceF->drawLine(posX + 2, posY, posX + maxLength + delta - 1, posY, color);
+		_surfaceF->drawLine(posX + 2, posY + lineCtr * font->getFontHeight(), posX + maxLength + delta - 1, posY + lineCtr * font->getFontHeight(), color);
+		// vertical line are doubled
+		_surfaceF->drawLine(posX, posY + 1, posX, posY + -1 + lineCtr * font->getFontHeight(), color);
+		_surfaceF->drawLine(posX + 1, posY + 1, posX + 1, posY - 1 + lineCtr * font->getFontHeight(), color);
+		_surfaceF->drawLine(posX + delta + maxLength, posY + 1, posX + delta + maxLength, posY + -1 + lineCtr * font->getFontHeight(), color);
+		_surfaceF->drawLine(posX + delta + maxLength + 1, posY + 1, posX + delta + maxLength + 1, posY - 1 + lineCtr * font->getFontHeight(), color);
+	}
+	
+	lineCtr = 0;
+	ptr = head;
+	posX += delta / 2;
+	while (*ptr) {
+		if (*ptr == '$') {
+			font->drawString(_surfaceF, curLine, posX, posY + lineCtr * font->getFontHeight(), font->getStringWidth(curLine), color);
+			curLine = "";
+			++lineCtr;
+		} else if (*ptr == -1) {
+			break;
+		} else {
+			curLine += *ptr;
+		}
+		++ptr;
+	}
+	
+	_system->copyRectToScreen((const byte *)_surfaceF->getBasePtr(0, 0), _surfaceF->pitch, 0, 0, 640, 400);
+	_system->updateScreen();
 }
 
 void CastlxEngine::sub12CAF() {
