@@ -289,7 +289,7 @@ void CastlxEngine::setPartialPalette(byte *palette) {
  * @brief Fade from black to _unkPalette2 using _unkPalette3
 */
 void CastlxEngine::fadeInPalette2() {
-	debug("fadeInPalette2");
+	debugC(5, kDebugGraphics, "fadeInPalette2");
 
 	int start = _paletteFctStart * 3;
 	int counter = _paletteFctCounter * 3;
@@ -307,7 +307,7 @@ void CastlxEngine::fadeInPalette2() {
  * @param palPtr 
 */
 void CastlxEngine::fadeOutPalette2(byte *palPtr) {
-	warning("fadeOutPalette2");
+	debugC(5, kDebugGraphics, "fadeOutPalette2");
 	int start = _paletteFctStart * 3;
 	int counter = _paletteFctCounter * 3;
 	for (int16 factor = 0; factor <= 256; factor += 8) {
@@ -499,7 +499,7 @@ void CastlxEngine::setBackgroundHotspot() {
 }
 
 void CastlxEngine::opCopySurface(Graphics::Surface *src, Graphics::Surface *dest) {
-	warning("STUB - opCopySurface");
+	debugC(5, kDebugGraphics, "opCopySurface");
 	byte *srcPtr = (byte *)src->getBasePtr(_opCopyMinX, _opCopyMinY);
 	byte *destPtr = (byte *)dest->getBasePtr(_opCopyMinX, _opCopyMinY);
 
@@ -511,16 +511,8 @@ void CastlxEngine::opCopySurface(Graphics::Surface *src, Graphics::Surface *dest
 	}	
 }
 
-void CastlxEngine::sub11475(Graphics::Surface *screen2, Graphics::Surface *screen1) {
-	warning("STUB - sub11475");
-}
-
-void CastlxEngine::sub10FC9() {
-	warning("STUB - sub10FC9");
-}
-
 void CastlxEngine::setSpriteBlitBoundaries(int16 type) {
-	warning("setSpriteBlitBoundaries");
+	debugC(5, kDebugGraphics, "setSpriteBlitBoundaries");
 
 	switch (type) {
 	case 1:
@@ -590,7 +582,6 @@ void CastlxEngine::blitSpriteCtrlOnSurfaceF(SpriteCtrl *spriteCtrl) {
 	}
 	
 	_surfaceF->setPixels(dest);
-//	_surfaceV->setPixels(dest);
 
 	_system->copyRectToScreen((uint8 *)_surfaceF->getPixels(), _surfaceF->pitch, 0, 0, 640, 400);
 	_system->updateScreen();
@@ -598,7 +589,7 @@ void CastlxEngine::blitSpriteCtrlOnSurfaceF(SpriteCtrl *spriteCtrl) {
 
 // ax = sprite Idx, bx = sprite bank
 void CastlxEngine::setSpriteCtrlAndBlitOnSurfaceF(int16 ax, int16 bx, int16 cx, uint16 dx) {
-	warning("setSpriteCtrlAndBlitOnSurfaceF ax %d bx %d cx %d dx %d word2C7D0", ax, bx, cx, dx);
+	debugC(5, kDebugGraphics, "setSpriteCtrlAndBlitOnSurfaceF ax %d bx %d cx %d dx %d", ax, bx, cx, dx);
 	_spriteCtrl._boundaryType = _boundaryType;
 	_spriteCtrl._param1 = dx;
 	_spriteCtrl._param2 = cx;
@@ -675,7 +666,7 @@ void CastlxEngine::initDisplayMode() {
 }
 
 void CastlxEngine::switchSurfaceBuffers() {
-	warning("Switch surface buffers");
+	debugC(5, kDebugGraphics, "SwitchSurfaceBuffers");
 	SWAP(_surfaceF, _surfaceV);
 	_system->copyRectToScreen((const byte *)_surfaceF->getBasePtr(0, 0), _surfaceF->pitch, 0, 0, 640, 400);
 	_system->updateScreen();
@@ -747,14 +738,12 @@ void CastlxEngine::displayInfoMessage(DisplMessage *info, uint16 cx, uint16 dx) 
 		if (*ptr == '$') {
 			++lineCtr;
 			int len = font->getStringWidth(curLine);
-			warning("%s -> %d", curLine.c_str(), len);
 			curLine.trim();
-			warning("Trimmed: %s -> %d (%d)", curLine.c_str(), font->getStringWidth(curLine), font->getFontHeight());
 			if (len > maxLength)
 				maxLength = len;
 			curLine = "";
 		} else if (*ptr == -1) {
-			warning("ÿ found");
+			warning("split found (header?) -1/0xFF");
 			break;
 		} else {
 			curLine += *ptr;
@@ -813,7 +802,7 @@ void CastlxEngine::opLOADIMG(byte **buffer) {
 	}
 	loadImgFile(_filename);
 
-	debug("opLOADIMG %s", _filename.c_str());
+	debugC(5,kDebugScript, "opLOADIMG %s", _filename.c_str());
 	loadImgToSurface(_backgroundImgPtr, _surfaceF);
 }
 
@@ -830,7 +819,7 @@ void CastlxEngine::opOTEPALETTE(byte **buffer) {
 		skipNoiseInString(buffer);
 		_paletteFctCounter = parseString(buffer);
 		fadeInPalette2();
-		debug("opOTEPALETTE %d %d", _paletteFctStart, _paletteFctCounter);
+		debugC(5, kDebugScript, "opOTEPALETTE %d %d", _paletteFctStart, _paletteFctCounter);
 	} else {
 		warning("opOTEPALETTE - STUB");
 	}
@@ -849,7 +838,7 @@ void CastlxEngine::opMETPALETTE(byte **buffer) {
 		skipNoiseInString(buffer);
 		_paletteFctCounter = parseString(buffer);
 	}
-	debug("opMETPALETTE %d %d", _paletteFctStart, _paletteFctCounter);
+	debugC(5, kDebugScript, "opMETPALETTE %d %d", _paletteFctStart, _paletteFctCounter);
 	fadeOutPalette2(&_unkPalette[_paletteFctStart * 3]);
 }
 
@@ -863,7 +852,7 @@ void CastlxEngine::opDEF(byte **bufferPtr) {
 	skipNoiseInString(bufferPtr);
 	_defineArray[index]._name = copyBuffer(bufferPtr);
 
-	debug("opDEF - %d %s", index, _defineArray[index]._name.c_str());
+	debugC(5, kDebugScript, "opDEF - %d %s", index, _defineArray[index]._name.c_str());
 }
 
 /**
@@ -878,7 +867,7 @@ void CastlxEngine::opNAME(byte **buffer) {
 
 	_defineArray[index]._value = value;
 
-	warning("opNAME - keyword found at id %d,set value to %d", index, value);
+	debugC(5, kDebugScript, "opNAME - index %d set to %d", index, value);
 }
 
 void CastlxEngine::opIF(byte **buffer) { warning("opIF"); }
@@ -893,7 +882,7 @@ void CastlxEngine::opLabel(byte **buffer) { warning("opLabel"); }
 void CastlxEngine::opJUMP(byte **buffer) {
 	skipNoiseInString(buffer);
 	Common::String targetLabel = copyBuffer(buffer);
-	warning("opJUMP %s", targetLabel.c_str());
+	debugC(5, kDebugScript,"opJUMP %s", targetLabel.c_str());
 	if (targetLabel.equalsIgnoreCase(_label._keyword))
 		*buffer = _label._gstLabelPtr;
 	else
@@ -913,7 +902,7 @@ void CastlxEngine::opTIMER(byte **buffer) {
 	skipNoiseInString(buffer);
 	int delay = parseString(buffer);
 	_int8Counter3 = delay;
-	warning("opTIMER %d", delay);
+	debugC(5, kDebugScript, "opTIMER %d", delay);
 }
 
 /**
@@ -925,7 +914,7 @@ void CastlxEngine::opWAIT(byte **buffer) {
 	int target = parseString(buffer);
 
 	if (_int8Counter3 <= target) {
-		warning("opWAIT - Condition not met %d > %d", _int8Counter3, target);
+		debugC(5, kDebugScript, "opWAIT - Condition not met %d > %d", _int8Counter3, target);
 		_int8Counter3 += 10;
 		return;
 	}
@@ -982,7 +971,7 @@ void CastlxEngine::opLOADSPR(byte **buffer) {
 		warning("opLOADSPR params not set");
 	}
 
-	warning("opLOADSPR %s %d", _filename.c_str(), index);
+	debugC(5, kDebugScript, "opLOADSPR %s %d", _filename.c_str(), index);
 
 	--index;
 	_spritePtr[index] = loadFile(_filename);
@@ -1028,7 +1017,7 @@ void CastlxEngine::opRAZSPR(byte **buffer) {
 	_spritePtr[index] = ptr;
 	_backgroundImgPtr = ptr;
 
-	debug("opRAZSPR %d", index);
+	debugC(5, kDebugScript, "opRAZSPR %d", index);
 }
 
 void CastlxEngine::opPALNOIR(byte **buffer) { warning("opPALNOIR"); }
@@ -1064,7 +1053,7 @@ void CastlxEngine::opLOADPALETTE(byte **buffer) {
 		_unkPalette[i++] = col;
 	}
 	_paletteFctStart = 0;
-	warning("opLOADPALETTE %d %s", param, _filename.c_str());
+	debugC(5,kDebugScript, "opLOADPALETTE %d %s", param, _filename.c_str());
 	delete[] palette;
 }
 
@@ -1106,10 +1095,8 @@ void CastlxEngine::opCOPYVF(byte **buffer) {
 		_opCopyMinX *= 2;
 		_opCopyMaxX *= 2;
 	}
-	warning("opCOPYVF %d %d %d %d", _opCopyMinY, _opCopyMinX, _opCopyMaxY, _opCopyMaxX);
-//	sub11475(_surfaceV, _surfaceF);
+	debugC(5, kDebugScript, "opCOPYVF %d %d %d %d", _opCopyMinY, _opCopyMinX, _opCopyMaxY, _opCopyMaxX);
 	opCopySurface(_surfaceV, _surfaceF);
-	sub10FC9();
 }
 void CastlxEngine::opCOPYFV(byte **buffer) { warning("opCOPYFV"); }
 
@@ -1135,7 +1122,7 @@ void CastlxEngine::opCOPYVB(byte **buffer) {
 		_opCopyMaxX *= 2;
 	}
 
-	warning("opCOPYVB %d %d %d %d", _opCopyMinY, _opCopyMinX, _opCopyMaxY, _opCopyMaxX);
+	debugC(5, kDebugScript, "opCOPYVB %d %d %d %d", _opCopyMinY, _opCopyMinX, _opCopyMaxY, _opCopyMaxX);
 	opCopySurface(_surfaceV, _surfaceB);
 }
 
@@ -1161,7 +1148,7 @@ void CastlxEngine::opAFFSPRITEV(byte **buffer) {
 	else
 		_byte1E7EA = 0;
 
-	debug("opAFFSPRITEV %d %d %d index: %d [%d]", param1, param2, spriteId, spriteBank, _byte1E7EA);
+	debugC(5, kDebugScript,"opAFFSPRITEV %d %d %d index: %d [%d]", param1, param2, spriteId, spriteBank, _byte1E7EA);
 	
 	setSpriteCtrlAndBlitOnSurfaceV(spriteId, spriteBank, param2, param1);
 }
@@ -1229,7 +1216,7 @@ void CastlxEngine::opTRANSF(byte **buffer) { warning("opTRANSF"); }
  * @param buffer 
 */
 void CastlxEngine::opTRANSPARENCE(byte **buffer) {
-	warning("opTRANSPARENCE");
+	debugC(5, kDebugScript, "opTRANSPARENCE");
 	if (_mouseCursorVisible)
 		warning("opTRANSPARENCE - col1 not set");
 	else {
@@ -1606,7 +1593,7 @@ void CastlxEngine::loadGst(int fileNumber) {
 }
 
 void CastlxEngine::checkExit() {
-	debug("checkExit");
+	debugC(9, kDebugScan, "checkExit");
 	getEvents();
 
 	if (!(_lastEvent.type == Common::EVENT_KEYUP && _lastEvent.kbd.hasFlags(Common::KBD_CTRL)))
@@ -1637,7 +1624,7 @@ void CastlxEngine::handleGst(byte **buffer) {
 				comment += curByte;
 				curByte = *++_curGstPtr;
 			}
-			warning("Handle GST - Comment : %s", comment.c_str());
+			debugC(1, kDebugScript, "Handle GST - Comment : %s", comment.c_str());
 		}
 
 		if (curByte <= ' ') {

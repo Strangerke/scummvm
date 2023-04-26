@@ -31,7 +31,7 @@
 
 const DebugChannelDef CastlxMetaEngineDetection::debugFlagList[] = {
 	{ Castlx::kDebugGraphics, "Graphics", "Graphics debug level" },
-	{ Castlx::kDebugPath, "Path", "Pathfinding debug level" },
+	{ Castlx::kDebugEngine, "Path", "Engine debug level" },
 	{ Castlx::kDebugFilePath, "FilePath", "File path debug level" },
 	{ Castlx::kDebugScan, "Scan", "Scan for unrecognised games" },
 	{ Castlx::kDebugScript, "Script", "Enable debug script dump" },

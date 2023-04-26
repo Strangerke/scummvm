@@ -201,8 +201,6 @@ private:
 	void addHotSpotUseObjectOn(int16 ax, int16 bx, int16 cx, int16 dx, DisplMessage *message, DisplMessage *bp);
 	void setBackgroundHotspot();
 	void opCopySurface(Graphics::Surface *src, Graphics::Surface *dest);
-	void sub11475(Graphics::Surface *screen2, Graphics::Surface *screen1);
-	void sub10FC9();
 	void setSpriteBlitBoundaries(int16 type);
 	void blitSpriteCtrlOnSurfaceF(SpriteCtrl * spriteCtrl);
 	void setSpriteCtrlAndBlitOnSurfaceF(int16 ax, int16 bx, int16 cx, uint16 dx);
