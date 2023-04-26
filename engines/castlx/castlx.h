@@ -163,10 +163,14 @@ private:
 	
 	byte _byte1EFF0;
 	byte _byte1F49D;
-	uint16 _word19144 = 0;
+	uint16 _word19144;
+	uint16 _word19140;
+
 	bool _word1913C;
 	SpriteCtrl _spriteCtrl;
 	int16 _boundaryType;
+	int16 _word14502;
+	int16 _blitBoundaryMinX, _blitBoundaryMinY, _blitBoundaryMaxX, _blitBoundaryMaxY;
 	
 	DisplMessage _hotspot2871;
 
@@ -199,7 +203,7 @@ private:
 	void opCopySurface(Graphics::Surface *src, Graphics::Surface *dest);
 	void sub11475(Graphics::Surface *screen2, Graphics::Surface *screen1);
 	void sub10FC9();
-	void setSpriteBlitBoundaries();
+	void setSpriteBlitBoundaries(int16 type);
 	void blitSpriteCtrlOnSurfaceF(SpriteCtrl * spriteCtrl);
 	void setSpriteCtrlAndBlitOnSurfaceF(int16 ax, int16 bx, int16 cx, uint16 dx);
 	void setSpriteCtrlAndBlitOnSurfaceV(int16 ax, int16 bx, int16 cx, int16 dx);

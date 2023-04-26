@@ -127,10 +127,15 @@ CastlxEngine::CastlxEngine(OSystem *syst, const ADGameDescription *gameDesc) : E
 	
 	_byte1EFF0 = 0;
 	_byte1F49D = 0;
+	_word19144 = 0;
+	_word19140 = 0;
+	_blitBoundaryMinX = _blitBoundaryMinY = _blitBoundaryMinX = _blitBoundaryMinX = 0;
+
 	_word1913C = false;
 	_boundaryType = 0;
 
 	_ageChecked = false;
+	_word14502 = 0;
 	
 	_hotspot2871.init(35, Common::String("L'utilisation de cet objet ne déclenche rien de spécial.ÿRIEN"));
 	_infoC068.init(28, Common::String("$  Avant de commencer vous $devez nous préciser si vous$   avez plus de 18 ans ?$$    (O) Oui     (N) Non$ÿ "));
@@ -365,13 +370,18 @@ void CastlxEngine::resetDisplayStringList() {
 
 void CastlxEngine::sub1228A() {
 	warning("STUB - sub1228A");
+	if (_word14502) {
+		sub12CAF();
+	} else {
+		warning("STUB - inventory?");
+	}
 }
 
 void CastlxEngine::sub12279() {
-	warning("STUB sub12279 - Check mouse & keyboard");
+	warning("sub12279 - Check mouse click & keyboard space");
 
 	getEvents();
-	if ((_mouseButtonStatus & 2) || _keyPressed[57])
+	if (_lastEvent.type == Common::EVENT_RBUTTONDOWN || (_lastEvent.type == Common::EVENT_KEYUP && _lastEvent.kbd.keycode == Common::KEYCODE_SPACE))
 		sub1228A();
 }
 
@@ -429,7 +439,16 @@ int16 CastlxEngine::sub12D4C(int16 si) {
 }
 
 void CastlxEngine::sub1918D(Common::String si, int16 cx, int16 dx) {
-	warning("STUB - sub1918D");
+	warning("STUB - sub1918D %s %d %d", si.c_str(), cx, dx);
+	_word19144 = 0;
+	_word19140 = 0;
+
+	if (si[0] == 0)
+		return;
+
+	
+	
+	
 }
 
 void CastlxEngine::sub1915D(Common::String si, int16 cx, int16 dx) {
@@ -500,12 +519,42 @@ void CastlxEngine::sub10FC9() {
 	warning("STUB - sub10FC9");
 }
 
-void CastlxEngine::setSpriteBlitBoundaries() {
-	warning("STUB setSpriteBlitBoundaries - using word2C7D0 %d", _boundaryType);
+void CastlxEngine::setSpriteBlitBoundaries(int16 type) {
+	warning("setSpriteBlitBoundaries");
+
+	switch (type) {
+	case 1:
+		_blitBoundaryMinX = _blitBoundaryMinY = 0;
+		_blitBoundaryMaxX = 640;
+		_blitBoundaryMaxY = 400;
+		_boundaryType = 0;
+		break;		
+	case 2:
+		_blitBoundaryMinX = _blitBoundaryMinY = 0;
+		_blitBoundaryMaxX = 640;
+		_blitBoundaryMaxY = 152;
+		_boundaryType = 1;
+		break;
+	case 3:
+		_blitBoundaryMinX = _blitBoundaryMinY = 0;
+		_blitBoundaryMaxX = 640;
+		_blitBoundaryMaxY = 82;
+		_boundaryType = 2;
+		break;
+	case 4:
+		_blitBoundaryMinX = 0;
+		_blitBoundaryMinY = 100;
+		_blitBoundaryMaxX = 640;
+		_blitBoundaryMaxY = 182;
+		_boundaryType = 3;
+		break;
+	default:
+		break;
+	}
 }
 
 void CastlxEngine::blitSpriteCtrlOnSurfaceF(SpriteCtrl *spriteCtrl) {
-	setSpriteBlitBoundaries();
+	setSpriteBlitBoundaries(spriteCtrl->_boundaryType);
 	
 	byte *curBankPtr = _spritePtr[spriteCtrl->_spriteBank - 1];
 	uint16 startPos = READ_LE_UINT16(&curBankPtr[8 * spriteCtrl->_spriteId]);
@@ -521,6 +570,10 @@ void CastlxEngine::blitSpriteCtrlOnSurfaceF(SpriteCtrl *spriteCtrl) {
 	uint16 height = READ_LE_UINT32(curSprite + 8);
 	uint16 width = READ_LE_UINT32(curSprite + 10);
 
+	// Will be used later for boundaries
+	spriteCtrl->_param1 = posY;
+	spriteCtrl->_param2 = posX;
+	
 	byte *curPtr = curSprite + 12;
 
 	byte *dest = (byte *)_surfaceF->getBasePtr(0, 0);
