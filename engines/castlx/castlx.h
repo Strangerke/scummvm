@@ -135,9 +135,9 @@ private:
 	byte _unkPalette[768];
 	byte _unkPalette2[768];
 	byte _unkPalette3[768];
-	byte _unkCol1[3];
+	byte _blendingCol1[3];
 	byte _unkCol2[3];
-	byte _byte1C198[256];
+	byte _blending1Map[256];
 	int _flagEnableHotspots;
 	int _mouseButtonStatus;
 	int _opCopyMinY, _opCopyMinX;
@@ -187,7 +187,7 @@ private:
 	void fadeOutPalette2(byte *palPtr);
 	void loadImgFile(Common::String &filename);
 	void loadImgToSurface(byte *imgBuffer, Graphics::Surface *surface);
-	void sub1C2B0();
+	void createTransparencyMapping();
 	void sub19306(Common::String message, int16 posX, int16 poxY);
 	void resetDisplayStringList();
 	void sub1228A();

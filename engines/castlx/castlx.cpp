@@ -91,8 +91,8 @@ CastlxEngine::CastlxEngine(OSystem *syst, const ADGameDescription *gameDesc) : E
 	}
 
 	for (int i = 0; i < 3; ++i) {
-		_unkCol1[i] = 0;
-		_unkCol2[i] = 0;
+		_blendingCol1[i] = 60;
+		_unkCol2[i] = 60;
 	}
 
 	_flagEnableHotspots = 0;
@@ -117,7 +117,7 @@ CastlxEngine::CastlxEngine(OSystem *syst, const ADGameDescription *gameDesc) : E
 	_displayMessageRect = 0;
 	
 	for (int i = 0; i < 256; ++i)
-		_byte1C198[i] = 0;
+		_blending1Map[i] = 0;
 	_byte2C0BF = 0;
 
 	_hotspotX = _hotspotY = 0;
@@ -346,8 +346,38 @@ void CastlxEngine::loadImgToSurface(byte *imgBuffer, Graphics::Surface *surface)
 	_system->copyRectToScreen((uint8 *)surface->getPixels(), surface->pitch, 0, 0, 640, 400);
 }
 
-void CastlxEngine::sub1C2B0() {
-	warning("STUB - sub1C2B0 (transparency)");
+void CastlxEngine::createTransparencyMapping() {
+	warning("createTransparencyMapping");
+	for (int i = 0; i < 3; ++i)
+		_unkCol2[i] = _blendingCol1[i];
+
+	for (int i = 0; i < 256; ++i) {
+		int _newCol1 = (_unkPalette2[3 * i] * _blendingCol1[0]) >> 8;
+		int _newCol2 = (_unkPalette2[3 * i+ 1] * _blendingCol1[1]) >> 8;
+		int _newCol3 = (_unkPalette2[3 * i + 2] * _blendingCol1[2]) >> 8;
+		int bl = i;
+		int dl = 255;
+		int dh = 0;
+		
+		for (int j = 0; j < 256; ++j) {
+			int ah = abs(_unkPalette2[3 * j] - _newCol1);
+			int bh = abs(_unkPalette2[3 * j + 1] - _newCol2);
+			int ch = abs(_unkPalette2[3 * j + 2] - _newCol3);
+
+			int al = ah;
+			if (al < bh)
+				al = bh;
+			if (al < ch)
+				al = ch;
+
+			if (al < dl) {
+				bl = j;
+				dl = al;
+			}
+		}		
+
+		_blending1Map[i] = bl;
+	}
 }
 
 void CastlxEngine::sub19306(Common::String ptr, int16 posX, int16 poxY) {
@@ -765,6 +795,14 @@ void CastlxEngine::displayInfoMessage(DisplMessage *info, uint16 cx, uint16 dx) 
 		_surfaceF->drawLine(posX + 1, posY + 1, posX + 1, posY - 1 + lineCtr * font->getFontHeight(), color);
 		_surfaceF->drawLine(posX + delta + maxLength, posY + 1, posX + delta + maxLength, posY + -1 + lineCtr * font->getFontHeight(), color);
 		_surfaceF->drawLine(posX + delta + maxLength + 1, posY + 1, posX + delta + maxLength + 1, posY - 1 + lineCtr * font->getFontHeight(), color);
+	}
+
+	// Add Blending effect
+	for (int y = posY + 1; y < posY + lineCtr * font->getFontHeight(); ++y) {
+		byte *destLine = (byte *)_surfaceF->getBasePtr(0, y);
+		for (int x = posX + 2; x < posX + delta + maxLength; ++x) {
+			destLine[x] = _blending1Map[destLine[x]];
+		}
 	}
 	
 	lineCtr = 0;
@@ -1220,12 +1258,12 @@ void CastlxEngine::opTRANSPARENCE(byte **buffer) {
 	if (_mouseCursorVisible)
 		warning("opTRANSPARENCE - col1 not set");
 	else {
-		_unkCol1[0] = 110;
-		_unkCol1[1] = 110;
-		_unkCol1[2] = 110;
+		_blendingCol1[0] = 110;
+		_blendingCol1[1] = 110;
+		_blendingCol1[2] = 110;
 	}
 
-	sub1C2B0();
+	createTransparencyMapping();
 }
 
 void CastlxEngine::handleExitRoom() {
