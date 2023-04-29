@@ -1585,10 +1585,10 @@ void CastlxEngine::initRoom01() {
 		sub12BD6(2);
 
 	loc12BFA();
-
+	
 	_paletteFctStart = 0;
 	_paletteFctCounter = 256;
-	fadeInPalette2();
+	fadeOutPalette2(_unkPalette);
 
 	_blendingCol1[0] = _blendingCol1[1] = _blendingCol1[2] = 110;
 	opTRANSPARENCE(nullptr);
@@ -1767,8 +1767,6 @@ void CastlxEngine::hlInit() {
 
 	_unkSpriteNumber = room;
 	loadBackgroundAndSprites();
-
-	_system->delayMillis(5000);
 	
 	switch (room) {
 	case 1:
