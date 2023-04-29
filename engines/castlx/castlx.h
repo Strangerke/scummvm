@@ -158,8 +158,6 @@ private:
 	int16 _hotspotWidth, _hotspotHeight;
 	int16 _unkHotspotVal1, _unkHotspotVal2;
 	int8 _hotspotHit;
-
-	bool _ageChecked;
 	
 	byte _byte1EFF0;
 	byte _byte1F49D;
@@ -177,6 +175,10 @@ private:
 	DisplMessage _infoC068;
 	DisplMessage _infoC0DA;
 
+	bool _ageChecked;
+	int8 _flagUseTits;
+	int8 _flagTakeSeed;
+
 	int skipNoiseInString(byte **bufferPtr);
 	void skipEndOfLine(byte **buffer);
 	int parseString(byte **buffer);
@@ -191,7 +193,7 @@ private:
 	void sub19306(Common::String message, int16 posX, int16 poxY);
 	void resetDisplayStringList();
 	void sub1228A();
-	void sub12279();
+	void checkOpenInventory();
 	void handleSoundOff();
 	bool checkHotspot(int ax, int bx, int cx, int dx);
 	bool setDisplayStringQueue(int16 di, int16 cx, int16 dx, Common::String message, DisplMessage *bp);
@@ -212,16 +214,20 @@ private:
 	void switchSurfaceBuffers();
 	void initMouse(int16 minX, int16 minY, int16 width, int16 height);
 	void setMousePosition(int16 cx, int16 dx);
+	void getMouseStateClipped();
 	void sub11104(Graphics::Surface *byteArr, Graphics::Surface *surface);
 	void sub10902();
 	void displayInfoMessage(DisplMessage *info_message, uint16 cx, uint16 dx);
 	void sub12CAF();
+	void loc12BFA();
 
 	
 	void opLOADIMG(byte **buffer);
+	void opLOADIMG();
 	void opEXIT(byte **buffer);
 	void opTEMPO(byte **buffer);
 	void opOTEPALETTE(byte **buffer);
+	void opOTEPALETTE(int start, int end);
 	void opMETPALETTE(byte **buffer);
 	void opDEF(byte **buffer);
 	void opNAME(byte **buffer);
@@ -250,10 +256,13 @@ private:
 	void opCLIPMOUSE(byte **buffer);
 	void opLOAD(byte **buffer);
 	void opLOADSPR(byte **buffer);
+	void opLOADSPR(int index);
 	void opPAUSE(byte **buffer);
 	void opRAZSPR(byte **buffer);
+	void opRAZSPR(int index);
 	void opPALNOIR(byte **buffer);
 	void opLOADPALETTE(byte **buffer);
+	void opLOADPALETTE(int index);
 	void opSETPLAY(byte **buffer);
 	void opCLOSEPLAY(byte **buffer);
 	void opPALETTE(byte **buffer);
@@ -263,13 +272,19 @@ private:
 	void opINCRUSTIMGV(byte **buffer);
 	void opINCRUSTIMGF(byte **buffer);
 	void opCOPYVF(byte **buffer);
+	void opCOPYVF(uint16 posX, uint16 posY, uint16 width, uint16 height);
 	void opCOPYFV(byte **buffer);
+	void opCOPYFV(uint16 posX, uint16 posY, uint16 width, uint16 height);
 	void opCOPYVB(byte **buffer);
+	void opCOPYVB(int minX, int minY, int maxX, int maxY);
 	void opCOPYFB(byte **buffer);
+	void opCOPYFB(uint16 posX, uint16 posY, uint16 width, uint16 height);
 	void opCOPYBV(byte **buffer);
 	void opCOPYBF(byte **buffer);
+	void opCOPYBF(uint16 posX, uint16 posY, uint16 width, uint16 height);
 	void opAFFSPRITEV(byte **buffer);
 	void opAFFSPRITEF(byte **buffer);
+	void opAFFSPRITEF(int ax, int bx, int cx, int dx);
 	void opMODESPRITE(byte **buffer);
 	void opCLEARV(byte **buffer);
 	void opCLEARF(byte **buffer);
@@ -289,7 +304,8 @@ private:
 	byte sub1DFDD(int param1, int param2, int param3);
 	byte sub1E01E();
 	byte sub1E033(int type, int param1, int param2, int param3);
-	void sub126AE();
+	void loadBackgroundAndSprites();
+	void sub12BD6(int param);
 
 	void initRoom00();
 	void initRoom01();

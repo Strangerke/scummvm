@@ -134,8 +134,12 @@ CastlxEngine::CastlxEngine(OSystem *syst, const ADGameDescription *gameDesc) : E
 	_word1913C = false;
 	_boundaryType = 0;
 
-	_ageChecked = false;
 	_word14502 = 0;
+
+	// Room 00 flags
+	_ageChecked = false;
+	// Room 01 flags
+	_flagUseTits = _flagTakeSeed = 0;
 	
 	_hotspot2871.init(35, Common::String("L'utilisation de cet objet ne déclenche rien de spécial.ÿRIEN"));
 	_infoC068.init(28, Common::String("$  Avant de commencer vous $devez nous préciser si vous$   avez plus de 18 ans ?$$    (O) Oui     (N) Non$ÿ "));
@@ -299,6 +303,9 @@ void CastlxEngine::fadeInPalette2() {
 		}
 		waitRetrace();
 		setPartialPalette(_unkPalette3);
+
+		_system->copyRectToScreen((const byte *)_surfaceF->getBasePtr(0, 0), _surfaceF->pitch, 0, 0, 640, 400);
+		_system->updateScreen();
 	}
 }
 
@@ -316,8 +323,10 @@ void CastlxEngine::fadeOutPalette2(byte *palPtr) {
 		}
 		waitRetrace();
 		setPartialPalette(_unkPalette2);
+
+		_system->copyRectToScreen((const byte *)_surfaceF->getBasePtr(0, 0), _surfaceF->pitch, 0, 0, 640, 400);
+		_system->updateScreen();
 	}
-	
 }
 
 void CastlxEngine::loadImgFile(Common::String &filename) {
@@ -407,8 +416,8 @@ void CastlxEngine::sub1228A() {
 	}
 }
 
-void CastlxEngine::sub12279() {
-	warning("sub12279 - Check mouse click & keyboard space");
+void CastlxEngine::checkOpenInventory() {
+	warning("checkOpenInventory");
 
 	getEvents();
 	if (_lastEvent.type == Common::EVENT_RBUTTONDOWN || (_lastEvent.type == Common::EVENT_KEYUP && _lastEvent.kbd.keycode == Common::KEYCODE_SPACE))
@@ -420,6 +429,7 @@ void CastlxEngine::handleSoundOff() {
 }
 
 bool CastlxEngine::checkHotspot(int ax, int bx, int cx, int dx) {
+	warning("checkHotspot");
 	_hotspotX = dx;
 	_hotspotY = cx;
 	_hotspotWidth = ax;
@@ -433,6 +443,7 @@ bool CastlxEngine::checkHotspot(int ax, int bx, int cx, int dx) {
 }
 
 bool CastlxEngine::setDisplayStringQueue(int16 di, int16 cx, int16 dx, Common::String message, DisplMessage *bp) {
+	warning("setDisplayStringQueue");
 	for (int i = 0; i < 5; ++i) {
 		if (!_displayStringList[i]._id) {
 			_displayStringList[i]._id = di;
@@ -448,7 +459,8 @@ bool CastlxEngine::setDisplayStringQueue(int16 di, int16 cx, int16 dx, Common::S
 }
 
 int16 CastlxEngine::sub12D4C(int16 si) {
-	int16 bp = _hotspotX;
+	warning("sub12D4C");
+	int16 bp = _hotspotY;
 	int16 dx = bp + _hotspotWidth;
 	int16 ax = 400 - dx;
 
@@ -468,20 +480,79 @@ int16 CastlxEngine::sub12D4C(int16 si) {
 	return (cx & 0xFFFC);
 }
 
-void CastlxEngine::sub1918D(Common::String si, int16 cx, int16 dx) {
-	warning("STUB - sub1918D %s %d %d", si.c_str(), cx, dx);
-	_word19144 = 0;
-	_word19140 = 0;
+void CastlxEngine::sub1918D(Common::String detail, int16 cx, int16 dx) {
+	warning("STUB - sub1918D %s %d %d", detail.c_str(), cx, dx);
 
-	if (si[0] == 0)
-		return;
+	const Graphics::Font *font = FontMan.getFontByUsage(Graphics::FontManager::kBigGUIFont);
 
-	
-	
-	
+	const char *head = detail.c_str();
+	const char *ptr = head;
+	int lineCtr = 1;
+	int maxLength = 0;
+	Common::String curLine = "";
+	while (*ptr) {
+		if (*ptr == '$') {
+			++lineCtr;
+			int len = font->getStringWidth(curLine);
+			curLine.trim();
+			if (len > maxLength)
+				maxLength = len;
+			curLine = "";
+		} else if (*ptr == -1) {
+			warning("split found (header?) -1/0xFF");
+			break;
+		} else {
+			curLine += *ptr;
+		}
+		++ptr;
+	}
+
+	int posX = cx * 2;
+	int posY = dx;
+	int delta = 0;
+	int color = 0xFF;
+	if (_displayMessageRect) {
+		delta = 10;
+		// +2 and -2 are used to cut corner
+		_surfaceF->drawLine(posX + 2, posY, posX + maxLength + delta - 1, posY, color);
+		_surfaceF->drawLine(posX + 2, posY + lineCtr * font->getFontHeight(), posX + maxLength + delta - 1, posY + lineCtr * font->getFontHeight(), color);
+		// vertical line are doubled
+		_surfaceF->drawLine(posX, posY + 1, posX, posY + -1 + lineCtr * font->getFontHeight(), color);
+		_surfaceF->drawLine(posX + 1, posY + 1, posX + 1, posY - 1 + lineCtr * font->getFontHeight(), color);
+		_surfaceF->drawLine(posX + delta + maxLength, posY + 1, posX + delta + maxLength, posY + -1 + lineCtr * font->getFontHeight(), color);
+		_surfaceF->drawLine(posX + delta + maxLength + 1, posY + 1, posX + delta + maxLength + 1, posY - 1 + lineCtr * font->getFontHeight(), color);
+	}
+
+	// Add Blending effect
+	for (int y = posY + 1; y < posY + lineCtr * font->getFontHeight(); ++y) {
+		byte *destLine = (byte *)_surfaceF->getBasePtr(0, y);
+		for (int x = posX + 2; x < posX + delta + maxLength; ++x) {
+			destLine[x] = _blending1Map[destLine[x]];
+		}
+	}
+
+	lineCtr = 0;
+	ptr = head;
+	posX += delta / 2;
+	while (*ptr) {
+		if (*ptr == '$') {
+			font->drawString(_surfaceF, curLine, posX, posY + lineCtr * font->getFontHeight(), font->getStringWidth(curLine), color);
+			curLine = "";
+			++lineCtr;
+		} else if (*ptr == -1) {
+			break;
+		} else {
+			curLine += *ptr;
+		}
+		++ptr;
+	}
+
+	_system->copyRectToScreen((const byte *)_surfaceF->getBasePtr(0, 0), _surfaceF->pitch, 0, 0, 640, 400);
+	_system->updateScreen();
 }
 
 void CastlxEngine::sub1915D(Common::String si, int16 cx, int16 dx) {
+	warning("sub1915D");
 	_word1913C = false;
 	Graphics::Surface *back = _surfaceF;
 
@@ -495,6 +566,7 @@ void CastlxEngine::sub1915D(Common::String si, int16 cx, int16 dx) {
 }
 
 void CastlxEngine::addHotSpotUseObjectOn(int16 ax, int16 bx, int16 cx, int16 dx, DisplMessage *message, DisplMessage *bp) {
+	warning("addHotspotUseObjectOn");
 	if (!_flagEnableHotspots || (_byte1EFF0 & 0x80))
 		return;
 
@@ -576,6 +648,7 @@ void CastlxEngine::setSpriteBlitBoundaries(int16 type) {
 }
 
 void CastlxEngine::blitSpriteCtrlOnSurfaceF(SpriteCtrl *spriteCtrl) {
+	debugC(5, kDebugGraphics, "blitSpriteCtrlOnSurfaceF");
 	setSpriteBlitBoundaries(spriteCtrl->_boundaryType);
 	
 	byte *curBankPtr = _spritePtr[spriteCtrl->_spriteBank - 1];
@@ -698,7 +771,7 @@ void CastlxEngine::initDisplayMode() {
 void CastlxEngine::switchSurfaceBuffers() {
 	debugC(5, kDebugGraphics, "SwitchSurfaceBuffers");
 	SWAP(_surfaceF, _surfaceV);
-	_system->copyRectToScreen((const byte *)_surfaceF->getBasePtr(0, 0), _surfaceF->pitch, 0, 0, 640, 400);
+	_system->copyRectToScreen((const byte *)_surfaceV->getBasePtr(0, 0), _surfaceV->pitch, 0, 0, 640, 400);
 	_system->updateScreen();
 }
 
@@ -727,6 +800,10 @@ void CastlxEngine::setMousePosition(int16 posX, int16 posY) {
 	g_system->warpMouse(_mousePosX, _mousePosY);
 }
 
+void CastlxEngine::getMouseStateClipped() {
+	getEvents();
+}
+
 void CastlxEngine::sub11104(Graphics::Surface *byteArr, Graphics::Surface *surface) {
 	warning("STUB sub11104 (guess restore surface under mouse cursor)");
 }
@@ -753,80 +830,22 @@ void CastlxEngine::displayInfoMessage(DisplMessage *info, uint16 cx, uint16 dx) 
 		return;
 
 	++(info->_field2);
-	setDisplayStringQueue(info->_field2, cx, dx, info->_detail, info);
-
-	sub1915D(info->_detail, cx, dx);
-	
-	const Graphics::Font *font = FontMan.getFontByUsage(Graphics::FontManager::kBigGUIFont);
-
-	const char *head = info->_detail.c_str();
-	const char *ptr = head;
-	int lineCtr = 1;
-	int maxLength = 0;
-	Common::String curLine = "";
-	while (*ptr) {
-		if (*ptr == '$') {
-			++lineCtr;
-			int len = font->getStringWidth(curLine);
-			curLine.trim();
-			if (len > maxLength)
-				maxLength = len;
-			curLine = "";
-		} else if (*ptr == -1) {
-			warning("split found (header?) -1/0xFF");
-			break;
-		} else {
-			curLine += *ptr;
-		}
-		++ptr;
-	}
-
-	int posX = cx * 2;
-	int posY = dx;
-	int delta = 0;
-	int color = 0xFF;
-	if (_displayMessageRect) {
-		delta = 10;
-		// +2 and -2 are used to cut corner
-		_surfaceF->drawLine(posX + 2, posY, posX + maxLength + delta - 1, posY, color);
-		_surfaceF->drawLine(posX + 2, posY + lineCtr * font->getFontHeight(), posX + maxLength + delta - 1, posY + lineCtr * font->getFontHeight(), color);
-		// vertical line are doubled
-		_surfaceF->drawLine(posX, posY + 1, posX, posY + -1 + lineCtr * font->getFontHeight(), color);
-		_surfaceF->drawLine(posX + 1, posY + 1, posX + 1, posY - 1 + lineCtr * font->getFontHeight(), color);
-		_surfaceF->drawLine(posX + delta + maxLength, posY + 1, posX + delta + maxLength, posY + -1 + lineCtr * font->getFontHeight(), color);
-		_surfaceF->drawLine(posX + delta + maxLength + 1, posY + 1, posX + delta + maxLength + 1, posY - 1 + lineCtr * font->getFontHeight(), color);
-	}
-
-	// Add Blending effect
-	for (int y = posY + 1; y < posY + lineCtr * font->getFontHeight(); ++y) {
-		byte *destLine = (byte *)_surfaceF->getBasePtr(0, y);
-		for (int x = posX + 2; x < posX + delta + maxLength; ++x) {
-			destLine[x] = _blending1Map[destLine[x]];
-		}
-	}
-	
-	lineCtr = 0;
-	ptr = head;
-	posX += delta / 2;
-	while (*ptr) {
-		if (*ptr == '$') {
-			font->drawString(_surfaceF, curLine, posX, posY + lineCtr * font->getFontHeight(), font->getStringWidth(curLine), color);
-			curLine = "";
-			++lineCtr;
-		} else if (*ptr == -1) {
-			break;
-		} else {
-			curLine += *ptr;
-		}
-		++ptr;
-	}
-	
-	_system->copyRectToScreen((const byte *)_surfaceF->getBasePtr(0, 0), _surfaceF->pitch, 0, 0, 640, 400);
-	_system->updateScreen();
+	if (setDisplayStringQueue(info->_field2, cx, dx, info->_detail, info)) 
+		sub1915D(info->_detail, cx, dx);	
 }
 
 void CastlxEngine::sub12CAF() {
 	warning("STUB - sub12CAF");
+}
+
+void CastlxEngine::loc12BFA() {
+	// CHECKME: numbers are normally in variables, this is a shortcut
+	opCOPYFB(0, 0, 640, 400);
+	opCOPYVF(0, 0, 640, 400);
+
+	switchSurfaceBuffers();
+	waitRetrace();
+	opCOPYBF(0, 0, 640, 400);
 }
 
 /**
@@ -834,13 +853,18 @@ void CastlxEngine::sub12CAF() {
  * @param buffer 
 */
 void CastlxEngine::opLOADIMG(byte **buffer) {
-	if (!_mouseCursorVisible) {
-		skipNoiseInString(buffer);
-		_filename = copyBuffer(buffer);
-	}
-	loadImgFile(_filename);
+	skipNoiseInString(buffer);
+	_filename = copyBuffer(buffer);
+	debugC(5, kDebugScript, "opLOADIMG %s", _filename.c_str());
 
-	debugC(5,kDebugScript, "opLOADIMG %s", _filename.c_str());
+	loadImgFile(_filename);
+	loadImgToSurface(_backgroundImgPtr, _surfaceF);
+}
+
+void CastlxEngine::opLOADIMG() {
+	debugC(5, kDebugScript, "opLOADIMG %s", _filename.c_str());
+
+	loadImgFile(_filename);
 	loadImgToSurface(_backgroundImgPtr, _surfaceF);
 }
 
@@ -851,16 +875,18 @@ void CastlxEngine::opTEMPO(byte **buffer) { warning("STUB - opTEMPO"); }
  * @param buffer 
 */
 void CastlxEngine::opOTEPALETTE(byte **buffer) {
-	if (!_mouseCursorVisible) {
-		skipNoiseInString(buffer);
-		_paletteFctStart = parseString(buffer);
-		skipNoiseInString(buffer);
-		_paletteFctCounter = parseString(buffer);
-		fadeInPalette2();
-		debugC(5, kDebugScript, "opOTEPALETTE %d %d", _paletteFctStart, _paletteFctCounter);
-	} else {
-		warning("opOTEPALETTE - STUB");
-	}
+	skipNoiseInString(buffer);
+	_paletteFctStart = parseString(buffer);
+	skipNoiseInString(buffer);
+	_paletteFctCounter = parseString(buffer);
+	fadeInPalette2();
+	debugC(5, kDebugScript, "opOTEPALETTE %d %d", _paletteFctStart, _paletteFctCounter);
+}
+
+void CastlxEngine::opOTEPALETTE(int start, int end) {
+	_paletteFctStart = start;
+	_paletteFctCounter = end;
+	fadeInPalette2();
 }
 
 /**
@@ -999,16 +1025,20 @@ void CastlxEngine::opLOAD(byte **buffer) {
  * @param buffer 
 */
 void CastlxEngine::opLOADSPR(byte **buffer) {
-	int index = 1;
-	if(!_mouseCursorVisible) {
-		skipNoiseInString(buffer);
-		_filename = copyBuffer(buffer);
-		skipNoiseInString(buffer);
-		index = parseString(buffer);
-	} else {
-		warning("opLOADSPR params not set");
-	}
+	skipNoiseInString(buffer);
+	_filename = copyBuffer(buffer);
+	skipNoiseInString(buffer);
+	int index = parseString(buffer);
 
+	debugC(5, kDebugScript, "opLOADSPR %s %d", _filename.c_str(), index);
+
+	--index;
+	_spritePtr[index] = loadFile(_filename);
+
+	warning("opLOADSPR - Weird set of _backGroundImgPtr");
+}
+
+void CastlxEngine::opLOADSPR(int index) {
 	debugC(5, kDebugScript, "opLOADSPR %s %d", _filename.c_str(), index);
 
 	--index;
@@ -1022,13 +1052,8 @@ void CastlxEngine::opLOADSPR(byte **buffer) {
  * @param buffer 
 */
 void CastlxEngine::opPAUSE(byte **buffer) {
-	int delay = 0;
-	if (!_mouseCursorVisible) {
-		skipNoiseInString(buffer);
-		delay = parseString(buffer);
-	} else {
-		warning("opPAUSE: missing variable init");
-	}
+	skipNoiseInString(buffer);
+	int delay = parseString(buffer);
 
 	warning("opPAUSE : TODO implement skippable delay - %d", delay);
 }
@@ -1038,13 +1063,23 @@ void CastlxEngine::opPAUSE(byte **buffer) {
  * @param buffer 
 */
 void CastlxEngine::opRAZSPR(byte **buffer) {
-	int index = 1;
-	if (!_mouseCursorVisible) {
-		skipNoiseInString(buffer);
-		index = parseString(buffer);
-	} else
-		warning("opRAZSPR missing param");
+	skipNoiseInString(buffer);
+	int index = parseString(buffer);
 
+	--index;
+	byte *ptr;
+	if (!index)
+		ptr = _backgroundImgPtr;
+	else
+		ptr = _postGstSegment;
+
+	_spritePtr[index] = ptr;
+	_backgroundImgPtr = ptr;
+
+	debugC(5, kDebugScript, "opRAZSPR %d", index);
+}
+
+void CastlxEngine::opRAZSPR(int index) {
 	--index;
 	byte *ptr;
 	if (!index)
@@ -1065,14 +1100,10 @@ void CastlxEngine::opPALNOIR(byte **buffer) { warning("opPALNOIR"); }
  * @param buffer 
 */
 void CastlxEngine::opLOADPALETTE(byte **buffer) {
-	int param = 0;
-	if (!_mouseCursorVisible) {
-		skipNoiseInString(buffer);
-		param = parseString(buffer);
-		skipNoiseInString(buffer);
-		_filename = copyBuffer(buffer);
-	} else
-		warning("opLOADPALETTE - params not set");
+	skipNoiseInString(buffer);
+	int param = parseString(buffer);
+	skipNoiseInString(buffer);
+	_filename = copyBuffer(buffer);
 
 	_paletteFctStart = param;
 	
@@ -1095,6 +1126,28 @@ void CastlxEngine::opLOADPALETTE(byte **buffer) {
 	delete[] palette;
 }
 
+void CastlxEngine::opLOADPALETTE(int index) {
+	_paletteFctStart = index;
+
+	byte *palette = loadFile(_filename);
+	for (int i = _paletteFctStart * 3, j = 0; i < 768;) {
+		if (j > _lastFileSize)
+			break;
+		// Color values are coded on 6bits (for old 6bits DAC)
+		int32 col = palette[j++];
+		assert(col < 64);
+
+		col = (col << 2) | (col >> 4);
+		if (col > 255)
+			col = 255;
+
+		_unkPalette[i++] = col;
+	}
+	_paletteFctStart = 0;
+	debugC(5, kDebugScript, "opLOADPALETTE %d %s", index, _filename.c_str());
+	delete[] palette;
+}
+
 void CastlxEngine::opSETPLAY(byte **buffer) { warning("opSETPLAY"); }
 void CastlxEngine::opCLOSEPLAY(byte **buffer) { warning("opCLOSEPLAY"); }
 void CastlxEngine::opPALETTE(byte **buffer) { warning("opPALETTE"); }
@@ -1113,60 +1166,174 @@ void CastlxEngine::opMODEPLAY(byte **buffer) { warning("opMODEPLAY"); }
 void CastlxEngine::opINCRUSTIMGV(byte **buffer) { warning("opINCRUSTIMGV"); }
 void CastlxEngine::opINCRUSTIMGF(byte **buffer) { warning("opINCRUSTIMGF"); }
 /**
- * @brief Opcode: TODO - no idea
+ * @brief Opcode: Copy partial surface from surfaceV to surfaceF
  * @param buffer 
 */
 void CastlxEngine::opCOPYVF(byte **buffer) {
-	if (_mouseCursorVisible) {
-		warning("opCOPYVF missing parameters");
-	} else {
-		skipNoiseInString(buffer);
-		_opCopyMinY = parseString(buffer);
-		skipNoiseInString(buffer);
-		_opCopyMinX = parseString(buffer);
-		skipNoiseInString(buffer);
-		_opCopyMaxY = parseString(buffer);
-		skipNoiseInString(buffer);
-		_opCopyMaxX = parseString(buffer);
+	skipNoiseInString(buffer);
+	_opCopyMinY = parseString(buffer);
+	skipNoiseInString(buffer);
+	_opCopyMinX = parseString(buffer);
+	skipNoiseInString(buffer);
+	_opCopyMaxY = parseString(buffer);
+	skipNoiseInString(buffer);
+	_opCopyMaxX = parseString(buffer);
 
-		// Double X
-		_opCopyMinX *= 2;
-		_opCopyMaxX *= 2;
-	}
+	// Double X
+	_opCopyMinX *= 2;
+	_opCopyMaxX *= 2;
+
 	debugC(5, kDebugScript, "opCOPYVF %d %d %d %d", _opCopyMinY, _opCopyMinX, _opCopyMaxY, _opCopyMaxX);
 	opCopySurface(_surfaceV, _surfaceF);
 }
-void CastlxEngine::opCOPYFV(byte **buffer) { warning("opCOPYFV"); }
+
+void CastlxEngine::opCOPYVF(uint16 posX, uint16 posY, uint16 width, uint16 height) {
+	_opCopyMinX = posX;
+	_opCopyMinY = posY;
+	_opCopyMaxX = width;
+	_opCopyMaxY = height;
+
+	if (!_opCopyMaxX)
+		return;
+
+	opCopySurface(_surfaceV, _surfaceF);
+}
 
 /**
- * @brief Opcode: TODO - no idea
+ * @brief Opcode: Copy partial surface from surfaceF to surfaceV
+ * @param buffer 
+*/
+void CastlxEngine::opCOPYFV(byte **buffer) {
+	skipNoiseInString(buffer);
+	_opCopyMinY = parseString(buffer);
+	skipNoiseInString(buffer);
+	_opCopyMinX = parseString(buffer);
+	skipNoiseInString(buffer);
+	_opCopyMaxY = parseString(buffer);
+	skipNoiseInString(buffer);
+	_opCopyMaxX = parseString(buffer);
+
+	// Double X
+	_opCopyMinX *= 2;
+	_opCopyMaxX *= 2;
+
+	debugC(5, kDebugScript, "opCOPYFV %d %d %d %d", _opCopyMinY, _opCopyMinX, _opCopyMaxY, _opCopyMaxX);
+	opCopySurface(_surfaceF, _surfaceV);
+}
+
+void CastlxEngine::opCOPYFV(uint16 posX, uint16 posY, uint16 width, uint16 height) {
+	_opCopyMinX = posX;
+	_opCopyMinY = posY;
+	_opCopyMaxX = width;
+	_opCopyMaxY = height;
+
+	if (!_opCopyMaxX)
+		return;
+
+	opCopySurface(_surfaceF, _surfaceV);
+}
+
+/**
+ * @brief Opcode: Copy partial surface from surfaceV to surfaceB
  * @param buffer 
 */
 void CastlxEngine::opCOPYVB(byte **buffer) {
-	if (_mouseCursorVisible) {
-		warning("opCOPYVB missing parameters");
-	} else {
-		skipNoiseInString(buffer);
-		_opCopyMinY = parseString(buffer);
-		skipNoiseInString(buffer);
-		_opCopyMinX = parseString(buffer);
-		skipNoiseInString(buffer);
-		_opCopyMaxY = parseString(buffer);
-		skipNoiseInString(buffer);
-		_opCopyMaxX = parseString(buffer);
+	skipNoiseInString(buffer);
+	_opCopyMinY = parseString(buffer);
+	skipNoiseInString(buffer);
+	_opCopyMinX = parseString(buffer);
+	skipNoiseInString(buffer);
+	_opCopyMaxY = parseString(buffer);
+	skipNoiseInString(buffer);
+	_opCopyMaxX = parseString(buffer);
 
-		// Double X
-		_opCopyMinX *= 2;
-		_opCopyMaxX *= 2;
-	}
+	// Double X
+	_opCopyMinX *= 2;
+	_opCopyMaxX *= 2;
 
 	debugC(5, kDebugScript, "opCOPYVB %d %d %d %d", _opCopyMinY, _opCopyMinX, _opCopyMaxY, _opCopyMaxX);
 	opCopySurface(_surfaceV, _surfaceB);
 }
 
-void CastlxEngine::opCOPYFB(byte **buffer) { warning("opCOPYFB"); }
+void CastlxEngine::opCOPYVB(int minX, int minY, int maxX, int maxY) {
+	_opCopyMinX = minX;
+	_opCopyMinY = minY;
+	_opCopyMaxX = maxX;
+	_opCopyMaxY = maxY;
+
+	debugC(5, kDebugScript, "opCOPYVB %d %d %d %d", _opCopyMinY, _opCopyMinX, _opCopyMaxY, _opCopyMaxX);
+	opCopySurface(_surfaceV, _surfaceB);
+}
+
+/**
+ * @brief Opcode: Copy partial surface from surfaceF to surfaceB
+ * @param buffer 
+*/
+void CastlxEngine::opCOPYFB(byte **buffer) {
+	skipNoiseInString(buffer);
+	_opCopyMinY = parseString(buffer);
+	skipNoiseInString(buffer);
+	_opCopyMinX = parseString(buffer);
+	skipNoiseInString(buffer);
+	_opCopyMaxY = parseString(buffer);
+	skipNoiseInString(buffer);
+	_opCopyMaxX = parseString(buffer);
+
+	// Double X
+	_opCopyMinX *= 2;
+	_opCopyMaxX *= 2;
+
+	debugC(5, kDebugScript, "opCOPYFB %d %d %d %d", _opCopyMinY, _opCopyMinX, _opCopyMaxY, _opCopyMaxX);
+	opCopySurface(_surfaceF, _surfaceB);
+}
+
+void CastlxEngine::opCOPYFB(uint16 posX, uint16 posY, uint16 width, uint16 height) {
+	_opCopyMinX = posX;
+	_opCopyMinY = posY;
+	_opCopyMaxX = width;
+	_opCopyMaxY = height;
+
+	if (!_opCopyMaxX)
+		return;
+
+	opCopySurface(_surfaceF, _surfaceB);
+}
+
 void CastlxEngine::opCOPYBV(byte **buffer) { warning("opCOPYBV"); }
-void CastlxEngine::opCOPYBF(byte **buffer) { warning("opCOPYBF"); }
+
+/**
+ * @brief Opcode: Copy partial surface from surfaceB to surfaceF
+ * @param buffer 
+*/
+void CastlxEngine::opCOPYBF(byte **buffer) {
+	skipNoiseInString(buffer);
+	_opCopyMinY = parseString(buffer);
+	skipNoiseInString(buffer);
+	_opCopyMinX = parseString(buffer);
+	skipNoiseInString(buffer);
+	_opCopyMaxY = parseString(buffer);
+	skipNoiseInString(buffer);
+	_opCopyMaxX = parseString(buffer);
+
+	// Double X
+	_opCopyMinX *= 2;
+	_opCopyMaxX *= 2;
+
+	debugC(5, kDebugScript, "opCOPYBF %d %d %d %d", _opCopyMinY, _opCopyMinX, _opCopyMaxY, _opCopyMaxX);
+	opCopySurface(_surfaceB, _surfaceF);
+}
+
+void CastlxEngine::opCOPYBF(uint16 posX, uint16 posY, uint16 width, uint16 height) {
+	_opCopyMinX = posX;
+	_opCopyMinY = posY;
+	_opCopyMaxX = width;
+	_opCopyMaxY = height;
+
+	if (!_opCopyMaxX)
+		return;
+
+	opCopySurface(_surfaceB, _surfaceF);
+}
 
 /**
  * @brief Opcode: Blit sprite on _surfaceV
@@ -1214,12 +1381,22 @@ void CastlxEngine::opAFFSPRITEF(byte **buffer) {
 	setSpriteCtrlAndBlitOnSurfaceF(spriteId, spriteBank, param2, param1);
 }
 
+void CastlxEngine::opAFFSPRITEF(int ax, int bx, int cx, int dx) {
+	setSpriteCtrlAndBlitOnSurfaceF(ax, bx, cx, dx);
+}
+
+
 void CastlxEngine::opMODESPRITE(byte **buffer) { warning("opMODESPRITE"); }
 void CastlxEngine::opCLEARV(byte **buffer) { warning("opCLEARV"); }
 void CastlxEngine::opCLEARF(byte **buffer) { warning("opCLEARF"); }
 void CastlxEngine::opOTEPAL(byte **buffer) { warning("opOTEPAL"); }
 void CastlxEngine::opMETPAL(byte **buffer) { warning("opMETPAL"); }
-void CastlxEngine::opREADMOUSE(byte **buffer) { warning("opREADMOUSE"); }
+void CastlxEngine::opREADMOUSE(byte **buffer) {
+	debugC(5,kDebugScript, "opREADMOUSE");
+	_oldMousePosX = _mousePosX;
+	_oldMousePosY = _mousePosY;
+	getMouseStateClipped();
+}
 
 /**
  * @brief Opcode: Call the hardcoded logic of the game
@@ -1235,7 +1412,7 @@ void CastlxEngine::opGAME(byte **buffer) {
 
 	if (index == 0) {
 		resetDisplayStringList();
-		sub12279();
+		checkOpenInventory();
 	}
 
 	(this->*_hardcodedLogic[index])();
@@ -1255,9 +1432,7 @@ void CastlxEngine::opTRANSF(byte **buffer) { warning("opTRANSF"); }
 */
 void CastlxEngine::opTRANSPARENCE(byte **buffer) {
 	debugC(5, kDebugScript, "opTRANSPARENCE");
-	if (_mouseCursorVisible)
-		warning("opTRANSPARENCE - col1 not set");
-	else {
+	if (buffer) {
 		_blendingCol1[0] = 110;
 		_blendingCol1[1] = 110;
 		_blendingCol1[2] = 110;
@@ -1319,8 +1494,49 @@ byte CastlxEngine::sub1E033(int type, int param1, int param2, int param3) {
 	}
 }
 
-void CastlxEngine::sub126AE() {
-	warning("STUB sub126AE");
+void CastlxEngine::loadBackgroundAndSprites() {
+	warning("STUB loadBackgroundAndSprites");
+	opOTEPALETTE(0, 256);
+	_filename = Common::String::format("I%02d.IMG", _unkSpriteNumber);
+	opLOADIMG();
+	opCOPYFV(0, 0, 640, 400);
+	opRAZSPR(1);
+	_filename = Common::String::format("S%02d.SPR", _unkSpriteNumber);
+	opLOADSPR(1);
+	opRAZSPR(2);
+	_filename = "S91.SPR"; // inventory sprites?
+	opLOADSPR(2);
+	_filename = "P90.PAL";
+	opLOADPALETTE(219);
+	for (int i = 0; i < 3; ++i)
+		_unkPalette[i] = 0;
+
+	_system->getPaletteManager()->setPalette(_unkPalette, 0, 256);
+
+	opCOPYFV(0, 0, 640, 400);
+	_system->copyRectToScreen((const byte *)_surfaceF->getBasePtr(0, 0), _surfaceF->pitch, 0, 0, 640, 400);
+	_system->updateScreen();
+}
+
+void CastlxEngine::sub12BD6(int param) {
+	// CHECKME : This uses index instead of pointer for bx.
+	opAFFSPRITEF(param, 1, 0, 0);
+
+	byte *curBankPtr = _spritePtr[_spriteCtrl._spriteBank - 1];
+	uint16 startPos = READ_LE_UINT16(&curBankPtr[8 * _spriteCtrl._spriteId]);
+	uint16 size = READ_LE_UINT16(&curBankPtr[8 * _spriteCtrl._spriteId] + 4) * READ_LE_UINT16(&curBankPtr[8 * _spriteCtrl._spriteId] + 6);
+
+	byte *curSprite = &curBankPtr[startPos];
+	uint32 sign = READ_LE_UINT32(curSprite);
+	if (sign != MKTAG('N', 'E', 'X', 'T'))
+		error("Invalid signature");
+
+	uint16 posY = READ_LE_UINT32(curSprite + 4);
+	uint16 posX = READ_LE_UINT32(curSprite + 6);
+	uint16 height = READ_LE_UINT32(curSprite + 8);
+	uint16 width = READ_LE_UINT32(curSprite + 10);
+
+	opCOPYFB(posX, posY, width, height);
 }
 
 void CastlxEngine::initRoom00() {
@@ -1360,7 +1576,27 @@ void CastlxEngine::initRoom00() {
 	error("TODO exit game");
 }
 
-void CastlxEngine::initRoom01() { warning("STUB initRoom01"); }
+void CastlxEngine::initRoom01() {
+	debugC(5, kDebugScript, "STUB initRoom01");
+	if (!_flagUseTits)
+		sub12BD6(1);
+
+	if (!_flagTakeSeed)
+		sub12BD6(2);
+
+	loc12BFA();
+
+	_paletteFctStart = 0;
+	_paletteFctCounter = 256;
+	fadeInPalette2();
+
+	_blendingCol1[0] = _blendingCol1[1] = _blendingCol1[2] = 110;
+	opTRANSPARENCE(nullptr);
+	opCOPYVB(0, 0, 640, 400);
+	opCOPYVF(0, 0, 640, 400);
+	_int8Counter3 = 0;	
+}
+
 void CastlxEngine::initRoom02() { warning("STUB initRoom02"); }
 void CastlxEngine::initRoom03() { warning("STUB initRoom03"); }
 void CastlxEngine::initRoom04() { warning("STUB initRoom04"); }
@@ -1529,9 +1765,11 @@ void CastlxEngine::hlInit() {
 		break;
 	}
 
-	_unkSpriteNumber = 0;
-	sub126AE();
+	_unkSpriteNumber = room;
+	loadBackgroundAndSprites();
 
+	_system->delayMillis(5000);
+	
 	switch (room) {
 	case 1:
 		initRoom01();
