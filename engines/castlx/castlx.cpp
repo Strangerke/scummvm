@@ -135,33 +135,37 @@ CastlxEngine::CastlxEngine(OSystem *syst, const ADGameDescription *gameDesc) : E
 
 	_word1913C = false;
 	_boundaryType = 0;
+	_messageType = -1;
 
 	_word14502 = 0;
 
-	for(int i = 0;	i < 63; ++i)
+	for (int i = 0; i < 62; ++i) {
 		_inventory[i] = 0;
+		_trashbin[i] = 0;
+	}
 
 	// Room 00 flags
 	_ageChecked = false;
 	// Room 01 flags
 	_flagLookTit = _flagUseTit = _flagLookAlley = _flagTakeSeed = 0;
 	
-	_hotspot2871.init(35, Common::String("L'utilisation de cet objet ne déclenche rien de spécial.ÿRIEN"));
-	_hotspot2AFE.init(30, Common::String("Il s'agit d'un bronze massif.ÿSTATUE"));
-	_hotspot2B28.init(30, Common::String("On dirait que les pointes sont moins oxydées que le reste de la statue.ÿPOITRINE"));
-	_hotspot2B7E.init(0, Common::String("ÿTETON"));
-	_hotspot2B8A.init(30, Common::String("Il fait bien trop noir pour s'aventurer dans l'allée. N'oubliez pas que le panneau sur la grille mentionnait 'ATTENTION AUX PIEGES'.ÿPORTE"));
-	_hotspot2C1A.init(0, Common::String("ÿPORTE"));
-	_hotspot2C26.init(30, Common::String("A priori, cette demeure semble déserte.ÿMAISON"));
-	_hotspot2C5A.init(20, Common::String("Une allée bien tracée et remplie de gravillons.ÿALLEE"));
-	_hotspot2C96.init(30, Common::String("Le gazon ne semble pas avoir été tondu récemment.ÿPELOUSE"));
-	_hotspot2CD4.init(30, Common::String("Cet arbuste porte des fruits ou des graines. Difficile de déterminer son espêce.ÿARBUSTE"));
-	_hotspot2D32.init(35, Common::String("Ok, vous venez de ramasser... $quelques graines.ÿGRAINE"));
-	_hotspot2D70.init(35, Common::String("Ok, vous venez de ramasser... $une poignée de gravillons.ÿGRAVILLONS"));
-	_hotspot2DBA.init(30, Common::String("Les dépendances ne sont pas accessibles depuis ce côté-ci de la maison.ÿBARAQUEMENT"));
+	_hotspot2871.init(35, Common::String("L'utilisation de cet objet ne déclenche rien de spécial."), Common::String("RIEN"));
 	
-	_infoC068.init(28, Common::String("$  Avant de commencer vous $devez nous préciser si vous$   avez plus de 18 ans ?$$    (O) Oui     (N) Non$ÿ "));
-	_infoC0DA.init(40, Common::String("$ Désolé vous n'avez pas l'âge requis $        pour jouer à CASTL'X$ÿ "));
+	_hotspot2AFE.init(30, Common::String("Il s'agit d'un bronze massif."), Common::String("STATUE"));
+	_hotspot2B28.init(30, Common::String("On dirait que les pointes sont moins oxydées que le reste de la statue."), Common::String("POITRINE"));
+	_hotspot2B7E.init(0, Common::String(""), Common::String("TETON"));
+	_hotspot2B8A.init(30, Common::String("Il fait bien trop noir pour s'aventurer dans l'allée. N'oubliez pas que le panneau sur la grille mentionnait 'ATTENTION AUX PIEGES'."), Common::String("PORTE"));
+	_hotspot2C1A.init(0, Common::String(""), Common::String("PORTE"));
+	_hotspot2C26.init(30, Common::String("A priori, cette demeure semble déserte."), Common::String("MAISON"));
+	_hotspot2C5A.init(20, Common::String("Une allée bien tracée et remplie de gravillons."), Common::String("ALLEE"));
+	_hotspot2C96.init(30, Common::String("Le gazon ne semble pas avoir été tondu récemment."), Common::String("PELOUSE"));
+	_hotspot2CD4.init(30, Common::String("Cet arbuste porte des fruits ou des graines. Difficile de déterminer son espêce."), Common::String("ARBUSTE"));
+	_hotspot2D32.init(35, Common::String("Ok, vous venez de ramasser... $quelques graines."), Common::String("GRAINE"));
+	_hotspot2D70.init(35, Common::String("Ok, vous venez de ramasser... $une poignée de gravillons."), Common::String("GRAVILLONS"));
+	_hotspot2DBA.init(30, Common::String("Les dépendances ne sont pas accessibles depuis ce côté-ci de la maison."), Common::String("BARAQUEMENT"));
+	
+	_infoC068.init(28, Common::String("$  Avant de commencer vous $devez nous préciser si vous$   avez plus de 18 ans ?$$    (O) Oui     (N) Non$"), Common::String(" "));
+	_infoC0DA.init(40, Common::String("$ Désolé vous n'avez pas l'âge requis $        pour jouer à CASTL'X$"), Common::String(" "));
 }
 
 CastlxEngine::~CastlxEngine() {
@@ -585,6 +589,32 @@ void CastlxEngine::sub1915D(Common::String si, int16 cx, int16 dx) {
 
 void CastlxEngine::addHotSpotLook(int16 ax, int16 bx, int16 cx, int16 dx, DisplMessage *message) {
 	warning("STUB - addHotSpotLook");
+	if (!_flagEnableHotspots || (_byte1EFF0 & 0x80))
+		return;
+
+	if (!checkHotspot(ax, bx, cx, dx))
+		return;
+
+	if (!(_flagEnableHotspots & 0x80)) {
+		displayMouseText(message->_detail);
+		_flagEnableHotspots = 0xFF;
+		if (_messageType == 0) {
+			_flagEnableHotspots = 0;
+			return;
+		}
+	}
+
+	if (_messageType != 3)
+		return;
+
+	++message->_field2;
+	if (_unkHotspotVal1 || _unkHotspotVal2)
+		sub12D4C(message->_field3);
+
+	if (setDisplayStringQueue(message->_field2, _unkHotspotVal2, _unkHotspotVal1, message->_detail, message)) {
+		sub1915D(message->_detail, _unkHotspotVal2, _unkHotspotVal1);
+		message->_field1 = _word19144 + _int8Counter3;
+	}
 }
 
 void CastlxEngine::addHotSpotUse(int16 ax, int16 bx, int16 cx, int16 dx, DisplMessage *message) {
@@ -840,6 +870,10 @@ void CastlxEngine::setMousePosition(int16 posX, int16 posY) {
 
 void CastlxEngine::getMouseStateClipped() {
 	getEvents();
+}
+
+void CastlxEngine::displayMouseText(Common::String message) {
+	warning("STUB - displayMouseText");
 }
 
 void CastlxEngine::sub11104(Graphics::Surface *byteArr, Graphics::Surface *surface) {

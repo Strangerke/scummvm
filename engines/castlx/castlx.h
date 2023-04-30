@@ -58,14 +58,16 @@ struct DisplMessage {
 
 	uint8 _field3;
 	Common::String _detail;
+	Common::String _menuName;
 
 	DisplMessage() {
 		_field1 = 0;
 		_field2 = _field3 = 0;
 		_detail = "";
+		_menuName = "";
 	}
 	void setParam(uint16 param1, uint8 param2) { _field1 = param1; _field2 = param2; };
-	void init(uint8 param3, Common::String msg) { _field3 = param3;  _detail = msg; };
+	void init(uint8 param3, Common::String msg, Common::String name) { _field3 = param3;  _detail = msg; _menuName = name; };
 };
 
 struct SpriteCtrl {
@@ -193,7 +195,9 @@ private:
 	int8 _flagLookAlley;
 	int8 _flagTakeSeed;
 
-	byte _inventory[63];
+	byte _inventory[62];
+	byte _trashbin[62];
+	int _messageType;
 	
 	int skipNoiseInString(byte **bufferPtr);
 	void skipEndOfLine(byte **buffer);
@@ -235,6 +239,8 @@ private:
 	void initMouse(int16 minX, int16 minY, int16 width, int16 height);
 	void setMousePosition(int16 cx, int16 dx);
 	void getMouseStateClipped();
+	void displayMouseText(Common::String message);
+
 	void sub11104(Graphics::Surface *byteArr, Graphics::Surface *surface);
 	void sub10902();
 	void displayInfoMessage(DisplMessage *info_message, uint16 cx, uint16 dx);
