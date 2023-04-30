@@ -171,14 +171,30 @@ private:
 	int16 _blitBoundaryMinX, _blitBoundaryMinY, _blitBoundaryMaxX, _blitBoundaryMaxY;
 	
 	DisplMessage _hotspot2871;
+	DisplMessage _hotspot2AFE;
+	DisplMessage _hotspot2B28;
+	DisplMessage _hotspot2B7E;
+	DisplMessage _hotspot2B8A;
+	DisplMessage _hotspot2C1A;
+	DisplMessage _hotspot2C26;
+	DisplMessage _hotspot2C5A;
+	DisplMessage _hotspot2C96;
+	DisplMessage _hotspot2CD4;
+	DisplMessage _hotspot2D32;
+	DisplMessage _hotspot2D70;
+	DisplMessage _hotspot2DBA;
 
 	DisplMessage _infoC068;
 	DisplMessage _infoC0DA;
 
 	bool _ageChecked;
-	int8 _flagUseTits;
+	int8 _flagLookTit;
+	int8 _flagUseTit;
+	int8 _flagLookAlley;
 	int8 _flagTakeSeed;
 
+	byte _inventory[63];
+	
 	int skipNoiseInString(byte **bufferPtr);
 	void skipEndOfLine(byte **buffer);
 	int parseString(byte **buffer);
@@ -200,7 +216,11 @@ private:
 	int16 sub12D4C(int16 si);
 	void sub1918D(Common::String si, int16 cx, int16 dx);
 	void sub1915D(Common::String si, int16 cx, int16 dx);
+	void addHotSpotLook(int16 ax, int16 bx, int16 cx, int16 dx, DisplMessage *message);
+	void addHotSpotUse(int16 ax, int16 bx, int16 cx, int16 dx, DisplMessage *message);
 	void addHotSpotUseObjectOn(int16 ax, int16 bx, int16 cx, int16 dx, DisplMessage *message, DisplMessage *bp);
+	void displayExit(int ax, int bx, int cx, int dx, int bp, DisplMessage *message);
+	void addHotSpotTake(int ax, int bx, int cx, int dx, DisplMessage *message, byte *inventory);
 	void setBackgroundHotspot();
 	void opCopySurface(Graphics::Surface *src, Graphics::Surface *dest);
 	void setSpriteBlitBoundaries(int16 type);
@@ -220,6 +240,9 @@ private:
 	void displayInfoMessage(DisplMessage *info_message, uint16 cx, uint16 dx);
 	void sub12CAF();
 	void loc12BFA();
+	void sub12BF7(int idx);
+	void unkSoundFct(int idx);
+	void goRoom(int id);
 
 	
 	void opLOADIMG(byte **buffer);

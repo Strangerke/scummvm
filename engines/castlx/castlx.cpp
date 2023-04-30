@@ -28,9 +28,11 @@
 #include "common/file.h"
 #include "common/system.h"
 #include "engines/util.h"
+#include "graphics/cursorman.h"
 #include "graphics/font.h"
 #include "graphics/fontman.h"
 #include "graphics/palette.h"
+#include "graphics/wincursor.h"
 
 namespace Castlx {
 
@@ -136,12 +138,28 @@ CastlxEngine::CastlxEngine(OSystem *syst, const ADGameDescription *gameDesc) : E
 
 	_word14502 = 0;
 
+	for(int i = 0;	i < 63; ++i)
+		_inventory[i] = 0;
+
 	// Room 00 flags
 	_ageChecked = false;
 	// Room 01 flags
-	_flagUseTits = _flagTakeSeed = 0;
+	_flagLookTit = _flagUseTit = _flagLookAlley = _flagTakeSeed = 0;
 	
 	_hotspot2871.init(35, Common::String("L'utilisation de cet objet ne déclenche rien de spécial.ÿRIEN"));
+	_hotspot2AFE.init(30, Common::String("Il s'agit d'un bronze massif.ÿSTATUE"));
+	_hotspot2B28.init(30, Common::String("On dirait que les pointes sont moins oxydées que le reste de la statue.ÿPOITRINE"));
+	_hotspot2B7E.init(0, Common::String("ÿTETON"));
+	_hotspot2B8A.init(30, Common::String("Il fait bien trop noir pour s'aventurer dans l'allée. N'oubliez pas que le panneau sur la grille mentionnait 'ATTENTION AUX PIEGES'.ÿPORTE"));
+	_hotspot2C1A.init(0, Common::String("ÿPORTE"));
+	_hotspot2C26.init(30, Common::String("A priori, cette demeure semble déserte.ÿMAISON"));
+	_hotspot2C5A.init(20, Common::String("Une allée bien tracée et remplie de gravillons.ÿALLEE"));
+	_hotspot2C96.init(30, Common::String("Le gazon ne semble pas avoir été tondu récemment.ÿPELOUSE"));
+	_hotspot2CD4.init(30, Common::String("Cet arbuste porte des fruits ou des graines. Difficile de déterminer son espêce.ÿARBUSTE"));
+	_hotspot2D32.init(35, Common::String("Ok, vous venez de ramasser... $quelques graines.ÿGRAINE"));
+	_hotspot2D70.init(35, Common::String("Ok, vous venez de ramasser... $une poignée de gravillons.ÿGRAVILLONS"));
+	_hotspot2DBA.init(30, Common::String("Les dépendances ne sont pas accessibles depuis ce côté-ci de la maison.ÿBARAQUEMENT"));
+	
 	_infoC068.init(28, Common::String("$  Avant de commencer vous $devez nous préciser si vous$   avez plus de 18 ans ?$$    (O) Oui     (N) Non$ÿ "));
 	_infoC0DA.init(40, Common::String("$ Désolé vous n'avez pas l'âge requis $        pour jouer à CASTL'X$ÿ "));
 }
@@ -565,6 +583,14 @@ void CastlxEngine::sub1915D(Common::String si, int16 cx, int16 dx) {
 	_surfaceF = back;
 }
 
+void CastlxEngine::addHotSpotLook(int16 ax, int16 bx, int16 cx, int16 dx, DisplMessage *message) {
+	warning("STUB - addHotSpotLook");
+}
+
+void CastlxEngine::addHotSpotUse(int16 ax, int16 bx, int16 cx, int16 dx, DisplMessage *message) {
+	warning("STUB - addHotSpotUse");
+}
+
 void CastlxEngine::addHotSpotUseObjectOn(int16 ax, int16 bx, int16 cx, int16 dx, DisplMessage *message, DisplMessage *bp) {
 	warning("addHotspotUseObjectOn");
 	if (!_flagEnableHotspots || (_byte1EFF0 & 0x80))
@@ -592,6 +618,14 @@ void CastlxEngine::addHotSpotUseObjectOn(int16 ax, int16 bx, int16 cx, int16 dx,
 		_flagEnableHotspots = false;
 		_byte1EFF0 = 0;
 	}
+}
+
+void CastlxEngine::displayExit(int ax, int bx, int cx, int dx, int bp, DisplMessage *message) {
+	warning("STUB - displayExit");
+}
+
+void CastlxEngine::addHotSpotTake(int ax, int bx, int cx, int dx, DisplMessage *message, byte *inventory) {
+	warning("STUB - addHotSpotTake");
 }
 
 void CastlxEngine::setBackgroundHotspot() {
@@ -787,6 +821,10 @@ void CastlxEngine::initMouse(int16 minX, int16 minY, int16 width, int16 height) 
 	_mouseMinY = minY;
 	_mouseMaxX = minX + height;
 	_mouseMaxY = minY + width;
+
+	Graphics::Cursor *cursor = Graphics::makeDefaultWinCursor();
+	CursorMan.replaceCursor(cursor);
+	delete cursor;
 }
 
 /**
@@ -846,6 +884,25 @@ void CastlxEngine::loc12BFA() {
 	switchSurfaceBuffers();
 	waitRetrace();
 	opCOPYBF(0, 0, 640, 400);
+}
+
+void CastlxEngine::sub12BF7(int idx) {
+	sub12BD6(idx);
+	loc12BFA();
+}
+
+void CastlxEngine::unkSoundFct(int idx) {
+	warning("STUB - unkSoundFct");
+}
+
+/**
+ * @brief Go to room number, after closing current room
+ * @param id - Room number
+*/
+void CastlxEngine::goRoom(int id) {
+	handleExitRoom();
+	loadGst(id);
+	cleanEvents();
 }
 
 /**
@@ -1578,7 +1635,7 @@ void CastlxEngine::initRoom00() {
 
 void CastlxEngine::initRoom01() {
 	debugC(5, kDebugScript, "STUB initRoom01");
-	if (!_flagUseTits)
+	if (!_flagUseTit)
 		sub12BD6(1);
 
 	if (!_flagTakeSeed)
@@ -1812,7 +1869,122 @@ void CastlxEngine::hlInit() {
 		error("Unexpected room %d", room);
 	}
 }
-void CastlxEngine::hlGate() { warning("STUB hlGate"); }
+
+void CastlxEngine::hlGate() {
+	warning("STUB hlGate");
+	if (!_flagLookTit) {
+		_unkHotspotVal1 = _unkHotspotVal2 = 0;
+		addHotSpotLook(34, 45, 46, 167, &_hotspot2B28);
+		_flagLookTit |= _hotspot2B28._field2;
+	}
+
+	if (_flagLookTit && !_flagUseTit) {
+		_unkHotspotVal1 = _unkHotspotVal2 = 0;
+		addHotSpotUse(10, 9, 48, 174, &_hotspot2B7E);
+		_flagUseTit |= _hotspot2B7E._field2;
+
+		if (_flagUseTit) {
+			sub12BF7(1);
+			unkSoundFct(7);
+		}
+	}
+
+	if (!_flagUseTit) {
+		_unkHotspotVal1 = 98;
+		_unkHotspotVal2 = 87;
+		addHotSpotLook(36, 13, 176, 242, &_hotspot2B8A);
+	}
+
+	if (!_flagUseTit) {
+		_unkHotspotVal1 = 98;
+		_unkHotspotVal2 = 87;
+		// mov     bp, 0x48   -> keypad 8
+		displayExit(36, 13, 176, 242, 0x48, &_hotspot2B8A);
+	} else {
+		_unkHotspotVal1 = 98;
+		_unkHotspotVal2 = 87;
+		// mov     bp, 0x48   -> keypad 8
+		displayExit(36, 13, 176, 242, 0x48, &_hotspot2C1A);
+		if (_hotspot2C1A._field2) {
+			_hotspot2C1A._field2 = 0;
+			goRoom(2);
+			return; //TODO Could require to be turned into a boolean in order to replace the assembly jump in the original 
+		}
+	}
+
+	_unkHotspotVal1 = _unkHotspotVal2 = 0;
+	addHotSpotLook(98, 37, 51, 45, &_hotspot2AFE);
+	_unkHotspotVal1 = _unkHotspotVal2 = 0;
+	addHotSpotLook(262, 75, 27, 138, &_hotspot2AFE);
+	_unkHotspotVal1 = _unkHotspotVal2 = 0;
+	addHotSpotLook(111, 102, 131, 168, &_hotspot2C26);
+
+	if (!_flagLookAlley) {
+		_unkHotspotVal1 = 120;
+		_unkHotspotVal2 = 10;
+		addHotSpotTake(51, 50, 139, 365, &_hotspot2D70, &_inventory[0x1C]);
+		_unkHotspotVal1 = 120;
+		_unkHotspotVal2 = 10;
+		addHotSpotTake(26, 40, 150, 339, &_hotspot2D70, &_inventory[0x1C]);
+		_unkHotspotVal1 = 120;
+		_unkHotspotVal2 = 10;
+		addHotSpotTake(20, 33, 157, 319, &_hotspot2D70, &_inventory[0x1C]);
+		_unkHotspotVal1 = 120;
+		_unkHotspotVal2 = 10;
+		addHotSpotTake(16, 24, 165, 303, &_hotspot2D70, &_inventory[0x1C]);
+		_unkHotspotVal1 = 120;
+		_unkHotspotVal2 = 10;
+		addHotSpotTake(17, 24, 172, 279, &_hotspot2D70, &_inventory[0x1C]);		
+	}
+
+	_unkHotspotVal1 = 120;
+	_unkHotspotVal2 = 10;
+	addHotSpotLook(20, 51, 139, 365, &_hotspot2C5A);
+	_unkHotspotVal1 = 120;
+	_unkHotspotVal2 = 10;
+	addHotSpotLook(16, 39, 150, 339, &_hotspot2C5A); // It's also 1 off compared to Take in the original
+	_unkHotspotVal1 = 120;
+	_unkHotspotVal2 = 10;
+	addHotSpotLook(20, 33, 157, 319, &_hotspot2C5A);
+	_unkHotspotVal1 = 120;
+	_unkHotspotVal2 = 10;
+	addHotSpotLook(16, 24, 165, 303, &_hotspot2C5A); // It's also 1 off compared to Take in the original
+	_unkHotspotVal1 = 120;
+	_unkHotspotVal2 = 10;
+	addHotSpotLook(17, 24, 172, 279, &_hotspot2C5A);
+	_flagLookAlley |= _hotspot2C5A._field2;
+
+	_unkHotspotVal1 = 0;
+	_unkHotspotVal2 = 0;
+	addHotSpotLook(121, 136, 82, 279, &_hotspot2C96);
+
+	if (!_flagTakeSeed) {
+		_unkHotspotVal1 = 120;
+		_unkHotspotVal2 = 0;
+		addHotSpotTake(34, 18, 240, 322, &_hotspot2D32, &_inventory[0]);
+		_flagTakeSeed |= _hotspot2D32._field2;
+		if (_flagTakeSeed)
+			sub12BF7(2);
+	}
+
+	_unkHotspotVal1 = 0;
+	_unkHotspotVal2 = 0;
+	addHotSpotLook(110, 90, 222, 290, &_hotspot2CD4);
+	_unkHotspotVal1 = 0;
+	_unkHotspotVal2 = 0;
+	addHotSpotLook(35, 19, 114, 244, &_hotspot2DBA);
+	_unkHotspotVal1 = 0;
+	_unkHotspotVal2 = 0;
+	addHotSpotLook(43, 18, 231, 236, &_hotspot2DBA);
+	_unkHotspotVal1 = 0;
+	_unkHotspotVal2 = 0;
+	displayExit(35, 19, 114, 244, 0, &_hotspot2DBA);
+	_unkHotspotVal1 = 0;
+	_unkHotspotVal2 = 0;
+	displayExit(43, 18, 231, 236, 0, &_hotspot2DBA);
+	setBackgroundHotspot();
+}
+
 void CastlxEngine::hlHall() { warning("STUB hlHall"); }
 void CastlxEngine::hlKitchen() { warning("STUB hlKitchen"); }
 void CastlxEngine::hlCellar() { warning("STUB hlCellar"); }
