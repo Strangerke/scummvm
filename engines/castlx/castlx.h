@@ -223,7 +223,7 @@ private:
 	void addHotSpotLook(int16 ax, int16 bx, int16 cx, int16 dx, DisplMessage *message);
 	void addHotSpotUse(int16 ax, int16 bx, int16 cx, int16 dx, DisplMessage *message);
 	void addHotSpotUseObjectOn(int16 ax, int16 bx, int16 cx, int16 dx, DisplMessage *message, DisplMessage *bp);
-	void displayExit(int ax, int bx, int cx, int dx, int bp, DisplMessage *message);
+	void displayExit(int ax, int bx, int cx, int dx, Common::KeyCode key, DisplMessage *message);
 	void addHotSpotTake(int ax, int bx, int cx, int dx, DisplMessage *message, byte *inventory);
 	void setBackgroundHotspot();
 	void opCopySurface(Graphics::Surface *src, Graphics::Surface *dest);

@@ -378,7 +378,7 @@ void CastlxEngine::loadImgToSurface(byte *imgBuffer, Graphics::Surface *surface)
 }
 
 void CastlxEngine::createTransparencyMapping() {
-	warning("createTransparencyMapping");
+	debugC(5,kDebugGraphics, "createTransparencyMapping");
 	for (int i = 0; i < 3; ++i)
 		_unkCol2[i] = _blendingCol1[i];
 
@@ -513,7 +513,7 @@ void CastlxEngine::sub1918D(Common::String detail, int16 cx, int16 dx) {
 	int maxLength = 0;
 	Common::String curLine = "";
 	while (*ptr) {
-		if (*ptr == '$') {
+		if (*ptr == '$' || !*(ptr + 1)) {
 			++lineCtr;
 			int len = font->getStringWidth(curLine);
 			curLine.trim();
@@ -557,11 +557,13 @@ void CastlxEngine::sub1918D(Common::String detail, int16 cx, int16 dx) {
 	ptr = head;
 	posX += delta / 2;
 	while (*ptr) {
-		if (*ptr == '$') {
+		if (*ptr == '$' || !*(ptr + 1)) {
 			font->drawString(_surfaceF, curLine, posX, posY + lineCtr * font->getFontHeight(), font->getStringWidth(curLine), color);
 			curLine = "";
 			++lineCtr;
 		} else if (*ptr == -1) {
+			font->drawString(_surfaceF, curLine, posX, posY + lineCtr * font->getFontHeight(), font->getStringWidth(curLine), color);
+			curLine = "";
 			break;
 		} else {
 			curLine += *ptr;
@@ -571,6 +573,8 @@ void CastlxEngine::sub1918D(Common::String detail, int16 cx, int16 dx) {
 
 	_system->copyRectToScreen((const byte *)_surfaceF->getBasePtr(0, 0), _surfaceF->pitch, 0, 0, 640, 400);
 	_system->updateScreen();
+
+	_system->delayMillis(2000);
 }
 
 void CastlxEngine::sub1915D(Common::String si, int16 cx, int16 dx) {
@@ -598,7 +602,7 @@ void CastlxEngine::addHotSpotLook(int16 ax, int16 bx, int16 cx, int16 dx, DisplM
 	if (!(_flagEnableHotspots & 0x80)) {
 		displayMouseText(message->_detail);
 		_flagEnableHotspots = 0xFF;
-		if (_messageType == 0) {
+		if (_messageType == 0xFF) {
 			_flagEnableHotspots = 0;
 			return;
 		}
@@ -614,6 +618,7 @@ void CastlxEngine::addHotSpotLook(int16 ax, int16 bx, int16 cx, int16 dx, DisplM
 	if (setDisplayStringQueue(message->_field2, _unkHotspotVal2, _unkHotspotVal1, message->_detail, message)) {
 		sub1915D(message->_detail, _unkHotspotVal2, _unkHotspotVal1);
 		message->_field1 = _word19144 + _int8Counter3;
+		_flagEnableHotspots = 0;
 	}
 }
 
@@ -640,7 +645,7 @@ void CastlxEngine::addHotSpotUseObjectOn(int16 ax, int16 bx, int16 cx, int16 dx,
 	sub10902();
 	++message->_field2;
 	if (!_unkHotspotVal1 && !_unkHotspotVal2)
-		cx = sub12D4C(message->_field2);
+		cx = sub12D4C(message->_field3);
 
 	if (setDisplayStringQueue(message->_field2, cx, dx, message->_detail, bp)) {
 		sub1915D(message->_detail, cx, dx);
@@ -650,8 +655,50 @@ void CastlxEngine::addHotSpotUseObjectOn(int16 ax, int16 bx, int16 cx, int16 dx,
 	}
 }
 
-void CastlxEngine::displayExit(int ax, int bx, int cx, int dx, int bp, DisplMessage *message) {
+void CastlxEngine::displayExit(int ax, int bx, int cx, int dx, Common::KeyCode key, DisplMessage *message) {
 	warning("STUB - displayExit");
+
+	if ((_lastEvent.type == Common::EVENT_KEYUP && _lastEvent.kbd.keycode == key)) {
+		sub12CAF();
+		cleanEvents();
+		++message->_field2;
+		if (!_unkHotspotVal1 && !_unkHotspotVal2)
+			sub12D4C(message->_field3);
+
+		if (setDisplayStringQueue(message->_field2, _unkHotspotVal2, _unkHotspotVal1, message->_detail, message)) {
+			sub1915D(message->_detail, _unkHotspotVal2, _unkHotspotVal1);
+			message->_field1 = _word19144 + _int8Counter3;
+		}
+		return;
+	}
+
+	if (!_flagEnableHotspots || (_byte1EFF0 & 0x80))
+		return;
+
+	if (!checkHotspot(ax, bx, cx, dx))
+		return;
+
+	if (!(_flagEnableHotspots & 0x80)) {
+		displayMouseText(message->_detail);
+		_flagEnableHotspots = 0xFF;
+		if (_messageType == 0xFF) {
+			_flagEnableHotspots = 0;
+			return;
+		}
+	}
+
+	if (_messageType != 3)
+		return;
+
+	++message->_field2;
+	if (_unkHotspotVal1 || _unkHotspotVal2)
+		sub12D4C(message->_field3);
+
+	if (setDisplayStringQueue(message->_field2, _unkHotspotVal2, _unkHotspotVal1, message->_detail, message)) {
+		sub1915D(message->_detail, _unkHotspotVal2, _unkHotspotVal1);
+		message->_field1 = _word19144 + _int8Counter3;
+		_flagEnableHotspots = 0;
+	}
 }
 
 void CastlxEngine::addHotSpotTake(int ax, int bx, int cx, int dx, DisplMessage *message, byte *inventory) {
@@ -1103,7 +1150,7 @@ void CastlxEngine::opCLIPMOUSE(byte **buffer) { warning("opCLIPMOUSE"); }
  * @param buffer 
 */
 void CastlxEngine::opLOAD(byte **buffer) {
-	warning("opLOAD");
+	debugC(5, kDebugScript, "opLOAD");
 	skipNoiseInString(buffer);
 	int index = parseString(buffer);
 	loadGst(index);
@@ -1906,6 +1953,7 @@ void CastlxEngine::hlInit() {
 
 void CastlxEngine::hlGate() {
 	warning("STUB hlGate");
+	
 	if (!_flagLookTit) {
 		_unkHotspotVal1 = _unkHotspotVal2 = 0;
 		addHotSpotLook(34, 45, 46, 167, &_hotspot2B28);
@@ -1932,13 +1980,11 @@ void CastlxEngine::hlGate() {
 	if (!_flagUseTit) {
 		_unkHotspotVal1 = 98;
 		_unkHotspotVal2 = 87;
-		// mov     bp, 0x48   -> keypad 8
-		displayExit(36, 13, 176, 242, 0x48, &_hotspot2B8A);
+		displayExit(36, 13, 176, 242, Common::KEYCODE_UP, &_hotspot2B8A);
 	} else {
 		_unkHotspotVal1 = 98;
 		_unkHotspotVal2 = 87;
-		// mov     bp, 0x48   -> keypad 8
-		displayExit(36, 13, 176, 242, 0x48, &_hotspot2C1A);
+		displayExit(36, 13, 176, 242, Common::KEYCODE_UP, &_hotspot2C1A);
 		if (_hotspot2C1A._field2) {
 			_hotspot2C1A._field2 = 0;
 			goRoom(2);
@@ -2012,10 +2058,10 @@ void CastlxEngine::hlGate() {
 	addHotSpotLook(43, 18, 231, 236, &_hotspot2DBA);
 	_unkHotspotVal1 = 0;
 	_unkHotspotVal2 = 0;
-	displayExit(35, 19, 114, 244, 0, &_hotspot2DBA);
+	displayExit(35, 19, 114, 244, Common::KEYCODE_INVALID, &_hotspot2DBA);
 	_unkHotspotVal1 = 0;
 	_unkHotspotVal2 = 0;
-	displayExit(43, 18, 231, 236, 0, &_hotspot2DBA);
+	displayExit(43, 18, 231, 236, Common::KEYCODE_INVALID, &_hotspot2DBA);
 	setBackgroundHotspot();
 }
 
