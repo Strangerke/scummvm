@@ -511,20 +511,36 @@ void CastlxEngine::sub1918D(Common::String detail, int16 cx, int16 dx) {
 	const char *ptr = head;
 	int lineCtr = 1;
 	int maxLength = 0;
+	int maxLineSize = 640 - cx * 2;
 	Common::String curLine = "";
+	Common::String curWord = "";
 	while (*ptr) {
 		if (*ptr == '$' || !*(ptr + 1)) {
-			++lineCtr;
-			int len = font->getStringWidth(curLine);
-			curLine.trim();
-			if (len > maxLength)
-				maxLength = len;
-			curLine = "";
+			if (*ptr == '$')
+				++lineCtr;
+			int lenLine = font->getStringWidth(curLine);
+			int lenWord = font->getStringWidth(curWord);
+			if (lenLine + lenWord > maxLineSize)
+				++lineCtr;
+			else
+				lenLine += lenWord;
+
+			if (lenLine > maxLength)
+				maxLength = lenLine;
 		} else if (*ptr == -1) {
 			warning("split found (header?) -1/0xFF");
 			break;
 		} else {
-			curLine += *ptr;
+			curWord += *ptr;
+			int lenLine = font->getStringWidth(curLine);
+			int lenWord = font->getStringWidth(curWord);
+			if (lenLine + lenWord > maxLineSize) {
+				if (lenLine > maxLength)
+					maxLength = lenLine;
+
+				++lineCtr;
+				curLine = "";
+			}
 		}
 		++ptr;
 	}
@@ -574,6 +590,8 @@ void CastlxEngine::sub1918D(Common::String detail, int16 cx, int16 dx) {
 	_system->copyRectToScreen((const byte *)_surfaceF->getBasePtr(0, 0), _surfaceF->pitch, 0, 0, 640, 400);
 	_system->updateScreen();
 
+	_word19144 = detail.size() * 16; // Delay added in order to read message
+	
 	_system->delayMillis(2000);
 }
 
