@@ -31,6 +31,7 @@
 #include "graphics/cursorman.h"
 #include "graphics/font.h"
 #include "graphics/fontman.h"
+#include "graphics/fonts/ttf.h"
 #include "graphics/palette.h"
 #include "graphics/wincursor.h"
 
@@ -505,8 +506,8 @@ int16 CastlxEngine::sub12D4C(int16 si) {
 void CastlxEngine::sub1918D(Common::String detail, int16 cx, int16 dx) {
 	warning("STUB - sub1918D %s %d %d", detail.c_str(), cx, dx);
 
-	const Graphics::Font *font = FontMan.getFontByUsage(Graphics::FontManager::kBigGUIFont);
-
+	const Graphics::Font *font = Graphics::loadTTFFontFromArchive("LiberationMono-Regular.ttf", 10, Graphics::kTTFSizeModeCharacter, 96, Graphics::kTTFRenderModeMonochrome);
+	
 	const char *head = detail.c_str();
 	const char *ptr = head;
 	int lineCtr = 1;
@@ -563,7 +564,7 @@ void CastlxEngine::sub1918D(Common::String detail, int16 cx, int16 dx) {
 
 	// Add Blending effect
 	for (int y = posY + 1; y < posY + lineCtr * font->getFontHeight(); ++y) {
-		byte *destLine = (byte *)_surfaceF->getBasePtr(0, y);
+		uint8 *destLine = (uint8 *)_surfaceF->getBasePtr(0, y);
 		for (int x = posX + 2; x < posX + delta + maxLength; ++x) {
 			destLine[x] = _blending1Map[destLine[x]];
 		}
