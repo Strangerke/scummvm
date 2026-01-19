@@ -42,7 +42,7 @@ extern const ADGameDescription gameDescriptions[];
 
 } // End of namespace Castlx
 
-class CastlxMetaEngineDetection : public AdvancedMetaEngineDetection {
+class CastlxMetaEngineDetection : public AdvancedMetaEngineDetection<ADGameDescription> {
 	static const DebugChannelDef debugFlagList[];
 
 public:

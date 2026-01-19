@@ -33,6 +33,7 @@
 #include "graphics/fontman.h"
 #include "graphics/fonts/ttf.h"
 #include "graphics/palette.h"
+#include "graphics/paletteman.h"
 #include "graphics/wincursor.h"
 
 namespace Castlx {
@@ -44,7 +45,8 @@ CastlxEngine::CastlxEngine(OSystem *syst, const ADGameDescription *gameDesc) : E
 	g_engine = this;
 
 	// Add the game folder to the search manager path variable
-	const Common::FSNode gameDataDir(ConfMan.get("path"));
+	const Common::FSNode gameDataDir(ConfMan.getPath("path"));
+
 	SearchMan.addSubDirectoryMatching(gameDataDir, "SONG1");
 	SearchMan.addSubDirectoryMatching(gameDataDir, "GESTION1");
 	SearchMan.addSubDirectoryMatching(gameDataDir, "SPRIT1/PC");
@@ -2211,7 +2213,7 @@ byte *CastlxEngine::loadFile(Common::String &filename) {
 		shortName.deleteChar(0);
 	
 	Common::File f;
-	f.open(shortName);
+	f.open(Common::Path{shortName});
 
 	if (!f.isOpen()) {
 		_lastFileSize = 0;
@@ -2387,7 +2389,7 @@ byte *CastlxEngine::loadFile(Common::String &filename) {
 	}
 	// Dump the decompressed file
 	Common::DumpFile dump;
-	dump.open(shortName + ".dump");
+	dump.open(Common::Path{shortName + ".dump"});
 	dump.write(destBuffer, targetSize);
 	dump.flush();
 	dump.close();

@@ -38,8 +38,7 @@ const DebugChannelDef CastlxMetaEngineDetection::debugFlagList[] = {
 	DEBUG_CHANNEL_END
 };
 
-CastlxMetaEngineDetection::CastlxMetaEngineDetection() : AdvancedMetaEngineDetection(Castlx::gameDescriptions,
-	sizeof(ADGameDescription), Castlx::castlxGames) {
+CastlxMetaEngineDetection::CastlxMetaEngineDetection() : AdvancedMetaEngineDetection(Castlx::gameDescriptions, Castlx::castlxGames) {
 }
 
 REGISTER_PLUGIN_STATIC(CASTLX_DETECTION, PLUGIN_TYPE_ENGINE_DETECTION, CastlxMetaEngineDetection);

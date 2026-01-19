@@ -24,7 +24,7 @@
 
 #include "engines/advancedDetector.h"
 
-class CastlxMetaEngine : public AdvancedMetaEngine {
+class CastlxMetaEngine : public AdvancedMetaEngine<ADGameDescription> {
 public:
 	const char *getName() const override;
 

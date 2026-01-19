@@ -406,10 +406,10 @@ public:
 		    (f == kSupportsReturnToLauncher);
 	};
 
-	bool canLoadGameStateCurrently() override {
+	bool canLoadGameStateCurrently(Common::U32String *msg) override {
 		return true;
 	}
-	bool canSaveGameStateCurrently() override {
+	bool canSaveGameStateCurrently(Common::U32String *msg) override {
 		return true;
 	}
 
