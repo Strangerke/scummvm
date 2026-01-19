@@ -509,40 +509,57 @@ void CastlxEngine::sub1918D(Common::String detail, int16 cx, int16 dx) {
 	warning("STUB - sub1918D %s %d %d", detail.c_str(), cx, dx);
 
 	const Graphics::Font *font = Graphics::loadTTFFontFromArchive("LiberationMono-Regular.ttf", 10, Graphics::kTTFSizeModeCharacter, 96, Graphics::kTTFRenderModeMonochrome);
+	if (!font)
+		font = FontMan.getFontByUsage(Graphics::FontManager::kBigGUIFont);
 	
 	const char *head = detail.c_str();
 	const char *ptr = head;
-	int lineCtr = 1;
+	int lineCtr = 0;
 	int maxLength = 0;
 	int maxLineSize = 640 - cx * 2;
-	Common::String curLine = "";
+	Common::String curLine[10] = {"","","","","","","","","",""};
 	Common::String curWord = "";
 	while (*ptr) {
 		if (*ptr == '$' || !*(ptr + 1)) {
+			int lenLine = font->getStringWidth(curLine[lineCtr]);
+			int lenWord = font->getStringWidth(curWord);
 			if (*ptr == '$')
 				++lineCtr;
-			int lenLine = font->getStringWidth(curLine);
-			int lenWord = font->getStringWidth(curWord);
 			if (lenLine + lenWord > maxLineSize)
 				++lineCtr;
-			else
+			else {
 				lenLine += lenWord;
+				
+			}
 
 			if (lenLine > maxLength)
 				maxLength = lenLine;
 		} else if (*ptr == -1) {
 			warning("split found (header?) -1/0xFF");
 			break;
-		} else {
-			curWord += *ptr;
-			int lenLine = font->getStringWidth(curLine);
+		} else if (*ptr == 0x20) {
+			curLine[lineCtr] += curWord;
+			curWord = *ptr;
+			int lenLine = font->getStringWidth(curLine[lineCtr]);
 			int lenWord = font->getStringWidth(curWord);
 			if (lenLine + lenWord > maxLineSize) {
 				if (lenLine > maxLength)
 					maxLength = lenLine;
 
 				++lineCtr;
-				curLine = "";
+			} else {
+				curLine[lineCtr] += curWord;
+			}
+			curWord = "";
+		} else {			
+			curWord += *ptr;
+			int lenLine = font->getStringWidth(curLine[lineCtr]);
+			int lenWord = font->getStringWidth(curWord);
+			if (lenLine + lenWord > maxLineSize) {
+				if (lenLine > maxLength)
+					maxLength = lenLine;
+
+				++lineCtr;
 			}
 		}
 		++ptr;
@@ -572,22 +589,10 @@ void CastlxEngine::sub1918D(Common::String detail, int16 cx, int16 dx) {
 		}
 	}
 
-	lineCtr = 0;
 	ptr = head;
 	posX += delta / 2;
-	while (*ptr) {
-		if (*ptr == '$' || !*(ptr + 1)) {
-			font->drawString(_surfaceF, curLine, posX, posY + lineCtr * font->getFontHeight(), font->getStringWidth(curLine), color);
-			curLine = "";
-			++lineCtr;
-		} else if (*ptr == -1) {
-			font->drawString(_surfaceF, curLine, posX, posY + lineCtr * font->getFontHeight(), font->getStringWidth(curLine), color);
-			curLine = "";
-			break;
-		} else {
-			curLine += *ptr;
-		}
-		++ptr;
+	for (int i = 0; i < lineCtr; ++i) {
+		font->drawString(_surfaceF, curLine[i], posX, posY + i * font->getFontHeight(), font->getStringWidth(curLine[i]), color);
 	}
 
 	_system->copyRectToScreen((const byte *)_surfaceF->getBasePtr(0, 0), _surfaceF->pitch, 0, 0, 640, 400);
