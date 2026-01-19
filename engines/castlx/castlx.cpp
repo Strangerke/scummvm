@@ -152,23 +152,23 @@ CastlxEngine::CastlxEngine(OSystem *syst, const ADGameDescription *gameDesc) : E
 	// Room 01 flags
 	_flagLookTit = _flagUseTit = _flagLookAlley = _flagTakeSeed = 0;
 	
-	_hotspot2871.init(35, Common::String("L'utilisation de cet objet ne déclenche rien de spécial."), Common::String("RIEN"));
+	_hotspot2871.init(35, Common::String("L'utilisation de cet objet ne d\xE9""clenche rien de sp\xE9""cial."), Common::String("RIEN"));
 	
 	_hotspot2AFE.init(30, Common::String("Il s'agit d'un bronze massif."), Common::String("STATUE"));
-	_hotspot2B28.init(30, Common::String("On dirait que les pointes sont moins oxydées que le reste de la statue."), Common::String("POITRINE"));
+	_hotspot2B28.init(30, Common::String("On dirait que les pointes sont moins oxyd\xE9""es que le reste de la statue."), Common::String("POITRINE"));
 	_hotspot2B7E.init(0, Common::String(""), Common::String("TETON"));
-	_hotspot2B8A.init(30, Common::String("Il fait bien trop noir pour s'aventurer dans l'allée. N'oubliez pas que le panneau sur la grille mentionnait 'ATTENTION AUX PIEGES'."), Common::String("PORTE"));
+	_hotspot2B8A.init(30, Common::String("Il fait bien trop noir pour s'aventurer dans l'all\xE9""e. N'oubliez pas que le panneau sur la grille mentionnait 'ATTENTION AUX PIEGES'."), Common::String("PORTE"));
 	_hotspot2C1A.init(0, Common::String(""), Common::String("PORTE"));
-	_hotspot2C26.init(30, Common::String("A priori, cette demeure semble déserte."), Common::String("MAISON"));
-	_hotspot2C5A.init(20, Common::String("Une allée bien tracée et remplie de gravillons."), Common::String("ALLEE"));
-	_hotspot2C96.init(30, Common::String("Le gazon ne semble pas avoir été tondu récemment."), Common::String("PELOUSE"));
-	_hotspot2CD4.init(30, Common::String("Cet arbuste porte des fruits ou des graines. Difficile de déterminer son espêce."), Common::String("ARBUSTE"));
+	_hotspot2C26.init(30, Common::String("A priori, cette demeure semble d\xE9""serte."), Common::String("MAISON"));
+	_hotspot2C5A.init(20, Common::String("Une all\xE9""e bien trac\xE9""e et remplie de gravillons."), Common::String("ALLEE"));
+	_hotspot2C96.init(30, Common::String("Le gazon ne semble pas avoir \xE9""t\xE9"" tondu r\xE9""cemment."), Common::String("PELOUSE"));
+	_hotspot2CD4.init(30, Common::String("Cet arbuste porte des fruits ou des graines. Difficile de d\xE9""terminer son esp\xEA""ce."), Common::String("ARBUSTE"));
 	_hotspot2D32.init(35, Common::String("Ok, vous venez de ramasser... $quelques graines."), Common::String("GRAINE"));
-	_hotspot2D70.init(35, Common::String("Ok, vous venez de ramasser... $une poignée de gravillons."), Common::String("GRAVILLONS"));
-	_hotspot2DBA.init(30, Common::String("Les dépendances ne sont pas accessibles depuis ce côté-ci de la maison."), Common::String("BARAQUEMENT"));
+	_hotspot2D70.init(35, Common::String("Ok, vous venez de ramasser... $une poign\xE9""e de gravillons."), Common::String("GRAVILLONS"));
+	_hotspot2DBA.init(30, Common::String("Les d\xE9pendances ne sont pas accessibles depuis ce c\xF4""t\xE9""-ci de la maison."), Common::String("BARAQUEMENT"));
 	
-	_infoC068.init(28, Common::String("$  Avant de commencer vous $devez nous préciser si vous$   avez plus de 18 ans ?$$    (O) Oui     (N) Non$"), Common::String(" "));
-	_infoC0DA.init(40, Common::String("$ Désolé vous n'avez pas l'âge requis $        pour jouer à CASTL'X$"), Common::String(" "));
+	_infoC068.init(28, Common::String("$  Avant de commencer vous $devez nous pr\xE9""ciser si vous$   avez plus de 18 ans ?$$    (O) Oui     (N) Non$"), Common::String(" "));
+	_infoC0DA.init(40, Common::String("$ D\xE9""sol\xE9"" vous n'avez pas l'\xE2""ge requis $        pour jouer \xE0"" CASTL'X$"), Common::String(" "));
 }
 
 CastlxEngine::~CastlxEngine() {
