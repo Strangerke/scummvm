@@ -25,7 +25,7 @@
 #include "ww/ww.h"
 #include "graphics/surface.h"
 
-namespace WaynesWorld {
+namespace WW {
 
 class WWSurface : public Graphics::Surface {
 public:
@@ -107,6 +107,6 @@ protected:
 	uint getSeed(uint bitCount) const;
 };
 
-} // End of namespace WaynesWorld
+} // End of namespace WW
 
 #endif // WW_GRAPHICS_H

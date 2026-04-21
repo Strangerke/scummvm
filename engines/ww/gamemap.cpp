@@ -23,7 +23,7 @@
 #include "ww/ww.h"
 #include "ww/graphics.h"
 
-namespace WaynesWorld {
+namespace WW {
 
 struct MapItem9 {
 	int roomNumber;
@@ -253,4 +253,4 @@ void WWEngine::gameMapPaletteHandlerStop() {
 	// Original also restored the original INT 1Ch
 }
 
-} // End of namespace WaynesWorld
+} // End of namespace WW

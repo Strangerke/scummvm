@@ -41,7 +41,7 @@
 #include "graphics/thumbnail.h"
 #include "graphics/scaler.h"
 
-namespace WaynesWorld {
+namespace WW {
 
 const char *savegameStr = "SCUMMVM_WAYNES";
 
@@ -2301,4 +2301,4 @@ void WWEngine::setMouseBounds(int x1, int x2, int y1, int y2) {
 	// Add one as rect.contains() use a strict < comparison for x2 and y2
 	_mouseZone = Common::Rect(x1, y1, x2 + 1, y2 + 1);
 }
-} // End of namespace WaynesWorld
+} // End of namespace WW

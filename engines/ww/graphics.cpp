@@ -24,7 +24,7 @@
 #include "common/rect.h"
 #include "common/system.h"
 
-namespace WaynesWorld {
+namespace WW {
 
 void drawSurfaceIntern(Graphics::Surface *destSurface, const Graphics::Surface *surface, int x, int y, bool transparent) {
 	int skipX = 0, skipY = 0;
@@ -472,4 +472,4 @@ uint ScreenEffect::getSeed(uint bitCount) const {
 	}
 }
 
-} // End of namespace WaynesWorld
+} // End of namespace WW

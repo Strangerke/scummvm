@@ -29,7 +29,7 @@
 #include "ww/gxlarchive.h"
 #include "ww/graphics.h"
 
-namespace WaynesWorld {
+namespace WW {
 
 GxlArchive::GxlArchive(const Common::String name) : _gxlFile(new Common::File()) {
 	const Common::Path filename = Common::Path(name + ".GXL");
@@ -174,4 +174,4 @@ WWSurface *GxlArchive::loadRoomSurface(const char *filename) {
 WWSurface *GxlArchive::loadSurface(const char *filename) {
 	return loadSurfaceIntern(filename);
 }
-} // End of namespace WaynesWorld
+} // End of namespace WW

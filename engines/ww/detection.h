@@ -24,7 +24,7 @@
 
 #include "engines/advancedDetector.h"
 
-namespace WaynesWorld {
+namespace WW {
 
 enum WaynesWorldDebugChannels {
 	kDebugLogic = 1,
@@ -46,6 +46,6 @@ struct WWGameDescription {
 };
 #define GAMEOPTION_ORIGINAL_SAVELOAD GUIO_GAMEOPTIONS1
 
-} // End of namespace WaynesWorld
+} // End of namespace WW
 
 #endif // WW_DETECTION_H

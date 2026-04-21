@@ -26,7 +26,7 @@
 
 #define MAX_SOUNDS 20
 
-namespace WaynesWorld {
+namespace WW {
 
 class WWEngine;
 class GxlArchive;
@@ -152,6 +152,6 @@ protected:
 	bool introPt4_caller3() override;
 	bool introPt4_caller4() override;
 };
-} // End of namespace WaynesWorld
+} // End of namespace WW
 
 #endif /* WW_WWINTRO_H*/

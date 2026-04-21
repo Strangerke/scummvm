@@ -26,7 +26,7 @@
 
 #include "audio/audiostream.h"
 
-namespace WaynesWorld {
+namespace WW {
 
 WWIntro_demo1::WWIntro_demo1(WWEngine *vm) : WWIntro(vm) {
 }
@@ -1234,4 +1234,4 @@ bool WWIntro_demo1::introPreviewRoom01() {
 	return true;
 }
 
-} // End of namespace WaynesWorld
+} // End of namespace WW

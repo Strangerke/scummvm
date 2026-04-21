@@ -30,7 +30,7 @@
 #include "common/str.h"
 #include "graphics/cursorman.h"
 
-namespace WaynesWorld {
+namespace WW {
 
 static const int kMazeInfos[77][7] = {
 	{ -5, -1, 14, -1, 23, -1, -1 },
@@ -9150,4 +9150,4 @@ void GameLogic::closeQuitMenu() {
 	delete m04Gxl;
 }
 
-} // End of namespace WaynesWorld
+} // End of namespace WW

@@ -32,17 +32,17 @@ static const PlainGameDescriptor WWGames[] = {
 };
 
 static const DebugChannelDef debugFlagList[] = {
-	{ WaynesWorld::kDebugLogic, "logic", "Logic debug level" },
-	{ WaynesWorld::kDebugMessages, "messages", "Messages debug level" },
-	{ WaynesWorld::kDebugCore, "core", "Core debug level" },
+	{ WW::kDebugLogic, "logic", "Logic debug level" },
+	{ WW::kDebugMessages, "messages", "Messages debug level" },
+	{ WW::kDebugCore, "core", "Core debug level" },
 	DEBUG_CHANNEL_END
 };
 
 static const char *const DIRECTORY_GLOBS[] = { "vnm", "m01", nullptr };
 
-class WaynesWorldMetaEngineDetection : public AdvancedMetaEngineDetection<WaynesWorld::WWGameDescription> {
+class WaynesWorldMetaEngineDetection : public AdvancedMetaEngineDetection<WW::WWGameDescription> {
 public:
-	WaynesWorldMetaEngineDetection() : AdvancedMetaEngineDetection(WaynesWorld::gameDescriptions, WWGames) {
+	WaynesWorldMetaEngineDetection() : AdvancedMetaEngineDetection(WW::gameDescriptions, WWGames) {
 		_maxScanDepth = 3;
 		_directoryGlobs = DIRECTORY_GLOBS;
 		_flags = kADFlagMatchFullPaths;

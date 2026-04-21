@@ -21,7 +21,7 @@
 
 #include "ww/ww.h"
 
-namespace WaynesWorld {
+namespace WW {
 
 const RoomObject WWEngine::kRoomObjects[kRoomObjectsCount] = {
 	{ 100, "na", 66, 21, 105, 48, 0, 0, 0 },
@@ -534,4 +534,4 @@ const StaticRoomObject WWEngine::kStaticRoomObjects[kStaticRoomObjectsCount] = {
 	{ "casspc2", -1, 94, 179, 139 }
 };
 
-} // End of namespace WaynesWorld
+} // End of namespace WW

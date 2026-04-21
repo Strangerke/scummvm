@@ -21,7 +21,7 @@
 
 #include "ww/ww.h"
 
-namespace WaynesWorld {
+namespace WW {
 
 bool WWEngine::walkIsPixelWalkable(int x, int y) {
 	if (x < 0 || y < 0 || x >= 320 || y >= 150)
@@ -493,4 +493,4 @@ bool WWEngine::walkTo(int actor1_destX, int actor1_destY, int direction, int act
 
 	return true;
 }
-} // End of namespace WaynesWorld
+} // End of namespace WW

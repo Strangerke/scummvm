@@ -32,7 +32,7 @@ class AudioStream;
 class SoundHandle;
 }
 
-namespace WaynesWorld {
+namespace WW {
 
 class WWEngine;
 
@@ -85,6 +85,6 @@ public:
 
 	void setLoop(bool loop);
 };
-} // End of namespace WaynesWorld
+} // End of namespace WW
 
 #endif /* WW_SOUND_H*/

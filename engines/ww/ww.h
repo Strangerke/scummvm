@@ -40,7 +40,7 @@
 #define kWWSavegameStrSize 14
 #define kWWSavegameStr "SCUMMVM_WAYNES"
 
-namespace WaynesWorld {
+namespace WW {
 class GxlArchive;
 
 enum {
@@ -461,6 +461,6 @@ public:
 
 };
 
-} // End of namespace WaynesWorld
+} // End of namespace WW
 
 #endif // WW_H

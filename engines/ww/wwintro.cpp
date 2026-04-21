@@ -27,7 +27,7 @@
 #include "audio/audiostream.h"
 #include "graphics/paletteman.h"
 
-namespace WaynesWorld {
+namespace WW {
 
 WWIntro::WWIntro(WWEngine *vm) : _vm(vm) {
 }
@@ -299,4 +299,4 @@ bool WWIntro::introPt4_playGuitar() {
 	return true;
 }
 
-} // End of namespace WaynesWorld
+} // End of namespace WW

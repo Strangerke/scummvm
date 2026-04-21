@@ -32,7 +32,7 @@
 #include "ww/ww.h"
 #include "ww/sound.h"
 
-namespace WaynesWorld {
+namespace WW {
 
 SoundManager::SoundManager(WWEngine *vm, Audio::Mixer *mixer) : _vm(vm), _mixer(mixer) {
 	_effectsHandle = new Audio::SoundHandle();
@@ -343,4 +343,4 @@ void MusicManager::setLoop(bool loop) {
 	if (_parser)
 		_parser->property(MidiParser::mpAutoLoop, _isLooping);
 }
-} // End of namespace WaynesWorld
+} // End of namespace WW

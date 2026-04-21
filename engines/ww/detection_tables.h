@@ -21,7 +21,7 @@
 
 #include "detection.h"
 
-namespace WaynesWorld {
+namespace WW {
 
 static const WWGameDescription gameDescriptions[] = {
 	{
@@ -97,4 +97,4 @@ static const WWGameDescription gameDescriptions[] = {
 	AD_TABLE_END_MARKER
 };
 
-} // End of namespace WaynesWorld
+} // End of namespace WW

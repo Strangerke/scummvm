@@ -29,7 +29,7 @@ namespace Common {
 class File;
 }
 
-namespace WaynesWorld {
+namespace WW {
 
 #define GXL_FILENAME_MAX 13
 
@@ -62,6 +62,6 @@ public:
 	WWSurface *loadSurface(const char *filename);
 };
 
-} // End of namespace WaynesWorld
+} // End of namespace WW
 
 #endif // end of WW_GXLARCHIVE_H

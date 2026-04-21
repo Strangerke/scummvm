@@ -25,7 +25,7 @@
 #include "common/serializer.h"
 #include "ww/ww.h"
 
-namespace WaynesWorld {
+namespace WW {
 
 class GameLogic {
 public:
@@ -478,6 +478,6 @@ public://DEBUG So logic functions can be called from the engine class for testin
 	void closeQuitMenu();
 };
 
-} // End of namespace WaynesWorld
+} // End of namespace WW
 
 #endif // WW_GAMELOGIC_H
