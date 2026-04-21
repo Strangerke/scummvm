@@ -19,13 +19,13 @@
  *
  */
 
-#include "waynesworld/gamelogic.h"
+#include "ww/gamelogic.h"
 
 #include "common/memstream.h"
-#include "waynesworld/detection.h"
-#include "waynesworld/graphics.h"
-#include "waynesworld/gxlarchive.h"
-#include "waynesworld/objectids.h"
+#include "ww/detection.h"
+#include "ww/graphics.h"
+#include "ww/gxlarchive.h"
+#include "ww/objectids.h"
 #include "common/savefile.h"
 #include "common/str.h"
 #include "graphics/cursorman.h"
@@ -131,7 +131,7 @@ static const int kRoom37CorrectSafeCombination[] = { 3, 5, 4, 8, 1, 8 };
 
 // GameLogic
 
-GameLogic::GameLogic(WaynesWorldEngine *vm) : _vm(vm) {
+GameLogic::GameLogic(WWEngine *vm) : _vm(vm) {
 	initVariables();
 }
 
@@ -8986,7 +8986,7 @@ bool GameLogic::loadSavegame(int slot, bool rstSave) {
 	if (rstSave) {
 		Common::File fd;
 		if (!fd.open(Common::Path("ww.rst")))
-			error("WaynesWorldEngine::loadSavegame() Could not open ww.rst");
+			error("WWEngine::loadSavegame() Could not open ww.rst");
 		const int size = fd.size();
 		buffer = new byte[size];
 		fd.read(buffer, size);

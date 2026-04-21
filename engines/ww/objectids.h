@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef WAYNESWORLD_OBJECTIDS_H
-#define WAYNESWORLD_OBJECTIDS_H
+#ifndef WW_OBJECTIDS_H
+#define WW_OBJECTIDS_H
 
 namespace WaynesWorld {
 
@@ -433,4 +433,4 @@ enum {
 
 } // End of namespace WaynesWorld
 
-#endif // WAYNESWORLD_OBJECTIDS_H
+#endif // WW_OBJECTIDS_H

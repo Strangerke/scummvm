@@ -19,17 +19,17 @@
  *
  */
 
-#include "waynesworld/waynesworld.h"
+#include "ww/ww.h"
 
 namespace WaynesWorld {
 
-bool WaynesWorldEngine::walkIsPixelWalkable(int x, int y) {
+bool WWEngine::walkIsPixelWalkable(int x, int y) {
 	if (x < 0 || y < 0 || x >= 320 || y >= 150)
 		return false;
 	return (_walkMap[(y * 40) + (x / 8)] & (0x80 >> (x % 8))) != 0;
 }
 
-bool WaynesWorldEngine::walkAdjustDestPoint(int &x, int &y) {
+bool WWEngine::walkAdjustDestPoint(int &x, int &y) {
 	if (walkIsPixelWalkable(x, y))
 		return true;
 	for (int incr = 1; incr < 200; incr++) {
@@ -87,7 +87,7 @@ bool WaynesWorldEngine::walkAdjustDestPoint(int &x, int &y) {
 	return false;
 }
 
-void WaynesWorldEngine::walkCalcOtherActorDest(int flag, int &x, int &y) {
+void WWEngine::walkCalcOtherActorDest(int flag, int &x, int &y) {
 	int direction;
 	if (flag == 1) {
 		direction = walkCalcDirection(x - _garthSpriteX, y - _garthSpriteY);
@@ -132,7 +132,7 @@ void WaynesWorldEngine::walkCalcOtherActorDest(int flag, int &x, int &y) {
 	walkAdjustDestPoint(x, y);
 }
 
-int WaynesWorldEngine::walkCalcPath(int flag, int sourceX, int sourceY, int destX, int destY, int pointsCount) {
+int WWEngine::walkCalcPath(int flag, int sourceX, int sourceY, int destX, int destY, int pointsCount) {
 	if (pointsCount >= 300)
 		return 299;
 
@@ -161,7 +161,7 @@ int WaynesWorldEngine::walkCalcPath(int flag, int sourceX, int sourceY, int dest
 	return pointsCount;
 }
 
-bool WaynesWorldEngine::walkFindPoint(int flag, int &sourceX, int &sourceY, int &nextSourceX, int &nextSourceY, int destX, int destY, int pointsCount) {
+bool WWEngine::walkFindPoint(int flag, int &sourceX, int &sourceY, int &nextSourceX, int &nextSourceY, int destX, int destY, int pointsCount) {
 	bool walkable = false;
 
 	if (walkIsLineWalkable(sourceX, sourceY, nextSourceX, nextSourceY))
@@ -242,11 +242,11 @@ bool WaynesWorldEngine::walkFindPoint(int flag, int &sourceX, int &sourceY, int 
 	return true;
 }
 
-bool WaynesWorldEngine::walkTestPoint(int sourceX, int sourceY, int nextSourceX, int nextSourceY, int destX, int destY) {
+bool WWEngine::walkTestPoint(int sourceX, int sourceY, int nextSourceX, int nextSourceY, int destX, int destY) {
 	return ABS(destY - nextSourceY) < ABS(destY - sourceY) || ABS(destX - nextSourceX) < ABS(destX - sourceX);
 }
 
-bool WaynesWorldEngine::walkIsLineWalkable(int sourceX, int sourceY, int destX, int destY) {
+bool WWEngine::walkIsLineWalkable(int sourceX, int sourceY, int destX, int destY) {
 	bool walkable = true;
 	if (sourceX == destX) {
 		const int incr = sourceY > destY ? -4 : 4;
@@ -278,12 +278,12 @@ bool WaynesWorldEngine::walkIsLineWalkable(int sourceX, int sourceY, int destX, 
 	return walkable;
 }
 
-void WaynesWorldEngine::walkGetNextPoint(int sourceX, int sourceY, int destX, int destY, int &nextX, int &nextY) {
+void WWEngine::walkGetNextPoint(int sourceX, int sourceY, int destX, int destY, int &nextX, int &nextY) {
 	nextX = (sourceX + destX) / 2;
 	nextY = (sourceY + destY) / 2;
 }
 
-int WaynesWorldEngine::walkCalcDirection(int deltaX, int deltaY) {
+int WWEngine::walkCalcDirection(int deltaX, int deltaY) {
 	int direction = 0;
 	if (deltaY < 0) {
 		if (deltaX < 0) {
@@ -325,7 +325,7 @@ int WaynesWorldEngine::walkCalcDirection(int deltaX, int deltaY) {
 	return direction;
 }
 
-int WaynesWorldEngine::walkAddWalkLine(int flag, int x1, int y1, int x2, int y2, int pointsCount) {
+int WWEngine::walkAddWalkLine(int flag, int x1, int y1, int x2, int y2, int pointsCount) {
 	WalkPoint *walkPoints = flag == 0 ? _wayneWalkPoints : _garthWalkPoints;
 	const int newDirection = walkCalcDirection(x1 - x2, y1 - y2);
 	// debug("walkAddWalkLine() %d, %d, %d, %d", x1, y1, x2, y2);
@@ -373,7 +373,7 @@ int WaynesWorldEngine::walkAddWalkLine(int flag, int x1, int y1, int x2, int y2,
 	return pointsCount;
 }
 
-bool WaynesWorldEngine::walkTo(int actor1_destX, int actor1_destY, int direction, int actor2_destX, int actor2_destY) {
+bool WWEngine::walkTo(int actor1_destX, int actor1_destY, int direction, int actor2_destX, int actor2_destY) {
 	WalkPoint *actor1Points, *actor2Points;
 	int flag1, flag2;
 	int actor1X, actor1Y, actor2X, actor2Y;

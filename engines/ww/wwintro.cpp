@@ -19,17 +19,17 @@
  *
  */
 
-#include "waynesworld/wwintro.h"
-#include "waynesworld/waynesworld.h"
-#include "waynesworld/graphics.h"
-#include "waynesworld/gxlarchive.h"
+#include "ww/graphics.h"
+#include "ww/gxlarchive.h"
+#include "ww/ww.h"
+#include "ww/wwintro.h"
 
 #include "audio/audiostream.h"
 #include "graphics/paletteman.h"
 
 namespace WaynesWorld {
 
-WWIntro::WWIntro(WaynesWorldEngine *vm) : _vm(vm) {
+WWIntro::WWIntro(WWEngine *vm) : _vm(vm) {
 }
 
 bool WWIntro::initOanGxl() {
@@ -148,7 +148,7 @@ void WWIntro::sub3009A(int textId) {
 
 	Common::String displayTxt = _vm->loadString(filename.c_str(), startPos, 0);
 
-	if (textType && !(_vm->_gameDescription->flags & ADGF_DEMO))
+	if (textType && !(_vm->_gameDescription->desc.flags & ADGF_DEMO))
 		_vm->_fontWW->drawText(_demoPt2Surface, displayTxt.c_str(), 0, 187, textColor);
 	else
 		_vm->_fontWW->drawText(_demoPt2Surface, displayTxt.c_str(), 0, 2, textColor);

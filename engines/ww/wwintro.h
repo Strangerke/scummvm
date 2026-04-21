@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef WAYNESWORLD_WWINTRO_H
-#define WAYNESWORLD_WWINTRO_H
+#ifndef WW_WWINTRO_H
+#define WW_WWINTRO_H
 
 #include "common/scummsys.h"
 
@@ -28,7 +28,7 @@
 
 namespace WaynesWorld {
 
-class WaynesWorldEngine;
+class WWEngine;
 class GxlArchive;
 class WWSurface;
 
@@ -41,7 +41,7 @@ struct Frame {
 
 class WWIntro {
 protected:
-	WaynesWorldEngine *_vm;
+	WWEngine *_vm;
 
 	WWSurface *_outlineSurface = nullptr;
 	WWSurface *_logoSurface = nullptr;
@@ -59,7 +59,7 @@ protected:
 	int _oldGHead1Index = -1;
 
 public:
-	WWIntro(WaynesWorldEngine *vm);
+	WWIntro(WWEngine *vm);
 	virtual ~WWIntro() {}
 
 	virtual void runIntro() = 0;
@@ -97,7 +97,7 @@ private:
 
 class WWIntro_full : public WWIntro {
 public:
-	WWIntro_full(WaynesWorldEngine *vm);
+	WWIntro_full(WWEngine *vm);
 	~WWIntro_full() override;
 
 	void runIntro() override;
@@ -119,7 +119,7 @@ protected:
 
 class WWIntro_demo1 : public WWIntro {
 public:
-	WWIntro_demo1(WaynesWorldEngine *vm);
+	WWIntro_demo1(WWEngine *vm);
 	~WWIntro_demo1() override;
 
 	void runIntro() override;
@@ -154,4 +154,4 @@ protected:
 };
 } // End of namespace WaynesWorld
 
-#endif /* WAYNESWORLD_WWINTRO_H*/
+#endif /* WW_WWINTRO_H*/

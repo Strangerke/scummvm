@@ -26,8 +26,8 @@
 #include "common/memstream.h"
 #include "common/textconsole.h"
 
-#include "waynesworld/gxlarchive.h"
-#include "waynesworld/graphics.h"
+#include "ww/gxlarchive.h"
+#include "ww/graphics.h"
 
 namespace WaynesWorld {
 

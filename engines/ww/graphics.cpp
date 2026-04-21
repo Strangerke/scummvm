@@ -19,7 +19,7 @@
  *
  */
 
-#include "waynesworld/graphics.h"
+#include "ww/graphics.h"
 #include "common/file.h"
 #include "common/rect.h"
 #include "common/system.h"
@@ -352,7 +352,7 @@ void Screen::saveScreenshot() {
 
 // ScreenEffect
 
-ScreenEffect::ScreenEffect(WaynesWorldEngine *vm, Graphics::Surface *surface, int x, int y, int grainWidth, int grainHeight)
+ScreenEffect::ScreenEffect(WWEngine *vm, Graphics::Surface *surface, int x, int y, int grainWidth, int grainHeight)
 	: _vm(vm), _surface(surface), _x(x), _y(y), _grainWidth(grainWidth), _grainHeight(grainHeight), _blockCtr(0) {
 	_blockCountW = _surface->w / _grainWidth + (_surface->w % _grainWidth > 0 ? 1 : 0);
 	_blockCountH = _surface->h / _grainHeight + (_surface->h % _grainHeight > 0 ? 1 : 0);

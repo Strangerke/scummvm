@@ -19,11 +19,11 @@
  *
  */
 
-#include "waynesworld/waynesworld.h"
-#include "waynesworld/gamelogic.h"
-#include "waynesworld/graphics.h"
-#include "waynesworld/gxlarchive.h"
-#include "waynesworld/objectids.h"
+#include "ww/ww.h"
+#include "ww/gamelogic.h"
+#include "ww/graphics.h"
+#include "ww/gxlarchive.h"
+#include "ww/objectids.h"
 
 #include "audio/audiostream.h"
 #include "common/config-manager.h"
@@ -45,7 +45,7 @@ namespace WaynesWorld {
 
 const char *savegameStr = "SCUMMVM_WAYNES";
 
-WaynesWorldEngine::WaynesWorldEngine(OSystem *syst, const ADGameDescription *gd) :
+WWEngine::WWEngine(OSystem *syst, const WWGameDescription *gd) :
 	Engine(syst), _gameDescription(gd) {
 
 	_random = new Common::RandomSource("waynesworld");
@@ -55,11 +55,11 @@ WaynesWorldEngine::WaynesWorldEngine(OSystem *syst, const ADGameDescription *gd)
 
 }
 
-WaynesWorldEngine::~WaynesWorldEngine() {
+WWEngine::~WWEngine() {
 	delete _random;
 }
 
-bool WaynesWorldEngine::readSavegameHeader(Common::InSaveFile *in, SavegameHeader &header, bool skipThumbnail) {
+bool WWEngine::readSavegameHeader(Common::InSaveFile *in, SavegameHeader &header, bool skipThumbnail) {
 	header.version = 0;
 	header.saveName.clear();
 	header.thumbnail = nullptr;
@@ -99,7 +99,7 @@ bool WaynesWorldEngine::readSavegameHeader(Common::InSaveFile *in, SavegameHeade
 	return true;
 }
 
-Common::Error WaynesWorldEngine::saveGameState(int slot, const Common::String &desc, bool isAutosave) {
+Common::Error WWEngine::saveGameState(int slot, const Common::String &desc, bool isAutosave) {
 	Common::Error result = Common::kNoError;
 	if (!_logic->saveSavegame(slot, &desc))
 		result = Common::kUnknownError;
@@ -107,7 +107,7 @@ Common::Error WaynesWorldEngine::saveGameState(int slot, const Common::String &d
 	return result;
 }
 
-Common::Error WaynesWorldEngine::loadGameState(int slot) {
+Common::Error WWEngine::loadGameState(int slot) {
 	Common::Error result = Common::kNoError;
 	if (!_logic->loadSavegame(slot))
 		result = Common::kUnknownError;
@@ -115,7 +115,7 @@ Common::Error WaynesWorldEngine::loadGameState(int slot) {
 	return result;
 }
 
-void WaynesWorldEngine::writeSavegameHeader(Common::OutSaveFile *out, SavegameHeader &header) {
+void WWEngine::writeSavegameHeader(Common::OutSaveFile *out, SavegameHeader &header) {
 	// Write out a savegame header
 	out->write(savegameStr, kWWSavegameStrSize + 1);
 
@@ -149,7 +149,7 @@ void WaynesWorldEngine::writeSavegameHeader(Common::OutSaveFile *out, SavegameHe
 	out->writeUint32LE(g_engine->getTotalPlayTime() / 1000);
 }
 
-Common::Error WaynesWorldEngine::run() {
+Common::Error WWEngine::run() {
 	_isSaveAllowed = false;
 
 	for (uint i = 0; i < kRoomAnimationsCount; i++)
@@ -178,7 +178,7 @@ Common::Error WaynesWorldEngine::run() {
 	}
 
 	if (_loadSaveSlot < 0) {
-		if (_gameDescription->flags & ADGF_DEMO)
+		if (_gameDescription->desc.flags & ADGF_DEMO)
 			intro = new WWIntro_demo1(this);
 		else
 			intro = new WWIntro_full(this);
@@ -186,7 +186,7 @@ Common::Error WaynesWorldEngine::run() {
 		delete intro;
 		intro = nullptr;
 
-		if (_gameDescription->flags & ADGF_DEMO)
+		if (_gameDescription->desc.flags & ADGF_DEMO)
 			return Common::kNoError;
 	}
 
@@ -310,7 +310,7 @@ Common::Error WaynesWorldEngine::run() {
 	return Common::kNoError;
 }
 
-bool WaynesWorldEngine::hasFeature(EngineFeature f) const {
+bool WWEngine::hasFeature(EngineFeature f) const {
 	return false;
 	/*
 		(f == kSupportsReturnToLauncher) ||
@@ -319,7 +319,7 @@ bool WaynesWorldEngine::hasFeature(EngineFeature f) const {
 	*/
 }
 
-void WaynesWorldEngine::updateEvents() {
+void WWEngine::updateEvents() {
 	Common::Event event;
 	Common::Point clickPt;
 
@@ -376,11 +376,11 @@ void WaynesWorldEngine::updateEvents() {
 	}
 }
 
-int WaynesWorldEngine::getRandom(int max) {
+int WWEngine::getRandom(int max) {
 	return max <= 1 ? 0 : _random->getRandomNumber(max - 1);
 }
 
-void WaynesWorldEngine::waitMillis(uint millis) {
+void WWEngine::waitMillis(uint millis) {
 	const uint32 waitTime = _system->getMillis() + millis;
 	while (_system->getMillis() < waitTime && !shouldQuit() && !(_introOngoing && _escPressed)) {
 		updateEvents();
@@ -389,11 +389,11 @@ void WaynesWorldEngine::waitMillis(uint millis) {
 	}
 }
 
-void WaynesWorldEngine::waitSeconds(uint seconds) {
+void WWEngine::waitSeconds(uint seconds) {
 	waitMillis(seconds * 1000);
 }
 
-void WaynesWorldEngine::initMouseCursor() {
+void WWEngine::initMouseCursor() {
 	const uint kCursorWidth = 9;
 	const uint kCursorHeight = 9;
 	const uint kCursorHotspotX = 4;
@@ -412,7 +412,7 @@ void WaynesWorldEngine::initMouseCursor() {
 	CursorMan.replaceCursor(kCursorData, kCursorWidth, kCursorHeight, kCursorHotspotX, kCursorHotspotY, 0);
 }
 
-bool WaynesWorldEngine::isPointAtWayne(int x, int y) {
+bool WWEngine::isPointAtWayne(int x, int y) {
 	const int x1 = _wayneSpriteX - (_wayneActorScale * 13) / 100;
 	const int x2 = _wayneSpriteX + (_wayneActorScale * 13) / 100;
 	const int y1 = _wayneSpriteY - (_wayneActorScale * 48) / 100;
@@ -420,7 +420,7 @@ bool WaynesWorldEngine::isPointAtWayne(int x, int y) {
 	return x >= x1 && y >= y1 && x <= x2 && y <= y2;
 }
 
-bool WaynesWorldEngine::isPointAtGarth(int x, int y) {
+bool WWEngine::isPointAtGarth(int x, int y) {
 	const int x1 = _garthSpriteX - (_garthActorScale * 13) / 100;
 	const int x2 = _garthSpriteX + (_garthActorScale * 13) / 100;
 	const int y1 = _garthSpriteY - (_garthActorScale * 48) / 100;
@@ -428,7 +428,7 @@ bool WaynesWorldEngine::isPointAtGarth(int x, int y) {
 	return x >= x1 && y >= y1 && x <= x2 && y <= y2;
 }
 
-void WaynesWorldEngine::updateMouseMove() {
+void WWEngine::updateMouseMove() {
 	// Game Menu
 	if (_gameState == 4)
 		return;
@@ -503,7 +503,7 @@ void WaynesWorldEngine::updateMouseMove() {
 
 }
 
-void WaynesWorldEngine::handleMapPalette() {
+void WWEngine::handleMapPalette() {
 	if (_gameMapHasPaletteHandler) {
 		const uint32 curTicks = _system->getMillis();
 		if (curTicks - _gameMapLastTicks > 55) {
@@ -518,7 +518,7 @@ void WaynesWorldEngine::handleMapPalette() {
 	}
 }
 
-void WaynesWorldEngine::handleMouseClick() {
+void WWEngine::handleMouseClick() {
 	if (_mouseClickButtons & kLeftButtonClicked) {
 		handleMouseLeftClick();
 	}
@@ -530,7 +530,7 @@ void WaynesWorldEngine::handleMouseClick() {
 	}
 }
 
-void WaynesWorldEngine::handleMouseLeftClick() {
+void WWEngine::handleMouseLeftClick() {
 	switch (_gameState) {
 	case 0: // Normal Game mode
 		if (_mouseClickY < 150) {
@@ -567,7 +567,7 @@ void WaynesWorldEngine::handleMouseLeftClick() {
 	}
 }
 
-void WaynesWorldEngine::handleMouseRightClick() {
+void WWEngine::handleMouseRightClick() {
 	switch (_gameState) {
 	case 0:
 		if (_mouseClickX > 2 && _mouseClickX < 268 && _mouseClickY > 164) {
@@ -600,7 +600,7 @@ void WaynesWorldEngine::handleMouseRightClick() {
 	}
 }
 
-void WaynesWorldEngine::loadPalette(GxlArchive* lib, const char *filename) {
+void WWEngine::loadPalette(GxlArchive* lib, const char *filename) {
 	Image::PCXDecoder *imageDecoder = lib->loadImage(filename);
 	if (imageDecoder->getPalette().empty()) {
 		warning("loadPalette() Could not load palette from '%s'", filename);
@@ -611,7 +611,7 @@ void WaynesWorldEngine::loadPalette(GxlArchive* lib, const char *filename) {
 	delete imageDecoder;
 }
 
-void WaynesWorldEngine::paletteFadeIn(int index, int count, int stepsSize) {
+void WWEngine::paletteFadeIn(int index, int count, int stepsSize) {
 	byte fadePalette[768];
 	const int fadeStartIndex = index * 3;
 	const int fadeEndIndex = (index + count) * 3;
@@ -633,7 +633,7 @@ void WaynesWorldEngine::paletteFadeIn(int index, int count, int stepsSize) {
 	}
 }
 
-void WaynesWorldEngine::paletteFadeOut(int index, int count, int stepsSize) {
+void WWEngine::paletteFadeOut(int index, int count, int stepsSize) {
 	byte fadePalette[768];
 	const int fadeStartIndex = index * 3;
 	const int fadeEndIndex = (index + count) * 3;
@@ -653,7 +653,7 @@ void WaynesWorldEngine::paletteFadeOut(int index, int count, int stepsSize) {
 	}
 }
 
-void WaynesWorldEngine::paletteFadeColor(int index, byte r, byte g, byte b, int steps) {
+void WWEngine::paletteFadeColor(int index, byte r, byte g, byte b, int steps) {
 	byte fadePalette[768];
 	g_system->getPaletteManager()->grabPalette(fadePalette, 0, 256);
 
@@ -677,7 +677,7 @@ void WaynesWorldEngine::paletteFadeColor(int index, byte r, byte g, byte b, int 
 	
 }
 
-void WaynesWorldEngine::drawImageToSurfaceIntern(GxlArchive *lib, const char *filename, WWSurface *destSurface, int x, int y, bool transparent) {
+void WWEngine::drawImageToSurfaceIntern(GxlArchive *lib, const char *filename, WWSurface *destSurface, int x, int y, bool transparent) {
 	Image::PCXDecoder *imageDecoder = lib->loadImage(filename);
 	if (transparent) {
 		destSurface->drawSurfaceTransparent(imageDecoder->getSurface(), x, y);
@@ -687,7 +687,7 @@ void WaynesWorldEngine::drawImageToSurfaceIntern(GxlArchive *lib, const char *fi
 	delete imageDecoder;
 }
 
-void WaynesWorldEngine::drawImageToScreenIntern(GxlArchive *lib, const char *filename, int x, int y, bool transparent) {
+void WWEngine::drawImageToScreenIntern(GxlArchive *lib, const char *filename, int x, int y, bool transparent) {
 	Image::PCXDecoder *imageDecoder = lib->loadImage(filename);
 	if (transparent) {
 		_screen->drawSurfaceTransparent(imageDecoder->getSurface(), x, y);
@@ -697,36 +697,36 @@ void WaynesWorldEngine::drawImageToScreenIntern(GxlArchive *lib, const char *fil
 	delete imageDecoder;
 }
 
-void WaynesWorldEngine::drawImageToScreen(GxlArchive* lib, const char *filename, int x, int y) {
+void WWEngine::drawImageToScreen(GxlArchive* lib, const char *filename, int x, int y) {
 	drawImageToScreenIntern(lib, filename, x, y, false);
 }
 
-void WaynesWorldEngine::drawImageToSurface(GxlArchive *lib, const char *filename, WWSurface *destSurface, int x, int y) {
+void WWEngine::drawImageToSurface(GxlArchive *lib, const char *filename, WWSurface *destSurface, int x, int y) {
 	drawImageToSurfaceIntern(lib, filename, destSurface, x, y, false);
 }
 
-void WaynesWorldEngine::drawRoomImageToBackground(const char *filename, int x, int y) {
+void WWEngine::drawRoomImageToBackground(const char *filename, int x, int y) {
 	drawImageToSurfaceIntern(_roomGxl, filename, _backgroundSurface, x, y, false);
 }
 
-void WaynesWorldEngine::drawRoomImageToBackgroundTransparent(const char *filename, int x, int y) {
+void WWEngine::drawRoomImageToBackgroundTransparent(const char *filename, int x, int y) {
 	drawImageToSurfaceIntern(_roomGxl, filename, _backgroundSurface, x, y, true);
 }
 
-void WaynesWorldEngine::drawRoomImageToScreen(const char *filename, int x, int y) {
+void WWEngine::drawRoomImageToScreen(const char *filename, int x, int y) {
 	drawImageToScreenIntern(_roomGxl, filename, x, y, false);
 }
 
-void WaynesWorldEngine::drawRoomImageToSurface(const char *filename, WWSurface *destSurface, int x, int y) {
+void WWEngine::drawRoomImageToSurface(const char *filename, WWSurface *destSurface, int x, int y) {
 	drawImageToSurfaceIntern(_roomGxl, filename, destSurface, x, y, false);
 }
 
-void WaynesWorldEngine::drawSpiralEffect(Graphics::Surface *surface, int x, int y, int grainWidth, int grainHeight) {
+void WWEngine::drawSpiralEffect(Graphics::Surface *surface, int x, int y, int grainWidth, int grainHeight) {
 	ScreenEffect screenEffect(this, surface, x, y, grainWidth, grainHeight);
 	screenEffect.drawSpiralEffect();
 }
 
-void WaynesWorldEngine::drawRandomEffect(Graphics::Surface *surface, int x, int y, int grainWidth, int grainHeight) {
+void WWEngine::drawRandomEffect(Graphics::Surface *surface, int x, int y, int grainWidth, int grainHeight) {
 	if (surface) {
 		ScreenEffect screenEffect(this, surface, x, y, grainWidth, grainHeight);
 		screenEffect.drawRandomEffect();
@@ -735,13 +735,13 @@ void WaynesWorldEngine::drawRandomEffect(Graphics::Surface *surface, int x, int 
 	}
 }
 
-Common::String WaynesWorldEngine::loadString(const char *filename, int index, int flag) {
+Common::String WWEngine::loadString(const char *filename, int index, int flag) {
 	const uint kMaxStringLen = 60;
 	char textBuffer[kMaxStringLen];
 	Common::File fd;
 	const Common::Path tempFilename(Common::String::format("%s.txt", filename));
 	if (!fd.open(tempFilename))
-		error("WaynesWorldEngine::loadString() Could not open %s", tempFilename.baseName().c_str());
+		error("WWEngine::loadString() Could not open %s", tempFilename.baseName().c_str());
 	fd.seek(index * kMaxStringLen);
 	fd.read(textBuffer, kMaxStringLen);
 	// Decrypt the string
@@ -759,11 +759,11 @@ Common::String WaynesWorldEngine::loadString(const char *filename, int index, in
 	return Common::String(textBuffer);
 }
 
-void WaynesWorldEngine::drawCurrentTextToSurface(WWSurface *destSurface, int x, int y) {
+void WWEngine::drawCurrentTextToSurface(WWSurface *destSurface, int x, int y) {
 	drawCurrentText(x, y, destSurface);
 }
 
-void WaynesWorldEngine::drawCurrentText(int x, int y, WWSurface *destSurface) {
+void WWEngine::drawCurrentText(int x, int y, WWSurface *destSurface) {
 	int textCenterX, textY = 0, textColor, actorY = 0;
 	const int textWidth = _fontWWInv->getTextWidth(_currentText.c_str());
 	if (x != -1) {
@@ -803,12 +803,12 @@ void WaynesWorldEngine::drawCurrentText(int x, int y, WWSurface *destSurface) {
 	_currentTextY = y;
 }
 
-void WaynesWorldEngine::displayText(const char *filename, int index, int flag, int x, int y, int drawToVirtual) {
+void WWEngine::displayText(const char *filename, int index, int flag, int x, int y, int drawToVirtual) {
 	_currentText = loadString(filename, index, flag);
 	drawCurrentText(x, y, nullptr);
 }
 
-void WaynesWorldEngine::displayTextLines(const char *filename, int baseIndex, int x, int y, int count) {
+void WWEngine::displayTextLines(const char *filename, int baseIndex, int x, int y, int count) {
 	int ticks = 3000;
 	if (count < 0) {
 		ticks = -count;
@@ -822,12 +822,12 @@ void WaynesWorldEngine::displayTextLines(const char *filename, int baseIndex, in
 	}
 }
 
-void WaynesWorldEngine::playSound(const char *filename, int flag) {
+void WWEngine::playSound(const char *filename, int flag) {
 	if (_isSoundEnabled)
 		_sound->playSound(filename, flag);
 }
 
-void WaynesWorldEngine::changeMusic() {
+void WWEngine::changeMusic() {
 	if (!_isMusicEnabled)
 		return;
 
@@ -849,11 +849,11 @@ void WaynesWorldEngine::changeMusic() {
 	}
 }
 
-void WaynesWorldEngine::stopMusic() {
+void WWEngine::stopMusic() {
 	_midi->stopSong();
 }
 
-void WaynesWorldEngine::drawInterface(int verbNum) {
+void WWEngine::drawInterface(int verbNum) {
 	if (isActorWayne()) {
 		drawImageToScreen(_m00Gxl, "winter.pcx", 0, 151);
 	} else {
@@ -864,7 +864,7 @@ void WaynesWorldEngine::drawInterface(int verbNum) {
 	selectVerbNumber(_verbNumber * 24 + 3);
 }
 
-void WaynesWorldEngine::selectVerbNumber2(int x) {
+void WWEngine::selectVerbNumber2(int x) {
 	// sysMouseDriver(2);
 	_screen->frameRect(_verbNumber2 * 24 + 3, 165, _verbNumber2 * 24 + 3 + 23, 198, 0);
 	_verbNumber2 = (x - 3) / 24;
@@ -872,7 +872,7 @@ void WaynesWorldEngine::selectVerbNumber2(int x) {
 	// sysMouseDriver(1);
 }
 
-void WaynesWorldEngine::selectVerbNumber(int x) {
+void WWEngine::selectVerbNumber(int x) {
 	const int selectedButtonIndex = (x - 3) / 24;
 	_firstObjectNumber = -1;
 	if (selectedButtonIndex > 10) {
@@ -896,7 +896,7 @@ void WaynesWorldEngine::selectVerbNumber(int x) {
 	}
 }
 
-void WaynesWorldEngine::changeActor() {
+void WWEngine::changeActor() {
 	if (_currentRoomNumber == 31)
 		return;
 	toggleActor();
@@ -905,7 +905,7 @@ void WaynesWorldEngine::changeActor() {
 	refreshInventory(true);
 }
 
-void WaynesWorldEngine::drawVerbLine(int verbNumber, int objectNumber, const char *objectName) {
+void WWEngine::drawVerbLine(int verbNumber, int objectNumber, const char *objectName) {
 	static const char *kVerbStrings[] = {
 		"",
 		"pick up",
@@ -957,7 +957,7 @@ void WaynesWorldEngine::drawVerbLine(int verbNumber, int objectNumber, const cha
 	_screen->drawText(_fontBit5x7, verbLine.c_str(), 5, 154, 6);
 }
 
-void WaynesWorldEngine::rememberFirstObjectName(int objectId) {
+void WWEngine::rememberFirstObjectName(int objectId) {
 	if (objectId == -2) {
 		_firstObjectName = "Wayne";
 	} else if (objectId == -3) {
@@ -979,14 +979,14 @@ void WaynesWorldEngine::rememberFirstObjectName(int objectId) {
 	}
 }
 
-void WaynesWorldEngine::redrawInventory() {
+void WWEngine::redrawInventory() {
 	// NOTE This seems to hide the inventory
 	_inventoryItemsCount = 1;
 	drawInventory();
 	refreshActors();
 }
 
-void WaynesWorldEngine::refreshInventory(bool doRefresh) {
+void WWEngine::refreshInventory(bool doRefresh) {
 	// NOTE This seems to show the inventory
 	if (_inventoryItemsCount != 0) {
 		drawInventory();
@@ -997,7 +997,7 @@ void WaynesWorldEngine::refreshInventory(bool doRefresh) {
 	}
 }
 
-void WaynesWorldEngine::drawInventory() {
+void WWEngine::drawInventory() {
 	if (_inventoryItemsCount != 0) {
 		_inventoryItemsCount = 0;
 		return;
@@ -1023,23 +1023,23 @@ void WaynesWorldEngine::drawInventory() {
 	}
 }
 
-void WaynesWorldEngine::setWayneInventoryItemQuantity(int objectId, int quantity) {
+void WWEngine::setWayneInventoryItemQuantity(int objectId, int quantity) {
 	_wayneInventory[objectId - kFirstInventoryObjectId] = quantity;
 }
 
-void WaynesWorldEngine::setGarthInventoryItemQuantity(int objectId, int quantity) {
+void WWEngine::setGarthInventoryItemQuantity(int objectId, int quantity) {
 	_garthInventory[objectId - kFirstInventoryObjectId] = quantity;
 }
 
-int WaynesWorldEngine::getWayneInventoryItemQuantity(int objectId) {
+int WWEngine::getWayneInventoryItemQuantity(int objectId) {
 	return _wayneInventory[objectId - kFirstInventoryObjectId];
 }
 
-int WaynesWorldEngine::getGarthInventoryItemQuantity(int objectId) {
+int WWEngine::getGarthInventoryItemQuantity(int objectId) {
 	return _garthInventory[objectId - kFirstInventoryObjectId];
 }
 
-void WaynesWorldEngine::loadMainActorSprites() {
+void WWEngine::loadMainActorSprites() {
 	// _inventorySprite = new WWSurface(312, 52);
 	_wayneReachRightSprite = _m01Gxl->loadSurface("wreachr.pcx");
 	_wayneReachLeftSprite = _m01Gxl->loadSurface("wreachl.pcx");
@@ -1055,7 +1055,7 @@ void WaynesWorldEngine::loadMainActorSprites() {
 	}
 }
 
-void WaynesWorldEngine::unloadMainActorSprites() {
+void WWEngine::unloadMainActorSprites() {
 	delete _wayneReachRightSprite;
 	delete _wayneReachLeftSprite;
 	delete _garthReachRightSprite;
@@ -1070,11 +1070,11 @@ void WaynesWorldEngine::unloadMainActorSprites() {
 	}
 }
 
-int WaynesWorldEngine::getActorScaleFromY(int actorY) {
+int WWEngine::getActorScaleFromY(int actorY) {
 	return _logic->getActorScaleFromY(actorY);
 }
 
-void WaynesWorldEngine::drawActorReachObject(int objectId, int spriteIndex) {
+void WWEngine::drawActorReachObject(int objectId, int spriteIndex) {
 	const int direction = getObjectDirection(objectId);
 	if (isActorWayne()) {
 		drawActors(direction, 2, 1, spriteIndex, _wayneSpriteX, _wayneSpriteY, _garthSpriteX, _garthSpriteY);
@@ -1083,7 +1083,7 @@ void WaynesWorldEngine::drawActorReachObject(int objectId, int spriteIndex) {
 	}
 }
 
-int WaynesWorldEngine::drawActors(int direction, int wayneKind, int garthKind, int spriteIndex, int wayneX, int wayneY, int garthX, int garthY) {
+int WWEngine::drawActors(int direction, int wayneKind, int garthKind, int spriteIndex, int wayneX, int wayneY, int garthX, int garthY) {
 	updateRoomAnimations();
 
 	if (_wayneSpriteX == -1 && _garthSpriteX == -1) {
@@ -1212,11 +1212,11 @@ int WaynesWorldEngine::drawActors(int direction, int wayneKind, int garthKind, i
 	return _wayneActorScale;
 }
 
-void WaynesWorldEngine::refreshActors() {
+void WWEngine::refreshActors() {
 	drawActors(_actorSpriteValue, _wayneKind, _garthKind, _actorSpriteIndex, _wayneSpriteX, _wayneSpriteY, _garthSpriteX, _garthSpriteY);
 }
 
-void WaynesWorldEngine::pickupObject(int objectId, byte &flags, byte flagsSet, int inventoryObjectId) {
+void WWEngine::pickupObject(int objectId, byte &flags, byte flagsSet, int inventoryObjectId) {
 	drawActorReachObject(objectId, 0);
 	for (int index = 0; index < 20; index++) {
 		waitMillis(50);
@@ -1231,7 +1231,7 @@ void WaynesWorldEngine::pickupObject(int objectId, byte &flags, byte flagsSet, i
 	loadRoomBackground();
 }
 
-void WaynesWorldEngine::playAnimation(const char *prefix, int startIndex, int count, int x, int y, int flag, uint ticks) {
+void WWEngine::playAnimation(const char *prefix, int startIndex, int count, int x, int y, int flag, uint ticks) {
 	Common::String filename;
 	// sysMouseDriver(2);
 	if (count > 0) {
@@ -1259,39 +1259,39 @@ void WaynesWorldEngine::playAnimation(const char *prefix, int startIndex, int co
 	// sysMouseDriver(1)
 }
 
-void WaynesWorldEngine::playAnimationLoops(const char *prefix, int startIndex, int count, int x, int y, int flag, uint ticks, int loopCount) {
+void WWEngine::playAnimationLoops(const char *prefix, int startIndex, int count, int x, int y, int flag, uint ticks, int loopCount) {
 	for (int loop = 0; loop < loopCount; loop++) {
 		playAnimation(prefix, startIndex, count, x, y, flag, ticks);
 	}
 }
 
-void WaynesWorldEngine::setWaynePosition(int x, int y) {
+void WWEngine::setWaynePosition(int x, int y) {
 	_wayneSpriteX = x;
 	_wayneSpriteY = y;
 }
 
-void WaynesWorldEngine::setGarthPosition(int x, int y) {
+void WWEngine::setGarthPosition(int x, int y) {
 	_garthSpriteX = x;
 	_garthSpriteY = y;
 }
 
-bool WaynesWorldEngine::isActorWayne() {
+bool WWEngine::isActorWayne() {
 	return _currentActorNum != 0;
 }
 
-bool WaynesWorldEngine::isActorGarth() {
+bool WWEngine::isActorGarth() {
 	return _currentActorNum == 0;
 }
 
-void WaynesWorldEngine::selectActorWayne() {
+void WWEngine::selectActorWayne() {
 	_currentActorNum = 1;
 }
 
-void WaynesWorldEngine::selectActorGarth() {
+void WWEngine::selectActorGarth() {
 	_currentActorNum = 0;
 }
 
-void WaynesWorldEngine::toggleActor() {
+void WWEngine::toggleActor() {
 	if (isActorWayne()) {
 		selectActorGarth();
 	} else {
@@ -1299,21 +1299,21 @@ void WaynesWorldEngine::toggleActor() {
 	}
 }
 
-void WaynesWorldEngine::openRoomLibrary(int roomNum) {
+void WWEngine::openRoomLibrary(int roomNum) {
 	_roomName = Common::String::format("r%02d", roomNum);
 	delete _roomGxl;
 
 	_roomGxl = new GxlArchive(_roomName);
 }
 
-void WaynesWorldEngine::openAlternateRoomLibrary(const char *name) {
+void WWEngine::openAlternateRoomLibrary(const char *name) {
 	_roomName = Common::String(name);
 	delete _roomGxl;
 
 	_roomGxl = new GxlArchive(_roomName);
 }
 
-void WaynesWorldEngine::loadRoomBackground() {
+void WWEngine::loadRoomBackground() {
 	loadPalette(_roomGxl, "backg.pcx");
 	g_system->getPaletteManager()->setPalette(_palette2, 0, 256);
 
@@ -1322,7 +1322,7 @@ void WaynesWorldEngine::loadRoomBackground() {
 	refreshActors();
 }
 
-void WaynesWorldEngine::changeRoom(int roomNum) {
+void WWEngine::changeRoom(int roomNum) {
 	if (_currentRoomNumber != -1) {
 		// GxlCloseLib is included in openRoomLibrary, no need to call it here
 		unloadStaticRoomObjects();
@@ -1338,11 +1338,11 @@ void WaynesWorldEngine::changeRoom(int roomNum) {
 	loadRoomBackground();
 }
 
-void WaynesWorldEngine::refreshRoomBackground(int roomNum) {
+void WWEngine::refreshRoomBackground(int roomNum) {
 	_logic->refreshRoomBackground(roomNum);
 }
 
-void WaynesWorldEngine::handleRoomEvent() {
+void WWEngine::handleRoomEvent() {
 	if (_roomEventNum != 0) {
 		const int eventNum = _roomEventNum;
 		_roomEventNum = 0;
@@ -1350,7 +1350,7 @@ void WaynesWorldEngine::handleRoomEvent() {
 	}
 }
 
-void WaynesWorldEngine::changeRoomScrolling() {
+void WWEngine::changeRoomScrolling() {
 	int roomNumber = -1;
 	_scrollPosition = 0;
 	_scrollWidth = 0;
@@ -1420,7 +1420,7 @@ void WaynesWorldEngine::changeRoomScrolling() {
 	_currentRoomNumber = roomNumber;
 }
 
-void WaynesWorldEngine::loadScrollSprite() {
+void WWEngine::loadScrollSprite() {
 	if (_currentRoomNumber == 14 && _hoverObjectNumber == kObjectIdLoadingDock) {
 		_backgroundScrollSurface = new WWSurface(112, 150);
 		drawRoomImageToSurface("scroll.pcx", _backgroundScrollSurface, 0, 0);
@@ -1500,7 +1500,7 @@ void WaynesWorldEngine::loadScrollSprite() {
 	}
 }
 
-void WaynesWorldEngine::scrollRoom() {
+void WWEngine::scrollRoom() {
 	const int kScrollStripWidth = 8;
 	int stripSourceX, stripDestX;
 	if (_doScrollRight) {
@@ -1527,17 +1527,17 @@ void WaynesWorldEngine::scrollRoom() {
 	}
 }
 
-void WaynesWorldEngine::loadRoomMask(int roomNum) {
+void WWEngine::loadRoomMask(int roomNum) {
 	const Common::Path filename(Common::String::format("r%02d.msk", roomNum));
 	Common::File fd;
 	if (!fd.open(filename))
-		error("WaynesWorldEngine::loadRoomMask() Could not open %s", filename.baseName().c_str());
+		error("WWEngine::loadRoomMask() Could not open %s", filename.baseName().c_str());
 	if (fd.size() != kWalkMapSize)
-		error("WaynesWorldEngine::loadRoomMask() Wrong file size in %s", filename.baseName().c_str());
+		error("WWEngine::loadRoomMask() Wrong file size in %s", filename.baseName().c_str());
 	fd.read(_walkMap, kWalkMapSize);
 }
 
-void WaynesWorldEngine::fillRoomMaskArea(int x1, int y1, int x2, int y2, bool blocked) {
+void WWEngine::fillRoomMaskArea(int x1, int y1, int x2, int y2, bool blocked) {
 	for (int y = y1; y <= y2; y++) {
 		for (int x = x1; x <= x2; x++) {
 			const int offset = (y * 40) + (x / 8);
@@ -1551,29 +1551,29 @@ void WaynesWorldEngine::fillRoomMaskArea(int x1, int y1, int x2, int y2, bool bl
 	}
 }
 
-void WaynesWorldEngine::loadAnimationSpriteRange(int baseIndex, const char *filename, int count) {
+void WWEngine::loadAnimationSpriteRange(int baseIndex, const char *filename, int count) {
 	for (int index = 0; index < count; index++) {
 		Common::String tempFilename = Common::String::format("%s%d.pcx", filename, index);
 		loadAnimationSprite(baseIndex + index, tempFilename.c_str());
 	}
 }
 
-void WaynesWorldEngine::loadAnimationSprite(int index, const char *filename) {
+void WWEngine::loadAnimationSprite(int index, const char *filename) {
 	delete _roomAnimations[index];
 	_roomAnimations[index] = _roomGxl->loadRoomSurface(filename);
 }
 
-void WaynesWorldEngine::drawAnimationSprite(int index, int x, int y) {
+void WWEngine::drawAnimationSprite(int index, int x, int y) {
 	_animationsRedrawBackground = true;
 	_backgroundSurface->drawSurface(_roomAnimations[index], x, y);
 }
 
-void WaynesWorldEngine::drawAnimationSpriteTransparent(int index, int x, int y) {
+void WWEngine::drawAnimationSpriteTransparent(int index, int x, int y) {
 	_animationsRedrawBackground = true;
 	_backgroundSurface->drawSurfaceTransparent(_roomAnimations[index], x, y);
 }
 
-void WaynesWorldEngine::updateRoomAnimations() {
+void WWEngine::updateRoomAnimations() {
 	if (_hasRoomAnimationCallback) {
 		_animationsRedrawBackground = false;
 		updateAnimationTimers();
@@ -1586,12 +1586,12 @@ void WaynesWorldEngine::updateRoomAnimations() {
 	}
 }
 
-void WaynesWorldEngine::startRoomAnimations() {
+void WWEngine::startRoomAnimations() {
 	_animationsCtr = 0;
 	_hasRoomAnimationCallback = true;
 }
 
-void WaynesWorldEngine::stopRoomAnimations() {
+void WWEngine::stopRoomAnimations() {
 	for (uint i = 0; i < kRoomAnimationsCount; i++) {
 		delete _roomAnimations[i];
 		_roomAnimations[i] = nullptr;
@@ -1599,7 +1599,7 @@ void WaynesWorldEngine::stopRoomAnimations() {
 	_hasRoomAnimationCallback = false;
 }
 
-void WaynesWorldEngine::updateAnimationTimers() {
+void WWEngine::updateAnimationTimers() {
 	const uint32 currentTicks = _system->getMillis();
 	for (uint i = 0; i < kAnimationTimersCount; i++) {
 		AnimationTimer &animationTimer = _animationTimers[i];
@@ -1613,7 +1613,7 @@ void WaynesWorldEngine::updateAnimationTimers() {
 	}
 }
 
-void WaynesWorldEngine::setAnimationTimer(uint index, uint32 delay, int initialCounter) {
+void WWEngine::setAnimationTimer(uint index, uint32 delay, int initialCounter) {
 	AnimationTimer &animationTimer = _animationTimers[index];
 	animationTimer.nextUpdateTicks = 0;
 	animationTimer.delay = delay;
@@ -1621,20 +1621,20 @@ void WaynesWorldEngine::setAnimationTimer(uint index, uint32 delay, int initialC
 	animationTimer.expired = false;
 }
 
-bool WaynesWorldEngine::isAnimationTimerExpired(uint index) {
+bool WWEngine::isAnimationTimerExpired(uint index) {
 	return _animationTimers[index].expired;
 }
 
-int WaynesWorldEngine::getAnimationTimerCounter(uint index) {
+int WWEngine::getAnimationTimerCounter(uint index) {
 	return _animationTimers[index].counter;
 }
 
-void WaynesWorldEngine::initStaticRoomObjects() {
+void WWEngine::initStaticRoomObjects() {
 	for (uint i = 0; i < kStaticRoomObjectsCount; i++)
 		_staticRoomObjects[i] = kStaticRoomObjects[i];
 }
 
-void WaynesWorldEngine::loadStaticRoomObjects(int roomNum) {
+void WWEngine::loadStaticRoomObjects(int roomNum) {
 	const int startIndex = kStaticRoomObjectsMap[roomNum].index;
 	const int count = kStaticRoomObjectsMap[roomNum].count;
 	for (int index = 0; index < count; index++) {
@@ -1648,14 +1648,14 @@ void WaynesWorldEngine::loadStaticRoomObjects(int roomNum) {
 	}
 }
 
-void WaynesWorldEngine::unloadStaticRoomObjects() {
+void WWEngine::unloadStaticRoomObjects() {
 	for (uint i = 0; i < kStaticRoomObjectSpritesCount; i++) {
 		delete _staticRoomObjectSprites[i];
 		_staticRoomObjectSprites[i] = nullptr;
 	}
 }
 
-void WaynesWorldEngine::setStaticRoomObjectPosition(int roomNum, int fromIndex, int toIndex, int x, int y) {
+void WWEngine::setStaticRoomObjectPosition(int roomNum, int fromIndex, int toIndex, int x, int y) {
 	const int startIndex = kStaticRoomObjectsMap[roomNum].index + fromIndex;
 	const int endIndex = kStaticRoomObjectsMap[roomNum].index + toIndex;
 	unloadStaticRoomObjects();
@@ -1667,7 +1667,7 @@ void WaynesWorldEngine::setStaticRoomObjectPosition(int roomNum, int fromIndex, 
 	loadStaticRoomObjects(roomNum);
 }
 
-void WaynesWorldEngine::drawStaticRoomObjects(int roomNum, int x, int y, int actorHeight, int actorWidth, WWSurface *surface) {
+void WWEngine::drawStaticRoomObjects(int roomNum, int x, int y, int actorHeight, int actorWidth, WWSurface *surface) {
 	const int x1 = x - actorWidth;
 	const int x2 = x + actorWidth;
 	const int y2 = y + actorHeight - 48;
@@ -1682,12 +1682,12 @@ void WaynesWorldEngine::drawStaticRoomObjects(int roomNum, int x, int y, int act
 	}
 }
 
-void WaynesWorldEngine::initRoomObjects() {
+void WWEngine::initRoomObjects() {
 	for (int i = 0; i < kRoomObjectsCount; i++)
 		_roomObjects[i] = kRoomObjects[i];
 }
 
-void WaynesWorldEngine::moveObjectToRoom(int objectId, int roomNum) {
+void WWEngine::moveObjectToRoom(int objectId, int roomNum) {
 	_roomObjects[objectId].roomNumber = roomNum;
 	if (objectId <= kLastInventoryObjectId) {
 		const int inventoryIndex = objectId - kFirstInventoryObjectId;
@@ -1699,7 +1699,7 @@ void WaynesWorldEngine::moveObjectToRoom(int objectId, int roomNum) {
 	}
 }
 
-void WaynesWorldEngine::moveObjectToNowhere(int objectId) {
+void WWEngine::moveObjectToNowhere(int objectId) {
 	if (objectId <= kLastInventoryObjectId) {
 		const int inventoryIndex = objectId - kFirstInventoryObjectId;
 		if (isActorWayne()) {
@@ -1715,23 +1715,23 @@ void WaynesWorldEngine::moveObjectToNowhere(int objectId) {
 	}
 }
 
-const RoomObject *WaynesWorldEngine::getRoomObject(int objectId) {
+const RoomObject *WWEngine::getRoomObject(int objectId) {
 	return &_roomObjects[objectId];
 }
 
-const char *WaynesWorldEngine::getRoomObjectName(int objectId) {
+const char *WWEngine::getRoomObjectName(int objectId) {
 	return _roomObjects[objectId].name;
 }
 
-int WaynesWorldEngine::getObjectRoom(int objectId) {
+int WWEngine::getObjectRoom(int objectId) {
 	return _roomObjects[objectId].roomNumber;
 }
 
-int WaynesWorldEngine::getObjectDirection(int objectId) {
+int WWEngine::getObjectDirection(int objectId) {
 	return _roomObjects[objectId].direction;
 }
 
-int WaynesWorldEngine::findRoomObjectIdAtPoint(int x, int y) {
+int WWEngine::findRoomObjectIdAtPoint(int x, int y) {
 	for (int index = 0; index < kRoomObjectsCount; index++) {
 		const RoomObject *roomObject = getRoomObject(index);
 		if (roomObject->roomNumber == _currentRoomNumber &&
@@ -1743,7 +1743,7 @@ int WaynesWorldEngine::findRoomObjectIdAtPoint(int x, int y) {
 	return -1;
 }
 
-void WaynesWorldEngine::walkToObject() {
+void WWEngine::walkToObject() {
 	loadScrollSprite();
 	if (_hoverObjectNumber == -2) {
 		walkTo(_garthSpriteX, _garthSpriteY, _actorSpriteValue, -1, -1);
@@ -1757,13 +1757,13 @@ void WaynesWorldEngine::walkToObject() {
 	}
 }
 
-void WaynesWorldEngine::startDialog() {
+void WWEngine::startDialog() {
 	redrawInventory();
 	_gameState = 2;
 	drawDialogChoices(-9);
 }
 
-void WaynesWorldEngine::setDialogChoices(int choice1, int choice2, int choice3, int choice4, int choice5) {
+void WWEngine::setDialogChoices(int choice1, int choice2, int choice3, int choice4, int choice5) {
 	_dialogChoices[0] = choice1;
 	_dialogChoices[1] = choice2;
 	_dialogChoices[2] = choice3;
@@ -1771,7 +1771,7 @@ void WaynesWorldEngine::setDialogChoices(int choice1, int choice2, int choice3, 
 	_dialogChoices[4] = choice5;
 }
 
-void WaynesWorldEngine::drawDialogChoices(int choiceIndex) {
+void WWEngine::drawDialogChoices(int choiceIndex) {
 	// sysMouseDriver(2);
 	if (choiceIndex == -9) {
 		// Redraw all and clear the background
@@ -1788,7 +1788,7 @@ void WaynesWorldEngine::drawDialogChoices(int choiceIndex) {
 	_selectedDialogChoice = choiceIndex;
 }
 
-void WaynesWorldEngine::handleDialogMouseClick() {
+void WWEngine::handleDialogMouseClick() {
 	int replyTextIndex1, replyTextIndex2, replyTextIndex3;
 	int replyTextX, replyTextY;
 
@@ -1822,7 +1822,7 @@ void WaynesWorldEngine::handleDialogMouseClick() {
 	}
 }
 
-void WaynesWorldEngine::handleVerb(int verbFlag) {
+void WWEngine::handleVerb(int verbFlag) {
 	const int verbNum = verbFlag == 1 ? _verbNumber : _verbNumber2;
 	switch (verbNum) {
 	case 1:
@@ -1865,7 +1865,7 @@ void WaynesWorldEngine::handleVerb(int verbFlag) {
 
 }
 
-void WaynesWorldEngine::handleVerbPickUp() {
+void WWEngine::handleVerbPickUp() {
 	_isTextVisible = false;
 	if (_objectNumber <= kLastInventoryObjectId) {
 		refreshActors();
@@ -1919,7 +1919,7 @@ void WaynesWorldEngine::handleVerbPickUp() {
 
 }
 
-void WaynesWorldEngine::handleVerbLookAt() {
+void WWEngine::handleVerbLookAt() {
 	_isTextVisible = false;
 	if (_objectNumber <= kLastInventoryObjectId) {
 		refreshActors();
@@ -1944,7 +1944,7 @@ void WaynesWorldEngine::handleVerbLookAt() {
 	}
 }
 
-void WaynesWorldEngine::handleVerbUse() {
+void WWEngine::handleVerbUse() {
 	_isTextVisible = false;
 	if (_objectNumber <= kLastInventoryObjectId) {
 		refreshActors();
@@ -2035,7 +2035,7 @@ void WaynesWorldEngine::handleVerbUse() {
 	}
 }
 
-void WaynesWorldEngine::handleVerbTalkTo() {
+void WWEngine::handleVerbTalkTo() {
 	_dialogChoices[0] = -1;
 
 	if (_objectNumber == -3 || _objectNumber == -2) {
@@ -2078,7 +2078,7 @@ void WaynesWorldEngine::handleVerbTalkTo() {
 
 }
 
-void WaynesWorldEngine::handleVerbPush() {
+void WWEngine::handleVerbPush() {
 	_isTextVisible = false;
 	if (_objectNumber <= kLastInventoryObjectId) {
 		refreshActors();
@@ -2103,7 +2103,7 @@ void WaynesWorldEngine::handleVerbPush() {
 
 }
 
-void WaynesWorldEngine::handleVerbPull() {
+void WWEngine::handleVerbPull() {
 	_isTextVisible = false;
 	if (_objectNumber <= kLastInventoryObjectId) {
 		refreshActors();
@@ -2120,11 +2120,11 @@ void WaynesWorldEngine::handleVerbPull() {
 
 }
 
-void WaynesWorldEngine::handleVerbExtremeCloseupOf() {
+void WWEngine::handleVerbExtremeCloseupOf() {
 	_logic->handleVerbExtremeCloseupOf();
 }
 
-void WaynesWorldEngine::handleVerbGive() {
+void WWEngine::handleVerbGive() {
 	if (_firstObjectNumber == -1) {
 		_firstObjectNumber = _objectNumber;
 		rememberFirstObjectName(_objectNumber);
@@ -2161,7 +2161,7 @@ void WaynesWorldEngine::handleVerbGive() {
 
 }
 
-void WaynesWorldEngine::handleVerbOpen() {
+void WWEngine::handleVerbOpen() {
 	_isTextVisible = false;
 	if (_objectNumber <= kLastInventoryObjectId) {
 		refreshActors();
@@ -2200,7 +2200,7 @@ void WaynesWorldEngine::handleVerbOpen() {
 	}
 }
 
-void WaynesWorldEngine::handleVerbClose() {
+void WWEngine::handleVerbClose() {
 	_isTextVisible = false;
 	if (_objectNumber <= kLastInventoryObjectId) {
 		refreshActors();
@@ -2225,7 +2225,7 @@ void WaynesWorldEngine::handleVerbClose() {
 
 }
 
-void WaynesWorldEngine::lookAtUnusedTicket() {
+void WWEngine::lookAtUnusedTicket() {
 	// Move the mouse cursor out of the ticket so it's not directly turned into a used ticket
 	_mouseX = _mouseY = 10;
 	g_system->warpMouse(_mouseX, _mouseY);
@@ -2247,7 +2247,7 @@ void WaynesWorldEngine::lookAtUnusedTicket() {
 	// sysMouseDriver(1);
 }
 
-void WaynesWorldEngine::unusedTicketHandleMouseMove() {
+void WWEngine::unusedTicketHandleMouseMove() {
 	if (_mouseX > 157 && _mouseY > 38 && _mouseX < 297 && _mouseY < 129) {
 		_logic->_didScratchTicket = true;
 		// Reveal partial image
@@ -2258,7 +2258,7 @@ void WaynesWorldEngine::unusedTicketHandleMouseMove() {
 	}
 }
 
-void WaynesWorldEngine::unusedTicketHandleMouseClick() {
+void WWEngine::unusedTicketHandleMouseClick() {
 	int objectId = kObjectIdInventoryLosingTicket;
 	int textIndex = 1;
 	_gameState = 0;
@@ -2281,7 +2281,7 @@ void WaynesWorldEngine::unusedTicketHandleMouseClick() {
 	displayText("c00", textIndex, 0, -1, -1, 0);
 }
 
-void WaynesWorldEngine::extremeCloseUpHandleMouseClick() {
+void WWEngine::extremeCloseUpHandleMouseClick() {
 	_gameState = 0;
 	// sysMouseDriver(2);
 	paletteFadeOut(0, 256, 16);
@@ -2292,12 +2292,12 @@ void WaynesWorldEngine::extremeCloseUpHandleMouseClick() {
 	// sysMouseDriver(1);
 }
 
-void WaynesWorldEngine::gxCloseLib(GxlArchive *lib) {
+void WWEngine::gxCloseLib(GxlArchive *lib) {
 	delete lib;
 	lib = nullptr;
 }
 
-void WaynesWorldEngine::setMouseBounds(int x1, int x2, int y1, int y2) {
+void WWEngine::setMouseBounds(int x1, int x2, int y1, int y2) {
 	// Add one as rect.contains() use a strict < comparison for x2 and y2
 	_mouseZone = Common::Rect(x1, y1, x2 + 1, y2 + 1);
 }

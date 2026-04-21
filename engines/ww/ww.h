@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef WAYNESWORLD_H
-#define WAYNESWORLD_H
+#ifndef WW_H
+#define WW_H
 
 #include "common/events.h"
 #include "common/file.h"
@@ -32,8 +32,9 @@
 
 #include "image/pcx.h"
 
-#include "waynesworld/sound.h"
-#include "wwintro.h"
+#include "ww/detection.h"
+#include "ww/sound.h"
+#include "ww/wwintro.h"
 
 #define kWWSavegameVersion 1
 #define kWWSavegameStrSize 14
@@ -109,14 +110,14 @@ const int kLastInventoryObjectId = 77;
 
 extern const char *savegameStr;
 
-class WaynesWorldEngine : public Engine {
+class WWEngine : public Engine {
 protected:
 	Common::Error run() override;
 	bool hasFeature(EngineFeature f) const override;
 
 public:
-	WaynesWorldEngine(OSystem *syst, const ADGameDescription *gd);
-	~WaynesWorldEngine() override;
+	WWEngine(OSystem *syst, const WWGameDescription *gd);
+	~WWEngine() override;
 	const Common::String getTargetName() { return _targetName; }
 	static bool readSavegameHeader(Common::InSaveFile *in, SavegameHeader &header, bool skipThumbnail = true);
 
@@ -131,7 +132,7 @@ public:
 	Common::Error saveGameState(int slot, const Common::String &desc, bool isAutosave = false) override;
 	Common::Error loadGameState(int slot) override;
 
-	const ADGameDescription *_gameDescription;
+	const WWGameDescription *_gameDescription;
 	bool _isSoundEnabled = true;
 	bool _isMusicEnabled = true;
 
@@ -462,4 +463,4 @@ public:
 
 } // End of namespace WaynesWorld
 
-#endif // WAYNESWORLD_H
+#endif // WW_H

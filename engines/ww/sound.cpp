@@ -29,12 +29,12 @@
 
 // Miles Audio
 #include "audio/miles.h"
-#include "waynesworld/waynesworld.h"
-#include "waynesworld/sound.h"
+#include "ww/ww.h"
+#include "ww/sound.h"
 
 namespace WaynesWorld {
 
-SoundManager::SoundManager(WaynesWorldEngine *vm, Audio::Mixer *mixer) : _vm(vm), _mixer(mixer) {
+SoundManager::SoundManager(WWEngine *vm, Audio::Mixer *mixer) : _vm(vm), _mixer(mixer) {
 	_effectsHandle = new Audio::SoundHandle();
 	_stream = nullptr;
 }
@@ -224,7 +224,7 @@ void SoundManager::stopSound() {
 
 /******************************************************************************************/
 
-MusicManager::MusicManager(WaynesWorldEngine *vm)/* : _vm(vm) */{
+MusicManager::MusicManager(WWEngine *vm)/* : _vm(vm) */{
 	_music = nullptr;
 	_isLooping = false;
 	_driver = nullptr;

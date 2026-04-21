@@ -19,15 +19,14 @@
  *
  */
 
-#include "waynesworld/waynesworld.h"
+#include "ww/detection.h"
+#include "ww/ww.h"
 
 #include "engines/advancedDetector.h"
 
 #include "common/savefile.h"
 #include "common/system.h"
 #include "common/translation.h"
-
-#include "waynesworld/detection.h"
 
 namespace WaynesWorld {
 static const ADExtraGuiOptionsMap optionsList[] = {
@@ -48,23 +47,23 @@ static const ADExtraGuiOptionsMap optionsList[] = {
 
 } // namespace WaynesWorld
 
-class WaynesWorldMetaEngine : public AdvancedMetaEngine<ADGameDescription> {
+class WWMetaEngine : public AdvancedMetaEngine<WaynesWorld::WWGameDescription> {
 public:
 	const char *getName() const override {
-		return "waynesworld";
+		return "ww";
 	}
 	const ADExtraGuiOptionsMap *getAdvancedExtraGuiOptions() const override {
 		return WaynesWorld::optionsList;
 	}
 
-	Common::Error createInstance(OSystem *syst, Engine **engine, const ADGameDescription *desc) const override;
+	Common::Error createInstance(OSystem *syst, Engine **engine, const WaynesWorld::WWGameDescription *desc) const override;
 	bool hasFeature(MetaEngineFeature f) const override;
 	SaveStateList listSaves(const char *target) const override;
 	SaveStateDescriptor querySaveMetaInfos(const char *target, int slot) const override;
 	int getMaximumSaveSlot() const override { return 99; }
 };
 
-bool WaynesWorldMetaEngine::hasFeature(MetaEngineFeature f) const {
+bool WWMetaEngine::hasFeature(MetaEngineFeature f) const {
 	return (f == kSupportsListSaves) ||
 		   (f == kSupportsLoadingDuringStartup) ||
 		   (f == kSavesSupportMetaInfo) ||
@@ -73,12 +72,12 @@ bool WaynesWorldMetaEngine::hasFeature(MetaEngineFeature f) const {
 		   (f == kSavesSupportPlayTime);
 }
 
-Common::Error WaynesWorldMetaEngine::createInstance(OSystem *syst, Engine **engine, const ADGameDescription *desc) const {
-	*engine = new WaynesWorld::WaynesWorldEngine(syst,desc);
+Common::Error WWMetaEngine::createInstance(OSystem *syst, Engine **engine, const WaynesWorld::WWGameDescription *desc) const {
+	*engine = new WaynesWorld::WWEngine(syst, desc);
 	return Common::kNoError;
 }
 
-SaveStateList WaynesWorldMetaEngine::listSaves(const char *target) const {
+SaveStateList WWMetaEngine::listSaves(const char *target) const {
 	Common::SaveFileManager *saveFileMan = g_system->getSavefileManager();
 	const Common::String pattern = "ww##.sav";
 	Common::StringArray filenames = saveFileMan->listSavefiles(pattern);
@@ -105,7 +104,7 @@ SaveStateList WaynesWorldMetaEngine::listSaves(const char *target) const {
 
 					if (!strncmp(buffer, WaynesWorld::savegameStr, kWWSavegameStrSize + 1)) {
 						// Valid savegame
-						if (WaynesWorld::WaynesWorldEngine::readSavegameHeader(file, header)) {
+						if (WaynesWorld::WWEngine::readSavegameHeader(file, header)) {
 							saveList.push_back(SaveStateDescriptor(this, slotNum, header.saveName));
 						}
 					} else {
@@ -122,7 +121,7 @@ SaveStateList WaynesWorldMetaEngine::listSaves(const char *target) const {
 	return saveList;
 }
 
-SaveStateDescriptor WaynesWorldMetaEngine::querySaveMetaInfos(const char *target, int slot) const {
+SaveStateDescriptor WWMetaEngine::querySaveMetaInfos(const char *target, int slot) const {
 	Common::String fileName = Common::String::format("ww%02d.sav", slot);
 	Common::InSaveFile *f = g_system->getSavefileManager()->openForLoading(fileName);
 
@@ -139,7 +138,7 @@ SaveStateDescriptor WaynesWorldMetaEngine::querySaveMetaInfos(const char *target
 		}
 
 		bool hasHeader = !strncmp(buffer, WaynesWorld::savegameStr, kWWSavegameStrSize + 1) &&
-						 WaynesWorld::WaynesWorldEngine::readSavegameHeader(f, header, false);
+						 WaynesWorld::WWEngine::readSavegameHeader(f, header, false);
 		delete f;
 
 		if (!hasHeader) {
@@ -164,8 +163,8 @@ SaveStateDescriptor WaynesWorldMetaEngine::querySaveMetaInfos(const char *target
 	return SaveStateDescriptor();
 }
 
-#if PLUGIN_ENABLED_DYNAMIC(WAYNESWORLD)
-	REGISTER_PLUGIN_DYNAMIC(WAYNESWORLD, PLUGIN_TYPE_ENGINE, WaynesWorldMetaEngine);
+#if PLUGIN_ENABLED_DYNAMIC(WW)
+	REGISTER_PLUGIN_DYNAMIC(WAYNESWORLD, PLUGIN_TYPE_ENGINE, WWMetaEngine);
 #else
-	REGISTER_PLUGIN_STATIC(WAYNESWORLD, PLUGIN_TYPE_ENGINE, WaynesWorldMetaEngine);
+	REGISTER_PLUGIN_STATIC(WW, PLUGIN_TYPE_ENGINE, WWMetaEngine);
 #endif

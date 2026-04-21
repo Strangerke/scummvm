@@ -19,16 +19,16 @@
  *
  */
 
-#include "waynesworld/wwintro.h"
-#include "waynesworld/waynesworld.h"
-#include "waynesworld/graphics.h"
-#include "waynesworld/gxlarchive.h"
+#include "ww/wwintro.h"
+#include "ww/ww.h"
+#include "ww/graphics.h"
+#include "ww/gxlarchive.h"
 
 #include "audio/audiostream.h"
 
 namespace WaynesWorld {
 
-WWIntro_demo1::WWIntro_demo1(WaynesWorldEngine *vm) : WWIntro(vm) {
+WWIntro_demo1::WWIntro_demo1(WWEngine *vm) : WWIntro(vm) {
 }
 
 WWIntro_demo1::~WWIntro_demo1() {

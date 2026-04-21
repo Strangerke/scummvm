@@ -1,4 +1,4 @@
-MODULE := engines/waynesworld
+MODULE := engines/ww
 
 MODULE_OBJS := \
 	detection.o \
@@ -10,14 +10,14 @@ MODULE_OBJS := \
 	pathfinding.o \
 	sound.o \
 	staticdata.o \
-	waynesworld.o \
+	ww.o \
 	wwintro.o \
-	wwintro_demo1.o \
+	wwintro_demo.o \
 	wwintro_full.o
 	
 
 # This module can be built as a plugin
-ifeq ($(ENABLE_WAYNESWORLD), DYNAMIC_PLUGIN)
+ifeq ($(ENABLE_WW), DYNAMIC_PLUGIN)
 PLUGIN := 1
 endif
 
