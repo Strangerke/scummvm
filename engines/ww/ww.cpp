@@ -691,8 +691,8 @@ void WWEngine::drawImageToScreenIntern(GxlArchive *lib, const char *filename, in
 	delete imageDecoder;
 }
 
-void WWEngine::drawImageToScreen(GxlArchive* lib, const char *filename, int x, int y) {
-	drawImageToScreenIntern(lib, filename, x, y, false);
+void WWEngine::drawImageToScreen(GxlArchive* lib, const char *filename, int x, int y, bool transparent) {
+	drawImageToScreenIntern(lib, filename, x, y, transparent);
 }
 
 void WWEngine::drawImageToSurface(GxlArchive *lib, const char *filename, WWSurface *destSurface, int x, int y) {

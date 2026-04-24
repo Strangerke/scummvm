@@ -289,7 +289,7 @@ public:
 	// Image drawing
 	void drawImageToSurfaceIntern(GxlArchive *lib, const char *filename, WWSurface *destSurface, int x, int y, bool transparent);
 	void drawImageToScreenIntern(GxlArchive *lib, const char *filename, int x, int y, bool transparent);
-	void drawImageToScreen(GxlArchive *lib, const char *filename, int x, int y);
+	void drawImageToScreen(GxlArchive *lib, const char *filename, int x, int y, bool transparent = false);
 	void drawImageToSurface(GxlArchive *lib, const char *filename, WWSurface *destSurface, int x, int y);
 	void drawRoomImageToBackground(const char *filename, int x, int y);
 	void drawRoomImageToBackgroundTransparent(const char *filename, int x, int y);

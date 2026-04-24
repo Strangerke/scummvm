@@ -41,6 +41,8 @@ void DHIntro::runIntro() {
 		continueFl = introPt2();
 	if (continueFl)
 		continueFl = introPt3();
+	if (continueFl)
+		continueFl = introPt4();
 }
 
 bool DHIntro::init() {
@@ -167,4 +169,35 @@ bool DHIntro::introPt3() {
 
 	return true;
 }
+
+bool DHIntro::introPt4() {
+	GxlArchive *koa02Gxl = new GxlArchive("koa02");
+	_vm->paletteFadeOut(0, 256, 32);
+	_vm->_screen->clear(0);
+	_vm->drawImageToScreen(koa02Gxl, "brain.pcx", 21, 12);
+	_vm->paletteFadeIn(0, 256, 64);
+	_vm->playSound("surgt2.snd", true, 10000);
+	_vm->playSound("scream.snd", true, 10000);
+	_vm->waitSeconds(1);
+
+	for (int i = 0; i < 20; ++i) {
+		int rnd = _vm->getRandom(20);
+		if (rnd < 5) {
+			Common::String filename = Common::String::format("eye%d.pcx", rnd);
+			_vm->drawImageToScreen(koa02Gxl, filename.c_str(), 147, 63, true);
+		}
+
+		Common::String filename = Common::String::format("tube%d.pcx", (i + i) % 4);
+		_vm->drawImageToScreen(koa02Gxl, filename.c_str(), 103, 109, true);
+		_vm->waitMillis(150);
+	}
+
+	_vm->drawImageToScreen(koa02Gxl, "text.pcx", 11, 150);
+
+	
+	delete koa02Gxl;
+
+	return true;
+}
+
 } // End of namespace WW
