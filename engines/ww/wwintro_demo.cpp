@@ -268,7 +268,7 @@ bool WWIntro_demo1::introPt3() {
 	wwEffect(1, 0);
 	_vm->paletteFadeIn(0, 256, 6);
 
-	_vm->playSound("theme1.snd", 0);
+	_vm->playSound("theme1.snd", false);
 
 	wwEffect(1, 1);
 	wwEffect(1, 2);

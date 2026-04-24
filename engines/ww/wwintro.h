@@ -171,6 +171,8 @@ public:
 protected:
 	bool init();
 	bool introPt1();
+	bool introPt2();
+	bool introPt3();
 };
 } // End of namespace WW
 

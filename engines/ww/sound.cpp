@@ -165,7 +165,7 @@ byte *SoundManager::abtDecomp(Common::File *fd, int *size, int *freq) {
 	return headPtr;
 }
 
-void SoundManager::playSound(const char *filename, bool flag) {
+void SoundManager::playSound(const char *filename, bool flag, int defaultFreq) {
 	while (isSFXPlaying())
 		_vm->waitMillis(10);
 
@@ -190,7 +190,7 @@ void SoundManager::playSound(const char *filename, bool flag) {
 #endif
 	} else {
 		size = fd.size();
-		freq = 9000;
+		freq = defaultFreq;
 		buffer = new byte[size];
 		fd.read(buffer, size);
 	}

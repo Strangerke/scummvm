@@ -37,6 +37,10 @@ void DHIntro::runIntro() {
 
 	if (continueFl)
 		continueFl = introPt1();
+	if (continueFl)
+		continueFl = introPt2();
+	if (continueFl)
+		continueFl = introPt3();
 }
 
 bool DHIntro::init() {
@@ -76,7 +80,7 @@ bool DHIntro::introPt1() {
 		{"star2.pcx", 146, 17, 150},
 		{"star3.pcx", 146, 17, 150},
 		{"star4.pcx", 146, 17, 150},
-		{"pyramid.pcx", 58, 21, 7250}
+		{"pyramid.pcx", 58, 21, 250} // TODO : 7250 in the original
 	};
 
 	for (const Frame &frame : animation) {
@@ -88,6 +92,79 @@ bool DHIntro::introPt1() {
 	_vm->paletteFadeOut(0, 256, 2);
 
 	delete koa00Gxl;
+	return true;
+}
+
+bool DHIntro::introPt2() {
+	int deyeProba = 3;
+	int deyeId = 1;
+	int neyeProba = 3;
+	int neyeId = 1;
+
+	GxlArchive *koa05Gxl = new GxlArchive("koa05");
+	_vm->_screen->clear(0);
+	_vm->drawImageToScreen(koa05Gxl, "surg.pcx", 0, 15);
+	_vm->paletteFadeIn(0, 256, 2);
+	_vm->changeMusic("o_r_.xmi");
+
+
+	for (int loopCtr = 1; loopCtr < 30; ++loopCtr) {
+		if (_vm->getRandom(20) <= neyeProba) {
+			Common::String filename = Common::String::format("neye%d.pcx", neyeId);
+			_vm->drawImageToScreen(koa05Gxl, filename.c_str(), 74, 75);
+			neyeProba = neyeId ? 8 : 3;
+			neyeId ^= 1;
+		}
+
+		if (_vm->getRandom(20) <= deyeProba) {
+			Common::String filename = Common::String::format("deye%d.pcx", deyeId);
+			_vm->drawImageToScreen(koa05Gxl, filename.c_str(), 205, 65);
+			deyeProba = deyeId ? 8 : 3;
+			deyeId ^= 1;
+		}
+
+		if (loopCtr == 15) {
+			for (int i = 1; i < 5; ++i) {
+				Common::String filename = Common::String::format("arm%d.pcx", i);
+				_vm->drawImageToScreen(koa05Gxl, filename.c_str(), 78, 83);
+			}
+		}
+
+		_vm->waitMillis(50);
+	}
+
+	_vm->playSound("saw.snd", false);
+
+
+	delete koa05Gxl;
+	_vm->waitSeconds(1);
+
+	return true;
+}
+
+bool DHIntro::introPt3() {
+	GxlArchive *koa03Gxl = new GxlArchive("koa03");
+	_vm->paletteFadeOut(0, 256, 32);
+	_vm->_screen->clear(0);
+	_vm->drawImageToScreen(koa03Gxl, "face.pcx", 61, 15);
+	_vm->paletteFadeIn(0, 256, 64);
+	_vm->waitMillis(500);
+
+	_vm->playSound("surgt1.snd", false, 10000);
+	_vm->drawImageToScreen(koa03Gxl, "ceye.pcx", 126, 79);
+	_vm->waitSeconds(1);
+	_vm->drawImageToScreen(koa03Gxl, "oeye.pcx", 123, 70);
+	_vm->waitMillis(500);
+	_vm->drawImageToScreen(koa03Gxl, "text.pcx", 11, 149);
+	for (int i = 0; i < 5; ++i) {
+		_vm->drawImageToScreen(koa03Gxl, "mouth.pcx", 114, 96);
+		_vm->waitMillis(_vm->getRandom(300));
+		_vm->drawImageToScreen(koa03Gxl, "face.pcx", 61, 15);
+		_vm->waitMillis(_vm->getRandom(300));
+	}
+
+	delete koa03Gxl;
+
 	return true;
 }
 } // End of namespace WW

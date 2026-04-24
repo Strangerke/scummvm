@@ -816,9 +816,9 @@ void WWEngine::displayTextLines(const char *filename, int baseIndex, int x, int 
 	}
 }
 
-void WWEngine::playSound(const char *filename, int flag) {
+void WWEngine::playSound(const char *filename, bool flag, int freq) {
 	if (_isSoundEnabled)
-		_sound->playSound(filename, flag);
+		_sound->playSound(filename, flag, freq);
 }
 
 void WWEngine::changeMusic() {
@@ -1890,30 +1890,30 @@ void WWEngine::handleVerbPickUp() {
 	case 10:
 	case 44:
 	case 54:
-		playSound("sv32.snd", 1);
+		playSound("sv32.snd", true);
 		break;
 	case 7:
-		playSound("sv18.snd", 1);
-		playSound("sv28.snd", 1);
+		playSound("sv18.snd", true);
+		playSound("sv28.snd", true);
 		break;
 	case 13:
-		playSound("sv19.snd", 1);
+		playSound("sv19.snd", true);
 		break;
 	case 50:
-		playSound("sv33.snd", 1);
+		playSound("sv33.snd", true);
 		break;
 	case 51:
 	case 59:
-		playSound("sv31.snd", 1);
+		playSound("sv31.snd", true);
 		break;
 	case 53:
-		playSound("ss07.snd", 1);
+		playSound("ss07.snd", true);
 		break;
 	case 55:
-		playSound("sv29.snd", 1);
+		playSound("sv29.snd", true);
 		break;
 	case 56:
-		playSound("sv38.snd", 1);
+		playSound("sv38.snd", true);
 		break;
 	default:
 		break;
@@ -2015,22 +2015,22 @@ void WWEngine::handleVerbUse() {
 
 	switch (actionTextIndex) {
 	case 0:
-		playSound("sv18.snd", 1);
+		playSound("sv18.snd", true);
 		break;
 	case 67:
-		playSound("ss07.snd", 1);
+		playSound("ss07.snd", true);
 		break;
 	case 68:
-		playSound("sv32.snd", 1);
+		playSound("sv32.snd", true);
 		break;
 	case 69:
-		playSound("sv47.snd", 1);
+		playSound("sv47.snd", true);
 		break;
 	case 70:
-		playSound("sv39.snd", 1);
+		playSound("sv39.snd", true);
 		break;
 	case 71:
-		playSound("sv38.snd", 1);
+		playSound("sv38.snd", true);
 		break;
 	default:
 		break;
@@ -2094,10 +2094,10 @@ void WWEngine::handleVerbPush() {
 
 	switch (actionTextIndex) {
 	case 0:
-		playSound("sv02.snd", 1);
+		playSound("sv02.snd", true);
 		break;
 	case 4:
-		playSound("sv47.snd", 1);
+		playSound("sv47.snd", true);
 		break;
 	default:
 		break;
@@ -2118,7 +2118,7 @@ void WWEngine::handleVerbPull() {
 	}
 
 	if (actionTextIndex == 0)
-		playSound("sv31.snd", 1);
+		playSound("sv31.snd", true);
 
 }
 
@@ -2177,25 +2177,25 @@ void WWEngine::handleVerbOpen() {
 
 	switch (actionTextIndex) {
 	case 0:
-		playSound("sv28.snd", 1);
+		playSound("sv28.snd", true);
 		break;
 	case 1:
-		playSound("sv38.snd", 1);
+		playSound("sv38.snd", true);
 		break;
 	case 5:
-		playSound("sv31.snd", 1);
+		playSound("sv31.snd", true);
 		break;
 	case 7:
-		playSound("ss07.snd", 1);
+		playSound("ss07.snd", true);
 		break;
 	case 8:
-		playSound("sv47.snd", 1);
+		playSound("sv47.snd", true);
 		break;
 	case 10:
-		playSound("sv28.snd", 1);
+		playSound("sv28.snd", true);
 		break;
 	case 11:
-		playSound("sv21.snd", 1);
+		playSound("sv21.snd", true);
 		break;
 	default:
 		break;
@@ -2216,10 +2216,10 @@ void WWEngine::handleVerbClose() {
 
 	switch (actionTextIndex) {
 	case 0:
-		playSound("sv47.snd", 1);
+		playSound("sv47.snd", true);
 		break;
 	case 1:
-		playSound("sv21.snd", 1);
+		playSound("sv21.snd", true);
 		break;
 	default:
 		break;
@@ -2243,7 +2243,7 @@ void WWEngine::lookAtUnusedTicket() {
 	}
 	paletteFadeOut(0, 256, 64);
 	_screen->clear(0);
-	playSound("sv14.snd", 0);
+	playSound("sv14.snd", false);
 	drawImageToScreen(_r10Gxl, "ticket.pcx", 0, 13);
 	paletteFadeIn(0, 256, 64);
 	// sysMouseDriver(1);

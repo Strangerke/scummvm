@@ -56,7 +56,7 @@ public:
 	SoundManager(WWEngine *vm, Audio::Mixer *mixer);
 	~SoundManager();
 
-	void playSound(const char *filename, bool flag);
+	void playSound(const char *filename, bool flag, int defaultFreq = 9000);
 	bool isSFXPlaying();
 
 	void syncVolume();

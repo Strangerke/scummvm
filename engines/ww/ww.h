@@ -307,7 +307,7 @@ public:
 	void displayTextLines(const char *filename, int baseIndex, int x, int y, int count);
 
 	// Audio
-	void playSound(const char *filename, int flag);
+	void playSound(const char *filename, bool flag, int freq = 9000); // various freq are used in DH, in WW it's always 9000. Only used for SND (RAW) files.
 	void changeMusic();
 	void changeMusic(const char* filename);
 	void stopMusic();
