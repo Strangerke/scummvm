@@ -45,6 +45,13 @@ static const ADExtraGuiOptionsMap optionsList[] = {
 	AD_EXTRA_GUI_OPTIONS_TERMINATOR
 };
 
+uint32 WWEngine::getFeatures() const {
+	return _gameDescription->desc.flags;
+}
+
+int WWEngine::getGameId() const {
+	return _gameDescription->gameID;
+}
 } // namespace WW
 
 class WWMetaEngine : public AdvancedMetaEngine<WW::WWGameDescription> {
@@ -74,6 +81,7 @@ bool WWMetaEngine::hasFeature(MetaEngineFeature f) const {
 
 Common::Error WWMetaEngine::createInstance(OSystem *syst, Engine **engine, const WW::WWGameDescription *desc) const {
 	*engine = new WW::WWEngine(syst, desc);
+
 	return Common::kNoError;
 }
 
@@ -164,7 +172,7 @@ SaveStateDescriptor WWMetaEngine::querySaveMetaInfos(const char *target, int slo
 }
 
 #if PLUGIN_ENABLED_DYNAMIC(WW)
-	REGISTER_PLUGIN_DYNAMIC(WAYNESWORLD, PLUGIN_TYPE_ENGINE, WWMetaEngine);
+	REGISTER_PLUGIN_DYNAMIC(WW, PLUGIN_TYPE_ENGINE, WWMetaEngine);
 #else
 	REGISTER_PLUGIN_STATIC(WW, PLUGIN_TYPE_ENGINE, WWMetaEngine);
 #endif

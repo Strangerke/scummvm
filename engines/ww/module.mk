@@ -13,6 +13,7 @@ MODULE_OBJS := \
 	ww.o \
 	wwintro.o \
 	wwintro_demo.o \
+	wwintro_dh.o \
 	wwintro_full.o
 	
 

@@ -39,10 +39,19 @@ struct Frame {
 	int delay;
 };
 
-class WWIntro {
+class Intro {
 protected:
 	WWEngine *_vm;
 
+public:
+	Intro(WWEngine *vm);
+	virtual ~Intro() {}
+
+	virtual void runIntro() = 0;
+};
+
+class WWIntro : public Intro {
+protected:
 	WWSurface *_outlineSurface = nullptr;
 	WWSurface *_logoSurface = nullptr;
 	WWSurface *_backg2Surface = nullptr;
@@ -60,9 +69,8 @@ protected:
 
 public:
 	WWIntro(WWEngine *vm);
-	virtual ~WWIntro() {}
+	virtual ~WWIntro() override {}
 
-	virtual void runIntro() = 0;
 	WWSurface *_demoPt2Surface = nullptr;
 
 protected:
@@ -151,6 +159,18 @@ protected:
 	bool introPt4_caller2() override;
 	bool introPt4_caller3() override;
 	bool introPt4_caller4() override;
+};
+
+class DHIntro : public Intro {
+public:
+	DHIntro(WWEngine *vm);
+	virtual ~DHIntro() override {}
+
+	void runIntro() override;
+
+protected:
+	bool init();
+	bool introPt1();
 };
 } // End of namespace WW
 

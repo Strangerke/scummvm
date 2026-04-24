@@ -28,8 +28,10 @@
 #include "graphics/paletteman.h"
 
 namespace WW {
+Intro::Intro(WWEngine *vm) : _vm(vm) {
+}
 
-WWIntro::WWIntro(WWEngine *vm) : _vm(vm) {
+WWIntro::WWIntro(WWEngine *vm) : Intro(vm) {
 }
 
 bool WWIntro::initOanGxl() {

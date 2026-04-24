@@ -48,11 +48,10 @@ const char *savegameStr = "SCUMMVM_WAYNES";
 WWEngine::WWEngine(OSystem *syst, const WWGameDescription *gd) :
 	Engine(syst), _gameDescription(gd) {
 
-	_random = new Common::RandomSource("waynesworld");
+	_random = new Common::RandomSource("ww");
 	_isSaveAllowed = false;
 
 	Engine::syncSoundSettings();
-
 }
 
 WWEngine::~WWEngine() {
@@ -91,10 +90,7 @@ bool WWEngine::readSavegameHeader(Common::InSaveFile *in, SavegameHeader &header
 	header.saveDay = in->readSint16LE();
 	header.saveHour = in->readSint16LE();
 	header.saveMinutes = in->readSint16LE();
-
-	if (header.version >= 3) {
-		header.playTime = in->readUint32LE();
-	}
+	header.playTime = in->readUint32LE();
 
 	return true;
 }
@@ -152,12 +148,6 @@ void WWEngine::writeSavegameHeader(Common::OutSaveFile *out, SavegameHeader &hea
 Common::Error WWEngine::run() {
 	_isSaveAllowed = false;
 
-	for (uint i = 0; i < kRoomAnimationsCount; i++)
-		_roomAnimations[i] = nullptr;
-
-	for (uint i = 0; i < kStaticRoomObjectSpritesCount; i++)
-		_staticRoomObjectSprites[i] = nullptr;
-
 	initGraphics(320, 200);
 	initMouseCursor();
 	_screen = new Screen();
@@ -178,10 +168,14 @@ Common::Error WWEngine::run() {
 	}
 
 	if (_loadSaveSlot < 0) {
-		if (_gameDescription->desc.flags & ADGF_DEMO)
-			intro = new WWIntro_demo1(this);
-		else
-			intro = new WWIntro_full(this);
+		if (getGameId() == GType_Waynesworld) {
+			if (getFeatures() & ADGF_DEMO)
+				intro = new WWIntro_demo1(this);
+			else
+				intro = new WWIntro_full(this);
+		} else {
+			intro = new DHIntro(this);
+		}
 		intro->runIntro();
 		delete intro;
 		intro = nullptr;
@@ -847,6 +841,14 @@ void WWEngine::changeMusic() {
 		_midi->playMusic("metal3.xmi");
 		break;
 	}
+}
+
+void WWEngine::changeMusic(const char *filename) {
+	if (!_isMusicEnabled)
+		return;
+
+	_midi->stopSong();
+	_midi->playMusic(filename);
 }
 
 void WWEngine::stopMusic() {

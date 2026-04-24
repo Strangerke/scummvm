@@ -133,6 +133,9 @@ public:
 	Common::Error loadGameState(int slot) override;
 
 	const WWGameDescription *_gameDescription;
+	uint32 getFeatures() const;
+	int getGameId() const;
+
 	bool _isSoundEnabled = true;
 	bool _isMusicEnabled = true;
 
@@ -246,7 +249,7 @@ public:
 	static const StaticRoomObject kStaticRoomObjects[kStaticRoomObjectsCount];
 	// _staticRoomObjects is a writable copy of kStaticRoomObjects
 	StaticRoomObject _staticRoomObjects[kStaticRoomObjectsCount];
-	WWSurface *_staticRoomObjectSprites[kStaticRoomObjectSpritesCount];
+	WWSurface *_staticRoomObjectSprites[kStaticRoomObjectSpritesCount] = {nullptr};
 
 	// Game map
 	int _gameMapRoomNumber;
@@ -259,7 +262,7 @@ public:
 	uint32 _gameMapLastTicks = 0;
 
 	// Intro
-	WWIntro *intro = nullptr;
+	Intro *intro = nullptr;
 
 	// Utils
 	int getRandom(int max);
@@ -306,6 +309,7 @@ public:
 	// Audio
 	void playSound(const char *filename, int flag);
 	void changeMusic();
+	void changeMusic(const char* filename);
 	void stopMusic();
 
 	// Interface
