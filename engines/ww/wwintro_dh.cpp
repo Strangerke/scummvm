@@ -42,11 +42,9 @@ void DHIntro::runIntro() {
 		continueFl = introPt2();
 	if (continueFl)
 		continueFl = introPt3();
-
-	// continueFl = true;
-
 	if (continueFl)
 		continueFl = introPt4();
+	// continueFl = true;
 	if (continueFl)
 		continueFl = introPt5();
 
@@ -279,6 +277,55 @@ bool DHIntro::introPt5() {
 }
 
 bool DHIntro::introPt6() {
+	// The original has all the frames hardcoded one after the other, I used a loop instead.
+	Frame animation[] = {
+		{"syml1.pcx", 75, 22, 50},
+		{"syml2.pcx", 75, 22, 50},
+		{"syml3.pcx", 75, 22, 50},
+		{"syml4.pcx", 75, 22, 50},
+		{"syml3.pcx", 75, 22, 50},
+		{"syml2.pcx", 75, 22, 50},
+		{"syml1.pcx", 75, 22, 50},
+		{"syml5.pcx", 75, 22, 50},
+		{"syml6.pcx", 75, 22, 50},
+		{"syml7.pcx", 75, 22, 50},
+		{"syml8.pcx", 75, 22, 50},
+		{"syml9.pcx", 75, 22, 50},
+		{"syml10.pcx", 75, 22, 50},
+		{"syml11.pcx", 75, 22, 50},
+		{"syml13.pcx", 75, 22, 50},
+		{"syml17.pcx", 75, 22, 50}
+	};
+	Frame animation2[] = {
+		{"syml21.pcx", 75, 22, 50},
+		{"syml25.pcx", 75, 22, 50},
+		{"syml29.pcx", 75, 22, 50},
+		{"syml33.pcx", 75, 22, 50},
+		{"syml36.pcx", 75, 22, 50}
+	};
+
+	GxlArchive *koa00Gxl = new GxlArchive("koa00");
+//	_vm->paletteFadeOut(0, 256, 64);
+	_vm->_screen->clear(0);
+	_vm->drawImageToScreen(koa00Gxl, "syml1.pcx", 75, 22);
+	_vm->paletteFadeIn(0, 256, 64);
+	_vm->changeMusic("symtus1.xmi");
+
+	for (const Frame &frame : animation) {
+		_vm->drawImageToScreen(koa00Gxl, frame.filename, frame.x, frame.y);
+		_vm->waitMillis(frame.delay);
+	}
+	_vm->changeMusic("symtus4.xmi");
+
+
+	for (const Frame &frame : animation2) {
+		_vm->drawImageToScreen(koa00Gxl, frame.filename, frame.x, frame.y);
+		_vm->waitMillis(frame.delay);
+	}
+	while (!_vm->_midi->checkMidiDone())
+		_vm->waitMillis(10);
+
+	delete koa00Gxl;
 	return true;
 }
 } // End of namespace WW
