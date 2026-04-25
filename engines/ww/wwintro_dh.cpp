@@ -50,13 +50,16 @@ void DHIntro::runIntro() {
 	while (!_vm->_midi->checkMidiDone())
 		_vm->waitMillis(10);
 
-	// continueFl = true;
-
 	if (continueFl)
 		continueFl = introPt6();
 
 	if (continueFl)
 		continueFl = intro_credits();
+
+	// continueFl = true;
+	
+	if (continueFl)
+		continueFl = introPt8();
 }
 
 bool DHIntro::init() {
@@ -358,6 +361,46 @@ bool DHIntro::intro_credits() {
 	_vm->paletteFadeOut(0, 256, 2);
 
 	delete koa00Gxl;
+	return true;
+}
+
+bool DHIntro::introPt8() {
+	GxlArchive *koa04Gxl = new GxlArchive("koa04");
+	_vm->paletteFadeOut(0, 256, 2);
+
+	WWSurface *background = new WWSurface(534, 170);
+	WWSurface *text = new WWSurface(284, 20);
+
+	_vm->drawImageToSurface(koa04Gxl, "house.pcx", background, 0, 0);
+	_vm->drawImageToSurface(koa04Gxl, "lake.pcx", background, 214, 0);
+
+	_vm->_screen->clear(0);
+
+	WWSurface *scroll = new WWSurface(320, 170);
+	scroll->copyRectToSurface((Graphics::Surface)*background, 0, 0, Common::Rect(214, 0, 533, 169));
+
+	_vm->_screen->drawSurface(scroll, 0, 10);
+	_vm->changeMusic("23years.xmi");
+	_vm->paletteFadeIn(0, 256, 4);
+	_vm->waitSeconds(1);
+	_vm->drawImageToSurface(koa04Gxl, "text.pcx", text, 0, 0);
+	_vm->_screen->drawSurfaceTransparent(text, 18, 150);
+	_vm->waitSeconds(1);
+
+	for (int16 i = 213; i >= 0; --i) {
+		scroll->copyRectToSurface((Graphics::Surface)*background, 0, 0, Common::Rect(i, 0, i + 319, 169));
+		scroll->drawSurfaceTransparent(text, 18, 140);
+		_vm->_screen->drawSurface(scroll, 0, 10);
+	}
+
+	_vm->waitSeconds(3);
+	_vm->paletteFadeOut(0, 256, 8);
+
+	delete scroll;
+	delete text;
+	delete background;
+
+	delete koa04Gxl;
 	return true;
 }
 } // End of namespace WW
