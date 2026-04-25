@@ -730,18 +730,19 @@ void WWEngine::drawRandomEffect(Graphics::Surface *surface, int x, int y, int gr
 }
 
 void WWEngine::drawWeaveEffect(Graphics::Surface* surface, int x, int y, int grainWidth, int grainHeight, int delay) {
-	warning("TODO: missing real implementation of drawWeaveEffect");
 	if (surface) {
-		_screen->drawSurface(surface, x, y);
+		ScreenEffect screenEffect(this, surface, x, y, grainWidth, grainHeight);
+		screenEffect.drawWeaveEffect();
+
 	} else {
 		warning("%s() x:%d y:%d missing surface!", __func__, x, y);
 	}
 }
 
 void WWEngine::drawSlideEffect(Graphics::Surface* surface, int x, int y, int grainWidth, int grainHeight, int delay) {
-	warning("TODO: missing real implementation of drawSlideEffect");
 	if (surface) {
-		_screen->drawSurface(surface, x, y);
+		ScreenEffect screenEffect(this, surface, x, y, grainWidth, grainHeight);
+		screenEffect.drawSlideEffect();
 	} else {
 		warning("%s() x:%d y:%d missing surface!", __func__, x, y);
 	}

@@ -232,6 +232,8 @@ MusicManager::MusicManager(WWEngine *vm)/* : _vm(vm) */{
 	const MidiDriver::DeviceHandle dev = MidiDriver::detectDevice(MDT_MIDI | MDT_ADLIB | MDT_PREFER_MT32);
 	MusicType musicType = MidiDriver::getMusicType(dev);
 
+	musicType = MT_MT32;
+
 	switch (musicType) {
 	case MT_ADLIB: {
 		MidiPlayer::createDriver();

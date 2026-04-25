@@ -35,7 +35,7 @@ DHIntro::DHIntro(WWEngine *vm) : Intro(vm) {
 void DHIntro::runIntro() {
 	bool continueFl = init();
 
-//	continueFl = false;
+	// continueFl = false;
 	if (continueFl)
 		continueFl = introPt1();
 	if (continueFl)
@@ -43,7 +43,7 @@ void DHIntro::runIntro() {
 	if (continueFl)
 		continueFl = introPt3();
 
-//	continueFl = true;
+	// continueFl = true;
 
 	if (continueFl)
 		continueFl = introPt4();
@@ -53,7 +53,8 @@ void DHIntro::runIntro() {
 	while (!_vm->_midi->checkMidiDone())
 		_vm->waitMillis(10);
 
-
+	if (continueFl)
+		continueFl = introPt6();
 }
 
 bool DHIntro::init() {
@@ -252,7 +253,7 @@ bool DHIntro::introPt5() {
 
 	_vm->drawSpiralEffect(title1, 0, 15, 5, 5);
 	_vm->drawImageToScreen(koa01Gxl, "titlex.pcx", 0, 15);
-	_vm->drawSpiralEffect(title2, 0, 15, 4, 4);
+	_vm->drawRandomEffect(title2, 0, 15, 4, 4);
 	_vm->drawSpiralEffect(title3a, 64, 25, 6, 6);
 	_vm->waitSeconds(6);
 
@@ -274,6 +275,10 @@ bool DHIntro::introPt5() {
 
 	delete koa01Gxl;
 
+	return true;
+}
+
+bool DHIntro::introPt6() {
 	return true;
 }
 } // End of namespace WW

@@ -422,6 +422,67 @@ void ScreenEffect::drawRandomEffect() {
 	_vm->_screen->endUpdate();
 }
 
+void ScreenEffect::drawWeaveEffect() {
+	_totalSliceTicks = g_system->getMillis();
+	_vm->_screen->beginUpdate();
+
+	// Iterate through columns from 0 to the maximum width
+	for (int x = 0; x < _blockCountW; ++x) {
+		if (_vm->shouldQuit())
+			break;
+
+		for (int y = 0; y < _blockCountH; ++y) {
+			if (y % 2 != 0) {
+				// ODD ROWS: Display from Left to Right
+				drawBlock(x, y);
+			} else {
+				// EVEN ROWS: Display from Right to Left
+				int reverseX = (_blockCountW - 1) - x;
+				drawBlock(reverseX, y);
+			}
+		}
+	}
+
+	_vm->_screen->endUpdate();
+}
+
+void ScreenEffect::drawSlideEffect() {
+	_totalSliceTicks = g_system->getMillis();
+
+	// offsetY is how much of the image is still "hidden" below the screen
+	for (int offsetY = _blockCountH; offsetY >= 0; offsetY--) {
+		if (_vm->shouldQuit())
+			break;
+
+		_vm->_screen->beginUpdate();
+
+		for (int y = 0; y < _blockCountH; y++) {
+			// Calculate where this row of the image should appear on screen
+			int screenY = y - offsetY;
+
+			// Only draw if the row is actually visible on the screen
+			if (screenY >= 0 && screenY < _blockCountH) {
+				for (int x = 0; x < _blockCountW; x++) {
+					drawBlockAt(x, screenY, x, y);
+				}
+			}
+		}
+
+		_vm->_screen->endUpdate();
+
+		// Add delay
+		const uint32 currTicks = g_system->getMillis();
+
+		_totalSliceTicks += _timePerSlice;
+		if (currTicks < _totalSliceTicks) {
+			const uint32 waitTicks = _totalSliceTicks - currTicks;
+			_vm->waitMillis(waitTicks);
+		} else {
+			_vm->updateEvents();
+		}
+	}
+}
+
 void ScreenEffect::drawBlock(int blockX, int blockY) {
 	if (blockX < _blockCountW && blockY < _blockCountH) {
 		const int sourceLeft = blockX * _grainWidth;
@@ -448,6 +509,17 @@ void ScreenEffect::drawBlock(int blockX, int blockY) {
 			_vm->_screen->beginUpdate();
 		}
 	}
+}
+
+void ScreenEffect::drawBlockAt(int srcX, int srcY, int destX, int destY) {
+	const int sourceLeft = srcX * _grainWidth;
+	const int sourceTop = srcY * _grainHeight;
+	Common::Rect r(sourceLeft, sourceTop,
+				   MIN<int>(_surface->w, sourceLeft + _grainWidth),
+				   MIN<int>(_surface->h, sourceTop + _grainHeight));
+
+	Graphics::Surface blockSurface = _surface->getSubArea(r);
+	_vm->_screen->drawSurface(&blockSurface, _x + (destX * _grainWidth), _y + (destY * _grainHeight));
 }
 
 uint ScreenEffect::getBitCount(int value) {

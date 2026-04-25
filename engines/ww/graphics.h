@@ -92,6 +92,9 @@ public:
 
 	void drawSpiralEffect();
 	void drawRandomEffect();
+	void drawWeaveEffect();
+	void drawSlideEffect();
+
 protected:
 	WWEngine *_vm;
 	Graphics::Surface *_surface;
@@ -103,6 +106,7 @@ protected:
 	uint32 _totalSliceTicks = 0;
 	int _blocksPerSlice;
 	void drawBlock(int blockX, int blockY);
+	void drawBlockAt(int srcX, int srcY, int destX, int destY);
 	static uint getBitCount(int value);
 	uint getSeed(uint bitCount) const;
 };
