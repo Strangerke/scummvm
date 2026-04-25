@@ -44,15 +44,19 @@ void DHIntro::runIntro() {
 		continueFl = introPt3();
 	if (continueFl)
 		continueFl = introPt4();
-	// continueFl = true;
 	if (continueFl)
 		continueFl = introPt5();
 
 	while (!_vm->_midi->checkMidiDone())
 		_vm->waitMillis(10);
 
+	// continueFl = true;
+
 	if (continueFl)
 		continueFl = introPt6();
+
+	if (continueFl)
+		continueFl = intro_credits();
 }
 
 bool DHIntro::init() {
@@ -324,6 +328,34 @@ bool DHIntro::introPt6() {
 	}
 	while (!_vm->_midi->checkMidiDone())
 		_vm->waitMillis(10);
+
+	delete koa00Gxl;
+	return true;
+}
+
+bool DHIntro::intro_credits() {
+	GxlArchive *koa00Gxl = new GxlArchive("koa00");
+	_vm->paletteFadeOut(0, 256, 2);
+
+	WWSurface *credit1 = new WWSurface(320, 200);
+	_vm->drawImageToSurface(koa00Gxl, "credit1.pcx", credit1, 0, 0);
+	_vm->_screen->drawSurface(credit1, 0, 0);
+	_vm->changeMusic("credits.xmi");
+	_vm->paletteFadeIn(0, 256, 2);
+	_vm->waitSeconds(9);
+
+	_vm->drawImageToSurface(koa00Gxl, "credit2.pcx", credit1, 0, 0);
+	_vm->_screen->drawSurface(credit1, 0, 0);
+	_vm->waitSeconds(8);
+
+	_vm->drawImageToSurface(koa00Gxl, "credit3.pcx", credit1, 0, 0);
+	_vm->_screen->drawSurface(credit1, 0, 0);
+
+	while (!_vm->_midi->checkMidiDone())
+		_vm->waitMillis(10);
+
+	delete credit1;
+	_vm->paletteFadeOut(0, 256, 2);
 
 	delete koa00Gxl;
 	return true;

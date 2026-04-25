@@ -176,6 +176,7 @@ protected:
 	bool introPt4();
 	bool introPt5();
 	bool introPt6();
+	bool intro_credits();
 };
 } // End of namespace WW
 
