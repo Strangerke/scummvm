@@ -49,6 +49,11 @@ void DHIntro::runIntro() {
 		continueFl = introPt4();
 	if (continueFl)
 		continueFl = introPt5();
+
+	while (!_vm->_midi->checkMidiDone())
+		_vm->waitMillis(10);
+
+
 }
 
 bool DHIntro::init() {
@@ -222,7 +227,7 @@ bool DHIntro::introPt5() {
 	_vm->drawImageToSurface(koa01Gxl, "title3b.pcx", title3b, 0, 0);
 	_vm->drawImageToSurface(koa01Gxl, "title3c.pcx", title3c, 0, 0);
 	
-	while (_vm->_sound->isSFXPlaying())
+	while (!_vm->_midi->checkMidiDone())
 		_vm->waitMillis(10);
 
 	_vm->paletteFadeOut(0, 256, 32);
@@ -261,6 +266,11 @@ bool DHIntro::introPt5() {
 	delete title3a;
 	delete title2;
 	delete title1;
+
+	while (!_vm->_midi->checkMidiDone())
+		_vm->waitMillis(10);
+	
+	_vm->paletteFadeOut(0, 256, 2);
 
 	delete koa01Gxl;
 
