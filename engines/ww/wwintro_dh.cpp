@@ -25,7 +25,6 @@
 #include "ww/wwintro.h"
 
 #include "audio/audiostream.h"
-#include "graphics/paletteman.h"
 
 namespace WW {
 
@@ -35,7 +34,6 @@ DHIntro::DHIntro(WWEngine *vm) : Intro(vm) {
 void DHIntro::runIntro() {
 	bool continueFl = init();
 
-	// continueFl = false;
 	if (continueFl)
 		continueFl = introPt1();
 	if (continueFl)
@@ -52,14 +50,14 @@ void DHIntro::runIntro() {
 
 	if (continueFl)
 		continueFl = introPt6();
-
 	if (continueFl)
 		continueFl = intro_credits();
-
-	// continueFl = true;
-	
 	if (continueFl)
 		continueFl = introPt8();
+	if (continueFl)
+		introPt9();
+
+	_vm->_midi->stopSong();
 }
 
 bool DHIntro::init() {
@@ -366,7 +364,7 @@ bool DHIntro::intro_credits() {
 
 bool DHIntro::introPt8() {
 	GxlArchive *koa04Gxl = new GxlArchive("koa04");
-	_vm->paletteFadeOut(0, 256, 2);
+//	_vm->paletteFadeOut(0, 256, 2);
 
 	WWSurface *background = new WWSurface(534, 170);
 	WWSurface *text = new WWSurface(284, 20);
@@ -401,6 +399,37 @@ bool DHIntro::introPt8() {
 	delete background;
 
 	delete koa04Gxl;
+	return true;
+}
+
+bool DHIntro::introPt9() {
+	GxlArchive *koa00Gxl = new GxlArchive("koa00");
+	//	_vm->paletteFadeOut(0, 256, 2);
+	_vm->_screen->clear(0);
+
+	WWSurface *background = new WWSurface(320, 200);
+	_vm->drawImageToSurface(koa00Gxl, "thadtxt.pcx", background, 0, 0);
+	_vm->_screen->drawSurface(background, 0,0);
+	_vm->paletteFadeIn(0, 256, 2);
+	_vm->waitSeconds(9);
+
+	_vm->drawImageToSurface(koa00Gxl, "newsp.pcx", background, 0, 0);
+	_vm->_screen->drawSurface(background, 0, 0);
+	_vm->waitSeconds(12);
+	
+	_vm->drawImageToSurface(koa00Gxl, "grave.pcx", background, 0, 0);
+	_vm->_screen->drawSurface(background, 0, 0);
+
+	while (!_vm->_midi->checkMidiDone())
+		_vm->waitMillis(10);
+
+	_vm->waitSeconds(2);
+	_vm->paletteFadeOut(0, 256, 2);
+	_vm->_screen->clear(0);
+	_vm->paletteFadeIn(0, 256, 2);
+
+	delete background;
+	delete koa00Gxl;
 	return true;
 }
 } // End of namespace WW
