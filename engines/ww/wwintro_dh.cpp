@@ -35,14 +35,20 @@ DHIntro::DHIntro(WWEngine *vm) : Intro(vm) {
 void DHIntro::runIntro() {
 	bool continueFl = init();
 
+//	continueFl = false;
 	if (continueFl)
 		continueFl = introPt1();
 	if (continueFl)
 		continueFl = introPt2();
 	if (continueFl)
 		continueFl = introPt3();
+
+//	continueFl = true;
+
 	if (continueFl)
 		continueFl = introPt4();
+	if (continueFl)
+		continueFl = introPt5();
 }
 
 bool DHIntro::init() {
@@ -200,4 +206,64 @@ bool DHIntro::introPt4() {
 	return true;
 }
 
+bool DHIntro::introPt5() {
+	const char *openNames[] = {"opena04.pcx", "opena08.pcx", "opena12.pcx", "opena16.pcx", "opena17.pcx", "opena18.pcx", "opena20.pcx", "opena21.pcx", "opena23.pcx", "opena24.pcx", "opena27.pcx"};
+
+	GxlArchive *koa01Gxl = new GxlArchive("koa01");
+	WWSurface *title1 = new WWSurface(320, 171);
+	WWSurface *title2 = new WWSurface(320, 171);
+	WWSurface *title3a = new WWSurface(179, 131);
+	WWSurface *title3b = new WWSurface(239, 24);
+	WWSurface *title3c = new WWSurface(278, 14);
+
+	_vm->drawImageToSurface(koa01Gxl, "title1.pcx", title1, 0, 0);
+	_vm->drawImageToSurface(koa01Gxl, "title2.pcx", title2, 0, 0);
+	_vm->drawImageToSurface(koa01Gxl, "title3a.pcx", title3a, 0, 0);
+	_vm->drawImageToSurface(koa01Gxl, "title3b.pcx", title3b, 0, 0);
+	_vm->drawImageToSurface(koa01Gxl, "title3c.pcx", title3c, 0, 0);
+	
+	while (_vm->_sound->isSFXPlaying())
+		_vm->waitMillis(10);
+
+	_vm->paletteFadeOut(0, 256, 32);
+	_vm->_screen->clear(0);
+	_vm->drawImageToScreen(koa01Gxl, "opena01.pcx", 53, 43);
+	_vm->paletteFadeIn(0, 256, 64);
+	
+	_vm->changeMusic("maintitl.xmi");
+	_vm->waitSeconds(1);
+
+	for (int i = 0; i < 11; ++i) {
+		_vm->drawImageToScreen(koa01Gxl, openNames[i], 53, 43);
+		_vm->waitMillis(100);
+	}
+
+	_vm->waitSeconds(1);
+	WWSurface *sub_title1 = new WWSurface(214, 114);
+	sub_title1->copyRectToSurface((Graphics::Surface)*title1, 0, 0, Common::Rect(53, 28, 266, 141));
+	_vm->drawRandomEffect(sub_title1, 53, 43, 1, 1);
+	_vm->waitMillis(500);
+	delete sub_title1;
+
+	_vm->drawSpiralEffect(title1, 0, 15, 5, 5);
+	_vm->drawImageToScreen(koa01Gxl, "titlex.pcx", 0, 15);
+	_vm->drawSpiralEffect(title2, 0, 15, 4, 4);
+	_vm->drawSpiralEffect(title3a, 64, 25, 6, 6);
+	_vm->waitSeconds(6);
+
+	_vm->drawWeaveEffect(title3b, 41, 155, 2, 2, 25);
+	_vm->waitSeconds(3);
+	_vm->drawSlideEffect(title3c, 21, 186, 1, 1, 50);
+	_vm->waitMillis(300);
+
+	delete title3c;
+	delete title3b;
+	delete title3a;
+	delete title2;
+	delete title1;
+
+	delete koa01Gxl;
+
+	return true;
+}
 } // End of namespace WW

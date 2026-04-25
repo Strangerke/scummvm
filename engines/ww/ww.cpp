@@ -729,6 +729,24 @@ void WWEngine::drawRandomEffect(Graphics::Surface *surface, int x, int y, int gr
 	}
 }
 
+void WWEngine::drawWeaveEffect(Graphics::Surface* surface, int x, int y, int grainWidth, int grainHeight, int delay) {
+	warning("TODO: missing real implementation of drawWeaveEffect");
+	if (surface) {
+		_screen->drawSurface(surface, x, y);
+	} else {
+		warning("%s() x:%d y:%d missing surface!", __func__, x, y);
+	}
+}
+
+void WWEngine::drawSlideEffect(Graphics::Surface* surface, int x, int y, int grainWidth, int grainHeight, int delay) {
+	warning("TODO: missing real implementation of drawSlideEffect");
+	if (surface) {
+		_screen->drawSurface(surface, x, y);
+	} else {
+		warning("%s() x:%d y:%d missing surface!", __func__, x, y);
+	}
+}
+
 Common::String WWEngine::loadString(const char *filename, int index, int flag) {
 	const uint kMaxStringLen = 60;
 	char textBuffer[kMaxStringLen];

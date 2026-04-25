@@ -298,6 +298,8 @@ public:
 
 	void drawSpiralEffect(Graphics::Surface *surface, int x, int y, int grainWidth, int grainHeight);
 	void drawRandomEffect(Graphics::Surface *surface, int x, int y, int grainWidth, int grainHeight);
+	void drawWeaveEffect(Graphics::Surface *surface, int x, int y, int grainWidth, int grainHeight, int delay);
+	void drawSlideEffect(Graphics::Surface *surface, int x, int y, int grainWidth, int grainHeight, int delay);
 
 	// Text
 	Common::String loadString(const char *filename, int index, int flag);
