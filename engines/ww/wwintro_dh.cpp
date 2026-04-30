@@ -103,13 +103,16 @@ bool DHIntro::introPt1() {
 	for (const Frame &frame : animation) {
 		_vm->drawImageToScreen(koa00Gxl, frame.filename, frame.x, frame.y);
 		_vm->waitMillis(frame.delay);
+		if (_vm->_escPressed) {
+			break;
+		}
 	}
 
 	_vm->_midi->stopSong();
 	_vm->paletteFadeOut(0, 256, 2);
 
 	delete koa00Gxl;
-	return true;
+	return !_vm->_escPressed;
 }
 
 bool DHIntro::introPt2() {
@@ -148,6 +151,10 @@ bool DHIntro::introPt2() {
 		}
 
 		_vm->waitMillis(50);
+		if (_vm->_escPressed) {
+			delete koa05Gxl;
+			return false;
+		}
 	}
 
 	_vm->playSound("saw.snd", false);
@@ -156,7 +163,7 @@ bool DHIntro::introPt2() {
 	delete koa05Gxl;
 	_vm->waitSeconds(1);
 
-	return true;
+	return !_vm->_escPressed;
 }
 
 bool DHIntro::introPt3() {
@@ -166,23 +173,40 @@ bool DHIntro::introPt3() {
 	_vm->drawImageToScreen(koa03Gxl, "face.pcx", 61, 15);
 	_vm->paletteFadeIn(0, 256, 64);
 	_vm->waitMillis(500);
+	if (_vm->_escPressed) {
+		delete koa03Gxl;
+		return false;
+	}
 
 	_vm->playSound("surgt1.snd", false, 10000);
 	_vm->drawImageToScreen(koa03Gxl, "ceye.pcx", 126, 79);
 	_vm->waitSeconds(1);
+	if (_vm->_escPressed) {
+		delete koa03Gxl;
+		return false;
+	}
+
 	_vm->drawImageToScreen(koa03Gxl, "oeye.pcx", 123, 70);
 	_vm->waitMillis(500);
+	if (_vm->_escPressed) {
+		delete koa03Gxl;
+		return false;
+	}
+
 	_vm->drawImageToScreen(koa03Gxl, "text.pcx", 11, 149);
 	for (int i = 0; i < 5; ++i) {
 		_vm->drawImageToScreen(koa03Gxl, "mouth.pcx", 114, 96);
 		_vm->waitMillis(_vm->getRandom(300));
 		_vm->drawImageToScreen(koa03Gxl, "face.pcx", 61, 15);
 		_vm->waitMillis(_vm->getRandom(300));
+		if (_vm->_escPressed) {
+			break;
+		}
 	}
 
 	delete koa03Gxl;
 
-	return true;
+	return !_vm->_escPressed;
 }
 
 bool DHIntro::introPt4() {
@@ -194,7 +218,10 @@ bool DHIntro::introPt4() {
 	_vm->playSound("surgt2.snd", true, 10000);
 	_vm->playSound("scream.snd", true, 10000);
 	_vm->waitSeconds(1);
-
+	if (_vm->_escPressed) {
+		delete koa02Gxl;
+		return false;
+	}
 	for (int i = 0; i < 20; ++i) {
 		int rnd = _vm->getRandom(20);
 		if (rnd < 5) {
@@ -205,14 +232,17 @@ bool DHIntro::introPt4() {
 		Common::String filename = Common::String::format("tube%d.pcx", (i + i) % 4);
 		_vm->drawImageToScreen(koa02Gxl, filename.c_str(), 103, 109, true);
 		_vm->waitMillis(150);
+		if (_vm->_escPressed) {
+			delete koa02Gxl;
+			return false;
+		}
 	}
 
 	_vm->drawImageToScreen(koa02Gxl, "text.pcx", 11, 150);
 
-	
 	delete koa02Gxl;
 
-	return true;
+	return !_vm->_escPressed;
 }
 
 bool DHIntro::introPt5() {
@@ -254,16 +284,22 @@ bool DHIntro::introPt5() {
 	_vm->waitMillis(500);
 	delete sub_title1;
 
-	_vm->drawSpiralEffect(title1, 0, 15, 5, 5);
-	_vm->drawImageToScreen(koa01Gxl, "titlex.pcx", 0, 15);
-	_vm->drawRandomEffect(title2, 0, 15, 4, 4);
-	_vm->drawSpiralEffect(title3a, 64, 25, 6, 6);
-	_vm->waitSeconds(6);
+	if (!_vm->_escPressed) {
+		_vm->drawSpiralEffect(title1, 0, 15, 5, 5);
+		_vm->drawImageToScreen(koa01Gxl, "titlex.pcx", 0, 15);
+		_vm->drawRandomEffect(title2, 0, 15, 4, 4);
+		_vm->drawSpiralEffect(title3a, 64, 25, 6, 6);
+		_vm->waitSeconds(6);
+	}
+	if (!_vm->_escPressed) {
+		_vm->drawWeaveEffect(title3b, 41, 155, 2, 2, 25);
+		_vm->waitSeconds(3);
+	}
 
-	_vm->drawWeaveEffect(title3b, 41, 155, 2, 2, 25);
-	_vm->waitSeconds(3);
-	_vm->drawSlideEffect(title3c, 21, 186, 1, 1, 50);
-	_vm->waitMillis(300);
+	if (!_vm->_escPressed) {
+		_vm->drawSlideEffect(title3c, 21, 186, 1, 1, 50);
+		_vm->waitMillis(300);
+	}
 
 	delete title3c;
 	delete title3b;
@@ -278,7 +314,7 @@ bool DHIntro::introPt5() {
 
 	delete koa01Gxl;
 
-	return true;
+	return !_vm->_escPressed;
 }
 
 bool DHIntro::introPt6() {
@@ -319,19 +355,26 @@ bool DHIntro::introPt6() {
 	for (const Frame &frame : animation) {
 		_vm->drawImageToScreen(koa00Gxl, frame.filename, frame.x, frame.y);
 		_vm->waitMillis(frame.delay);
+		if (_vm->_escPressed) {
+			delete koa00Gxl;
+			return false;
+		}
 	}
 	_vm->changeMusic("symtus4.xmi");
-
 
 	for (const Frame &frame : animation2) {
 		_vm->drawImageToScreen(koa00Gxl, frame.filename, frame.x, frame.y);
 		_vm->waitMillis(frame.delay);
+		if (_vm->_escPressed) {
+			delete koa00Gxl;
+			return false;
+		}
 	}
 	while (!_vm->_midi->checkMidiDone())
 		_vm->waitMillis(10);
 
 	delete koa00Gxl;
-	return true;
+	return !_vm->_escPressed;
 }
 
 bool DHIntro::intro_credits() {
@@ -344,22 +387,25 @@ bool DHIntro::intro_credits() {
 	_vm->changeMusic("credits.xmi");
 	_vm->paletteFadeIn(0, 256, 2);
 	_vm->waitSeconds(9);
+	if (!_vm->_escPressed) {
+		_vm->drawImageToSurface(koa00Gxl, "credit2.pcx", credit1, 0, 0);
+		_vm->_screen->drawSurface(credit1, 0, 0);
+		_vm->waitSeconds(8);
+	}
 
-	_vm->drawImageToSurface(koa00Gxl, "credit2.pcx", credit1, 0, 0);
-	_vm->_screen->drawSurface(credit1, 0, 0);
-	_vm->waitSeconds(8);
+	if (!_vm->_escPressed) {
+		_vm->drawImageToSurface(koa00Gxl, "credit3.pcx", credit1, 0, 0);
+		_vm->_screen->drawSurface(credit1, 0, 0);
 
-	_vm->drawImageToSurface(koa00Gxl, "credit3.pcx", credit1, 0, 0);
-	_vm->_screen->drawSurface(credit1, 0, 0);
+		while (!_vm->_midi->checkMidiDone())
+			_vm->waitMillis(10);
+	}
 
-	while (!_vm->_midi->checkMidiDone())
-		_vm->waitMillis(10);
-
-	delete credit1;
 	_vm->paletteFadeOut(0, 256, 2);
 
+	delete credit1;
 	delete koa00Gxl;
-	return true;
+	return !_vm->_escPressed;
 }
 
 bool DHIntro::introPt8() {
@@ -378,14 +424,18 @@ bool DHIntro::introPt8() {
 	scroll->copyRectToSurface((Graphics::Surface)*background, 0, 0, Common::Rect(214, 0, 533, 169));
 
 	_vm->_screen->drawSurface(scroll, 0, 10);
-	_vm->changeMusic("23years.xmi");
-	_vm->paletteFadeIn(0, 256, 4);
-	_vm->waitSeconds(1);
-	_vm->drawImageToSurface(koa04Gxl, "text.pcx", text, 0, 0);
-	_vm->_screen->drawSurfaceTransparent(text, 18, 150);
-	_vm->waitSeconds(1);
+	if (!_vm->_escPressed) {
+		_vm->changeMusic("23years.xmi");
+		_vm->paletteFadeIn(0, 256, 4);
+		_vm->waitSeconds(1);
+	}
+	if (!_vm->_escPressed) {
+		_vm->drawImageToSurface(koa04Gxl, "text.pcx", text, 0, 0);
+		_vm->_screen->drawSurfaceTransparent(text, 18, 150);
+		_vm->waitSeconds(1);
+	}
 
-	for (int16 i = 213; i >= 0; --i) {
+	for (int16 i = 213; i >= 0 && !_vm->_escPressed; --i) {
 		scroll->copyRectToSurface((Graphics::Surface)*background, 0, 0, Common::Rect(i, 0, i + 319, 169));
 		scroll->drawSurfaceTransparent(text, 18, 140);
 		_vm->_screen->drawSurface(scroll, 0, 10);
@@ -399,7 +449,7 @@ bool DHIntro::introPt8() {
 	delete background;
 
 	delete koa04Gxl;
-	return true;
+	return !_vm->_escPressed;
 }
 
 bool DHIntro::introPt9() {
@@ -413,15 +463,19 @@ bool DHIntro::introPt9() {
 	_vm->paletteFadeIn(0, 256, 2);
 	_vm->waitSeconds(9);
 
-	_vm->drawImageToSurface(koa00Gxl, "newsp.pcx", background, 0, 0);
-	_vm->_screen->drawSurface(background, 0, 0);
-	_vm->waitSeconds(12);
-	
-	_vm->drawImageToSurface(koa00Gxl, "grave.pcx", background, 0, 0);
-	_vm->_screen->drawSurface(background, 0, 0);
+	if (!_vm->_escPressed) {
+		_vm->drawImageToSurface(koa00Gxl, "newsp.pcx", background, 0, 0);
+		_vm->_screen->drawSurface(background, 0, 0);
+		_vm->waitSeconds(12);
+	}
 
-	while (!_vm->_midi->checkMidiDone())
-		_vm->waitMillis(10);
+	if (!_vm->_escPressed) {
+		_vm->drawImageToSurface(koa00Gxl, "grave.pcx", background, 0, 0);
+		_vm->_screen->drawSurface(background, 0, 0);
+
+		while (!_vm->_midi->checkMidiDone())
+			_vm->waitMillis(10);
+	}
 
 	_vm->waitSeconds(2);
 	_vm->paletteFadeOut(0, 256, 2);
@@ -430,6 +484,6 @@ bool DHIntro::introPt9() {
 
 	delete background;
 	delete koa00Gxl;
-	return true;
+	return !_vm->_escPressed;
 }
 } // End of namespace WW
