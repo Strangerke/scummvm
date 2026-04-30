@@ -26,7 +26,7 @@
 
 namespace WW {
 
-enum WaynesWorldDebugChannels {
+enum WWDebugChannels {
 	kDebugLogic = 1,
 	kDebugMessages,
 	kDebugCore

@@ -40,15 +40,15 @@ static const DebugChannelDef debugFlagList[] = {
 
 static const char *const DIRECTORY_GLOBS[] = { "vnm", "m01", nullptr };
 
-class WaynesWorldMetaEngineDetection : public AdvancedMetaEngineDetection<WW::WWGameDescription> {
+class WWMetaEngineDetection : public AdvancedMetaEngineDetection<WW::WWGameDescription> {
 public:
-	WaynesWorldMetaEngineDetection() : AdvancedMetaEngineDetection(WW::gameDescriptions, WWGames) {
+	WWMetaEngineDetection() : AdvancedMetaEngineDetection(WW::gameDescriptions, WWGames) {
 		_maxScanDepth = 3;
 		_directoryGlobs = DIRECTORY_GLOBS;
 		_flags = kADFlagMatchFullPaths;
 	}
 
-	~WaynesWorldMetaEngineDetection() override {}
+	~WWMetaEngineDetection() override {}
 
 	const char *getName() const override {
 		return "ww";
@@ -67,4 +67,4 @@ public:
 	}
 };
 
-REGISTER_PLUGIN_STATIC(WAYNESWORLD_DETECTION, PLUGIN_TYPE_ENGINE_DETECTION, WaynesWorldMetaEngineDetection);
+REGISTER_PLUGIN_STATIC(WW_DETECTION, PLUGIN_TYPE_ENGINE_DETECTION, WWMetaEngineDetection);
